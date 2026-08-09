@@ -179,7 +179,7 @@ f@f=chramp("ramp图名称",@属性名或变量名);               //生成ramp�
 
 # 函数
 
-```cassandra
+```c
 clamp(变量，min，max)；            //传入参数为2/3/4维向量、int、float型；返回范围内的对应类型的变量；不在范围的变量会被映射为min和max；不对范围内的中间值进行缩放
 anoise(@P*k,重复次数，粗糙度，1);    //噪波函数；重复次数为int型，增加纹理细节；粗糙度为float型，一般0.5；k为对纹理的缩放；返回值介于0到0.67（可以认为是0.5）；返回类型是向量或者浮点数；如果anoise优先进行乘法，自动返回浮点数,一般乘2返回黑白纹理；返回类型根据左值判断；纹理偏移为对@P进行移动,+set(x,y,z)；alligator噪波
 fit(value,omin,omax,nmin,nmax);   //选择分区函数；传入和返回值参数类型为向量或者浮点型；小于omin的值被映射为nmin，大于omax的值被映射为nmax；不在范围的变量会被重新映射；返回值是映射后的浮点数；范围内的中间值会被缩放
@@ -1124,7 +1124,7 @@ connectadjacentpieces节点
   @strength=约束强度;                                    //设置约束的强度；一般设置为1000
   ```
 
-  ```cc
+  ```c
   s@constraint_name="Soft约束的名字";                    //与rbdbulletsolver节点的advanced选项中的Soft约束的dataname要一致
   @stiffness=约束强度;                                  //设置约束的强度；一般设置为1000
   ```
@@ -2643,7 +2643,7 @@ dop系统的vex与属性
   
     - popwind、popkill、popgroup、popproperty节点
   
-    - ```cassandra
+    - ```c
       通道名=语句;                         //对parameter做修改
       ```
   

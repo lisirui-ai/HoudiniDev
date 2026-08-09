@@ -105,7 +105,7 @@ ch型变量
 
 固有的或者可继承的变量
 
-<img src="./image-20250221215557446.png" style="zoom: 67%;" />
+<img src="./image-20250221215557446.png" style="zoom: 50%;" />
 
 @调用变量
 

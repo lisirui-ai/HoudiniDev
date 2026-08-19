@@ -354,7 +354,7 @@ s@shop_materialpath                        //面层级的材质属性；类型�
 
 # HScript
 
-在节点的属性面板的参数栏中用hscript写表达式
+在节点的属性面板的参数栏中用HScript写表达式
 
 $调用固有变量
 
@@ -2727,12 +2727,12 @@ vop和其他系统的数据通道
 - bindexport
 - promote parameter
 
-vex和hscript的数据通道
+VEX和HScript的数据通道
 
 - ch变量滑块
 - 直接引用ch通道
 
-hscript的数据通道
+HScript的数据通道
 
 - copy parameter与paste
 
@@ -2879,7 +2879,7 @@ dop系统的vex与属性
 - 属性
   - 在popwrangle节点的vex中是@+属性名的形式
   
-  - 对于dop，有一些hscript的通道是可写的，在vex框中直接对通道的parameter/属性做修改，直接写属性名（鼠标停留在通道上显示的名称）不用加@
+  - 对于dop，有一些HScript的通道是可写的，在VEX框中直接对通道的parameter/属性做修改，直接写属性名（鼠标停留在通道上显示的名称）不用加@
   
     - popwind、popkill、popgroup、popproperty节点
   

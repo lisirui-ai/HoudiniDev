@@ -69,7 +69,7 @@ ch型变量
 - 字符串
 
   ```c
-  chs("s")						//字符串文本框
+  chs("s");						//字符串文本框
   ```
 
 @型变量
@@ -375,19 +375,26 @@ HScript 拥有独立的表达式函数库，与 VEX 函数相互独立，部分�
 `ch()` 引用其他参数的值
 
 ```c
-// ch("参数路径") 读取指定参数的值，返回 float
+// ch("参数路径") 读取指定参数的值，自动判断类型，返回 float 或 string
 // 路径可以是相对路径或绝对路径
-ch("../box1/sizex")            // 引用上级 box1 节点的 sizex 参数值，返回 float
-ch("tx")                       // 引用本节点自身的 tx 参数值，返回 float
+ch("../box1/sizex")            // 引用上级 box1 节点的 sizex 参数值，该参数为 float 则返回 float
+ch("tx")                       // 引用本节点自身的 tx 参数值，该参数为 float 则返回 float
 
 // 让当前参数跟随另一个参数联动
 $T * ch("speed")               // 乘以本节点名为 speed 的参数值，实现速度控制
 
 // 不同类型的 ch 系列函数
-ch("path")                     // 读取 float 类型参数
-chs("path")                    // 读取 string 类型参数，返回 string
-chv("path")                    // 读取 vector 类型参数，返回 vector
+ch("path")                     // 读取 float 或 string 类型参数，自动判断，返回 float 或 string
+chf("path")                    // 明确读取 float 类型参数，返回 float
 chi("path")                    // 读取 int 类型参数，返回 int
+chs("path")                    // 读取 string 类型参数，返回 string
+chu("path")                    // 读取 vector2 类型参数，返回 vector2
+chv("path")                    // 读取 vector 类型参数，返回 vector
+chp("path")                    // 读取 vector4 类型参数，返回 vector4
+ch2("path")                    // 读取 matrix2 类型参数，返回 matrix2（2×2）
+ch3("path")                    // 读取 matrix3 类型参数，返回 matrix3（3×3）
+ch4("path")                    // 读取 matrix 类型参数，返回 matrix（4×4）
+chramp("path", pos)            // 采样 ramp 参数，pos 为 0~1 的采样位置，返回 float
 ```
 
 常用数学函数（与 VEX 同名，直接使用）

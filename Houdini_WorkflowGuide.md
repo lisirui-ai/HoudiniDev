@@ -1228,9 +1228,9 @@ rbdmaterialfracture节点
 
   - 字符串类型属性name
 
-    - ```c++
-      s@name="piecei-j-...-a-b"                        //i为未切割前碎块的块号，固定为0，因为只有一个碎块；j为第一次切割产生的碎块在其所属的上一次切割的碎块中的块号；b为第n-1次切割产生的碎块在其所属的上一次切割的碎块中的块号
-      ```
+    ```c++
+    s@name="piecei-j-...-a-b"                        //i为未切割前碎块的块号，固定为0，因为只有一个碎块；j为第一次切割产生的碎块在其所属的上一次切割的碎块中的块号；b为第n-1次切割产生的碎块在其所属的上一次切割的碎块中的块号
+    ```
 
   - group分组属性
 
@@ -1678,9 +1678,24 @@ pyrosolver节点
   - gasfieldwrangle节点
     - 后连advection_output节点
     - vex编程对解算中的属性做修改（不能直接写，会覆盖掉力场作用下的结果）
-      - ```c++
-        @vel;                                             //速度属性；vector类型
-        ```
+      ```c++
+      @vel;                                             //速度属性；vector类型
+      ```
+  - force_output节点
+    - 最先执行，在所有其他步骤之前
+    - 连接gasturbulence、gasshred、merge、gasfieldwrangle等施力节点，对速度场@vel施加力
+      - 此处施加的力会参与后续的压力投影修正，是修改@vel的首选挂载点，效果最自然
+      - 直接影响烟雾/火焰的运动轨迹，如旋转、弯曲、被风吹动等效果
+  - sources_output节点
+    - 在力之后、平流之前执行
+    - 连接修改density、temperature、fuel等源场的节点，控制烟雾/火焰的生成量和位置
+      - 此时稀疏模拟的active field尚未更新，在稀疏模拟下慎用
+      - 可用于按条件动态开关发射源、或修改特定区域的属性场强度
+  - advection_output节点
+    - 最晚执行，在平流阶段
+    - 前连接gasfieldwrangle等节点，在平流发生前读取或修改速度场@vel
+      - 此处对@vel的修改会被后续的压力投影部分抵消，不适合作为主要施力点
+      - 适合读取原始速度数据、或手动平流cd等自定义属性场
 
 
 popnetwork节点（粒子）
@@ -2797,9 +2812,11 @@ fog体积雾/vdb体积雾与pyro解算
   - 节点内置的噪波和内部的gas系列整体噪波节点
   
 - @pscale决定体积单元的范围，voxelsize决定体积单元的精细度
-  $$
-  \text{@pscale} \times 2  \quad(\text{直径})> \text{voxelsize} \times 1.5
-  $$
+
+$$
+\text{@pscale} \times 2 \quad (\text{直径}) > \text{voxelsize} \times 1.5
+$$
+
 
   - 只有当@pscale>voxelsize*0.75，体积单元才能正确渲染
 
@@ -2900,9 +2917,9 @@ dop系统的vex与属性
   
     - popwind、popkill、popgroup、popproperty节点
   
-    - ```c
-      通道名=语句;                         //对parameter做修改
-      ```
+    ```c
+    通道名=语句;                         //对parameter做修改
+    ```
   
   - 在虚线上定义的属性不会生效
 
@@ -2971,11 +2988,11 @@ rbd系列节点
 
 快捷键
 
-- ```c++
-  shift+s                                         //节点间的连线的线型
-  alt+左键                                         //理线
-  y+左键                                           //切断线
-  ```
+```c++
+shift+s                                         //节点间的连线的线型
+alt+左键                                         //理线
+y+左键                                           //切断线
+```
 
 
 dop系统
@@ -2990,7 +3007,7 @@ dop系统
 
   - 三维矩阵m要能准确记录物体的运动，所选的轴向要与物体运动相关，例如法线和切线方向
 
-- ```c++
+  ```c++
   vector test*=m;                                                       //向量跟随物体旋转;旋转矩阵驱动        
   ```
 

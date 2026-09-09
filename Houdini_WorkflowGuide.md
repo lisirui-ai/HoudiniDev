@@ -1252,7 +1252,7 @@ rbdmaterialfracture节点
 
     - 不可见的朝向内部的面的分组名为inside
 
-      - 分组内包含的面数是所有fracturelevel切割所产生的超向内的面的总和
+      - 分组内包含的面数是所有fracturelevel切割所产生的朝向内的面的总和
 
         ```
         @group_inside
@@ -1263,7 +1263,7 @@ rbdmaterialfracture节点
       - 每一次fracturelevel的切割所产生的碎块有自己独立的outside组和inside组
 
         ```c++
-        @group_concrete_fracturekoutside                     //k为fracturelevel的值，即切割的次数
+        @group_concrete_fracturekinside                     //k为fracturelevel的值，即切割的次数
         ```
 
     - chipping碎屑
@@ -1290,14 +1290,15 @@ rbdconfigure节点
 
 - 为刚体添加用于解算的属性
   - 对碎块属性的设置只能通过该节点，否则会丢失简模、约束等信息
-
+  - 可以为不同的刚体（merge之后的）根据不同的@name属性分别设置属性
+  
 - 勾选speedmin设置初速度
 - 勾选geometryrepresentation设置刚体按凹面还是凸面解算
   - concave凹面解算模式精度高，但是结算慢
 
 - 勾选active
-  - 设置为1输出刚体为主动碰撞刚体
-  - 设置为0输出刚体为被动碰撞刚体
+  - 设置为1，刚体参与解算
+  - 设置为0，刚体不参与解算
     - 可以后连rbdbulletsolver节点的第四个输入端作为地面
 - 勾选deforming
   - 设置为1继承上游节点的动画，带动画的刚体参与解算
@@ -1330,6 +1331,7 @@ rbdio节点
 - 四个输入端都连rbdbulletsolver节点对应的输出端
 - 模式选择simulationpoints缓存模拟点云
 - 第四个输出端输出模拟点云
+- 加快解算和缓存速度
 
 rbdexplodedview节点
 
@@ -1338,7 +1340,7 @@ rbdexplodedview节点
 
 connectadjacentpieces节点
 
-- 根据rbdfractionmaterial节点输入的简模，生成约束形状
+- 根据rbdfractionmaterial节点输出的简模，生成约束形状
 
 - 模式设置为adjacentpiecesfromsurfacepoints
 
@@ -1355,18 +1357,19 @@ connectadjacentpieces节点
 
 - 勾选lengthattribute
 
-  - 产生restlength记录每个约束线的长度于对应的面层级
+  - 产生@restlength记录每个约束线的长度于对应的面层级
+  - 不勾选不会被识别为约束
 
-- 后接aw节点
+- 后接aw节点（面层级）
 
   ```c++
   s@constraint_name="Glue约束的名字";                    //与rbdbulletsolver节点的advanced选项中的Glue约束的dataname要一致
-  @strength=约束强度;                                    //设置约束的强度；一般设置为1000
+  @strength=约束强度;                                    //设置约束的强度；强度取决于物体大小
   ```
 
   ```c
   s@constraint_name="Soft约束的名字";                    //与rbdbulletsolver节点的advanced选项中的Soft约束的dataname要一致
-  @stiffness=约束强度;                                  //设置约束的强度；一般设置为1000
+  @stiffness=约束强度;                                  //设置约束的强度；强度取决于物体大小
   ```
 
 transformpieces节点
@@ -1470,6 +1473,8 @@ pyrosolver节点
 - 解算fog体积
   - 将进行cloudnoise节点加工后的fog体积作为解算源
 - 控制解算精度，类似体素精度
+
+  - 解算精度应该对齐vdb的voxelsize
 - sourcing处增加读取的通道/属性
   - 读取上游的体积的某个属性到解算对象的某个属性中，使得上游属性能被写到属性场作为初值参与解算
     - temperature、density、vel、Cd、flame
@@ -1479,6 +1484,7 @@ pyrosolver节点
       - density不是必须的，不读取时，不设置初始density
         - 只根据flame解算fire
         - emitfromflame发射smoke
+      - burn映射flame
   - operation解算模式
   - sourcescale设置sourcevolume处属性乘对应倍数后赋予targetvolume处解算对象的对应属性
   - 将上游体积的temperature映射到解算对象的temperature通道，模式为pull
@@ -1512,6 +1518,7 @@ pyrosolver节点
       - emissionscale控制发射的数量级
       - flamerange控制flame属性值在范围内的部分产生浓度
   - temperature
+    - 温度场是必须有的，要么来自于sourcing，要么来自于emit
     - coolingrate处设置温度降低的速率
       - 越大，温度降的越块
     - 勾选emitfromflame使得flame属性场可以影响temperature属性场
@@ -1547,6 +1554,7 @@ pyrosolver节点
     - 调整风的朝向和风力大小
   - turbulence纹理噪波
     - 是针对解算中间过程的扰乱，不是对发射源的扰乱，发射源需要在进入结算前自行扰乱
+    - 噪波应该在小的voxelsize下调整即高精度下，否则看不出区别
     - 实际影响的是速度场
     - 产生大的扰乱
       - 块扰乱效果
@@ -1559,8 +1567,8 @@ pyrosolver节点
     - thresholdfield指定噪波影响的已经sourcing通道，即作用域
       - 一般为temperature
     - thresholdrange指定噪波影响的范围
-    - 勾选controlfield开启并设置噪波的控制属性
-      - controlfield处指定控制属性
+    - 勾选controlfield开启并设置噪波的控制属性场
+      - controlfield处指定控制属性场
         - temperature
       - controlrange指定控制属性的范围
         - 控制属性的值在范围内的区域，噪波生效，否则不生效
@@ -1568,6 +1576,7 @@ pyrosolver节点
         - 单击computerange计算当前帧控制属性的最值
   - disturbance纹理噪波
     - 是针对解算中间过程的扰乱，不是对发射源的扰乱，发射源需要在进入结算前自行扰乱
+    - 噪波应该在小的voxelsize下调整即高精度下，否则看不出区别
     - 实际影响的是速度场
     - 产生小的扰乱
       - 边缘扰乱效果
@@ -1576,8 +1585,8 @@ pyrosolver节点
     - disturbance强度
       - 强度越大，越明显
       - 以5为单位往上设置强度
-    - 勾选usecontrolfield开启并设置噪波的控制属性
-      - controlfield处指定控制属性
+    - 勾选usecontrolfield开启并设置噪波的控制属性场
+      - controlfield处指定控制属性场
         - speed
       - controlrange指定控制属性的范围
         - 控制属性的值在范围内的区域，噪波生效，否则不生效
@@ -1585,6 +1594,7 @@ pyrosolver节点
         - 单击computerange计算当前帧控制属性的最值
   - flameexpansion
     - 勾选产生膨胀力场，产生divergence属性场，影响vel属性场，模拟爆炸
+    - divergence属性可以在没有浮力的情况下产生膨胀也就是爆炸效果
   - shredding
     - 对速度场产生高频细碎的旋转，从而产生更加细碎的噪波
       - 比turbulence更加细碎
@@ -1593,7 +1603,7 @@ pyrosolver节点
       - flame、density、temperature
       - 指定flame时可以使得模拟效果更像燃烧的火焰，有火焰流动的效果，更加自然
       - 指定density时可以破除解算初期的规整，一般在内部的gasshred节点中设置
-    - controlfield指定控制场
+    - controlfield指定控制属性场
   - viscosity
     - 黏性
 - look选项
@@ -1606,7 +1616,7 @@ pyrosolver节点
       - 一般是flame属性场
     - smokevolume处指定烟雾浓度的控制场
   - fire
-    - density的sourcerange控制火焰强度在对应的控制场中生效的范围
+    - intensity的sourcerange控制火焰强度在对应的控制场中生效的范围
       - 一般与color的sourcerange相同
     - color的sourcerange控制火焰颜色在对应的控制场中生效的范围
 - setup选项
@@ -2631,7 +2641,7 @@ vdbvisualization节点
 
 cloudnoise节点
 
-- 给fog体积的@density添加噪波
+- 给fog体积的@density添加噪波，产生随机效果
 - 要将amplitude强度调高才能看到效果
 - 频率越小，纹理越细碎；频率越大，纹理越整体
 - 会增加体素个数，不改变体素大小
@@ -2785,6 +2795,13 @@ fog体积雾/vdb体积雾与pyro解算
 
   - gasfieldwrangle节点vex控制
   - 节点内置的噪波和内部的gas系列整体噪波节点
+  
+- @pscale决定体积单元的范围，voxelsize决定体积单元的精细度
+  $$
+  \text{@pscale} \times 2  \quad(\text{直径})> \text{voxelsize} \times 1.5
+  $$
+
+  - 只有当@pscale>voxelsize*0.75，体积单元才能正确渲染
 
 distance体积雾
 
@@ -3017,3 +3034,28 @@ vop系统的节点
 含有ch通道copy和paste关联的节点的复制
 
 - 复制两个含有ch关联的节点，ch关联也会自动更新，不会发生冲突
+
+rbd解算
+
+- 最重要的是@name属性，要在面层级
+- 先切割，再添加动画
+- rbd碎块的低模不包含interiordetail
+
+点云驱动
+
+- pointdeform、transformpieces
+- 比模型解算更加高效（解算速度快）
+
+比例
+
+- 一个单位是1米
+- 解算中如果模型的比例过大，不会解算
+
+解算的帧率
+
+- 三同步
+  - 时间轴的step、解算器的substeps、缓存节点的substeps
+- substeps
+  - 代表每秒解算几次
+- 三种帧率的关系
+  - 1s=substeps*step

@@ -2812,13 +2812,12 @@ fog体积雾/vdb体积雾与pyro解算
   - 节点内置的噪波和内部的gas系列整体噪波节点
   
 - @pscale决定体积单元的范围，voxelsize决定体积单元的精细度
-
-$$
-\text{@pscale} \times 2 \quad (\text{直径}) > \text{voxelsize} \times 1.5
-$$
-
+  $$
+  \text{@pscale} \times 2 \quad (\text{直径}) > \text{voxelsize} \times 1.5
+  $$
 
   - 只有当@pscale>voxelsize*0.75，体积单元才能正确渲染
+
 
 distance体积雾
 

@@ -1676,11 +1676,35 @@ pyrosolver节点
     - 使得不同的gas节点一起产生作用
     - 后连force_output节点
   - gasfieldwrangle节点
-    - 后连advection_output节点
+    - 后连advection_output节点或force_output节点
     - vex编程对解算中的属性做修改（不能直接写，会覆盖掉力场作用下的结果）
-      ```c++
-      @vel;                                             //速度属性；vector类型
-      ```
+      
+      - ```c
+        @vel;                                             //速度属性；vector类型
+        ```
+      
+      - 修改速度场
+      
+        - 自定义速度场：将缩放单位旋转力和缩放单位向心力叠加到@vel上
+          - **单位向心力方向 = normalize(@P - 吸引点坐标)**，即从吸引点指向当前体素的径向
+          - **单位旋转力方向 = normalize(cross(单位向心力, 旋转轴))**，即切线方向
+          - rot_scale控制旋转力的强度，越大旋转速度越快
+          - cent_scale为负值时向心力朝向吸引点（收拢效果），为正值时远离吸引点（扩散效果）
+          - ```c
+            vector attract_pos = chv("center");                        //吸引点（旋转中心）坐标；vector类型
+            vector rot_axis = normalize(chv("axis"));                 //旋转轴方向（已归一化）；vector类型
+            
+            vector radial = @P - attract_pos;                      //从吸引点指向当前体素的径向向量；vector类型
+            vector radial_unit = normalize(radial);                 //单位向心力方向；vector类型
+            vector rot_unit = normalize(cross(radial_unit, rot_axis)); //单位旋转力方向（切线方向）；vector类型
+            
+            float rot_scale = chf("rot_scale");                  //旋转力缩放系数；float类型
+            float cent_scale = chf("cent_scale") ;                //向心力缩放系数；负值朝向中心；float类型
+            
+            @vel += rot_unit * rot_scale;                           //叠加旋转力到速度场；vector类型
+            @vel += radial_unit * cent_scale;                       //叠加向心力到速度场；vector类型
+            ```
+          
   - force_output节点
     - 最先执行，在所有其他步骤之前
     - 连接gasturbulence、gasshred、merge、gasfieldwrangle等施力节点，对速度场@vel施加力
@@ -3077,3 +3101,7 @@ rbd解算
   - 代表每秒解算几次
 - 三种帧率的关系
   - 1s=substeps*step
+
+坐标系
+
+- 默认是左手坐标系，食指朝上是y轴，大拇指朝屏幕外是z轴，中指是x轴

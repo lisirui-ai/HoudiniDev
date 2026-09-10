@@ -542,6 +542,12 @@ wireframe节点
 merge节点
 
 - 可以合并显示，也可以合并渲染
+- 属性对齐
+- 自动解算
+  - 将不同的solver节点merge在一起，可以共同解算
+  - 碰撞解算
+    - relationship设置为colliderelationship
+    - affectorrelationship设置为mutual
 
 objectmerge节点
 
@@ -1704,7 +1710,7 @@ pyrosolver节点
             @vel += rot_unit * rot_scale;                           //叠加旋转力到速度场；vector类型
             @vel += radial_unit * cent_scale;                       //叠加向心力到速度场；vector类型
             ```
-          
+    
   - force_output节点
     - 最先执行，在所有其他步骤之前
     - 连接gasturbulence、gasshred、merge、gasfieldwrangle等施力节点，对速度场@vel施加力
@@ -1748,6 +1754,8 @@ popnetwork节点（粒子）
     - constbirthrate每秒/24帧发射粒子的个数，constactivation控制constbirthrate是否生效
     - impulsecount每帧发射粒子的个数，impulseactivation控制impulsecount是否生效
     - maxpointsperframe每帧发射的粒子数
+      - 初始时控制粒子源的个数
+      - points模式才能设置
     - maxsimpoints发射出的粒子的最大个数
     - justborngroup分组属性
       - 当前帧发射的粒子的属性为1，其他为0
@@ -1816,6 +1824,7 @@ popnetwork节点（粒子）
 - groundplane节点
   - 添加碰撞地面
   - 与popsolver节点merge后，连到output
+  - 显示bug，需要外部再解算节点的后面接blast节点删除
   
 - popwind节点
   
@@ -1884,9 +1893,8 @@ popnetwork节点（粒子）
   - attributes选项中控制新发射源发射的粒子继承该发射源发射点的属性以及设置速度
   - birth选项中设置发射速率和寿命
     - impulsecount控制发射源的每个发射点每帧发射的粒子数目
-      - 控制每个球状发射源内的发射点的个数
     - constbirthrate控制所有发射源的所有发射点每秒发射的粒子总数
-
+  
 - popgroup节点
 
   - 对粒子进行分组
@@ -1904,7 +1912,7 @@ popnetwork节点（粒子）
 
   - groupname处命名组，即外部的分组属性名
 
-  - 生成dop外部的sop中的分组属性
+  - 生成dop外部的sop中的分组属性和stream的分组属性
 
 - popcolor节点
 
@@ -1980,12 +1988,14 @@ popnetwork节点（粒子）
 - staticobject节点
 
   - 读取外部的sop模型作为被动碰撞刚体
+  - 勾选usedeforminggeometry将运动的模型参与解算
   - collisions选项
     - rbdsolver的volume中勾选collisionguide显示实际碰撞体
     - rbdsolver的volume中模式设置为rayintersect
       - uniformdivisions设置碰撞体的精度
         - 50常用，100、200较高
     - rbdsolver的volume中模式设置为volumesample
+      - 主动碰撞体是烟雾时需要设置为volumesample模式并提高uniformdivisions精度
       - proxyvolume需要指定sop模型的distance体积
 
 - staticsolver节点
@@ -2005,12 +2015,14 @@ popnetwork节点（粒子）
 
     - advectiontype设置映射方式
       - updateforce属性变为风场影响，间接映射
+        - 更加自然
       - updatevelocity属性变为速度影响，直接影响
-
+        - 更加贴近体积
+      
     - velocityblend控制映射的紧密程度
       - 数值越大，粒子与体积的运动越拟合
       - 默认0.5
-
+    
   - 前连粒子流，体积速度映射后，不需要再加力场驱动粒子运动
 
 - popspin节点
@@ -2027,7 +2039,7 @@ popnetwork节点（粒子）
 
 dopnetwork节点
 
-- 用于解算烟雾，相当于外部的pyrosolver节点
+- 用于自定义解算
 
 - 属性
   - simulation选项
@@ -2154,6 +2166,7 @@ dopnetwork节点
         - x/y/z轴上设置空气墙（与体积发生碰撞的被动刚体）
         - below时，对应轴上小于设定值的体积不会被显示
         - above时，对应轴上大于设定值的体积不会被显示，即空气墙位置
+        - 和maxsize的区别是会发生碰撞
     - voxelsize设置体素大小
       - 要与外部体积的体素大小一致
   
@@ -2179,6 +2192,7 @@ dopnetwork节点
 rbdbulletsolver节点
 
 - 第一个输入端是模型，第二个输入端是约束，第三个输入端是简模，第四个输入端是地面/被动碰撞刚体
+  - 多个刚体都要输出动画时，需先用 merge 合并后再连入第一个输入端，因为rbdbulletsolver只从第一个输入端输出动画
 - 前接rbdconfigure节点
 - collision选项
   - groundcollision添加碰撞地面
@@ -2197,10 +2211,10 @@ rbdbulletsolver节点
   - soft设置软约束
     - 软约束相当于钢筋的粘连效果
 - constraints选项
-  - distancethreshold控制soft约束的作用范围
-    - 面与glue约束的面的间距超过这个阈值后，约束消失
-  - anglethreshold控制soft约束的作用范围
-    - 面与glue约束的面的角度超过这个阈值后，约束消失
+  - distancethreshold控制constraintnames对应的约束的作用范围
+    - 面与constraintnames对应的约束的面的间距超过这个阈值后，约束消失
+  - anglethreshold控制constraintnames对应的约束的作用范围
+    - 面与constraintnames对应的约束的面的角度超过这个阈值后，约束消失
   - 勾选usevexsnippet开启vex控制约束，针对于当前页的约束
     - vex中该约束对应的线编号是0
   - vexsnippetsoppath指定辅助sop对象
@@ -3105,3 +3119,9 @@ rbd解算
 坐标系
 
 - 默认是左手坐标系，食指朝上是y轴，大拇指朝屏幕外是z轴，中指是x轴
+
+pop系列节点
+
+- stream属性中可以设置组名指定影响的粒子流
+- 都支持组操作
+- VEX中访问粒子本身的属性推荐用@属性名，在非popwrangle节点内，函数的输入端的0号代表的不是粒子流，而是外部的输入

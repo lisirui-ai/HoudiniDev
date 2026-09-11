@@ -2228,8 +2228,8 @@ rbdbulletsolver节点
 popnetwork节点（刚体）
 
 - rbdpackedobject节点
-  - geometrysource处导入外部rbdbulletsolver节点已经解算好输出的高模
-  - initialobjecttype设置为createanimatedstaticobjects
+  - geometrysource处导入外部已经设置解算属性的模型（带动画）
+  - initialobjecttype设置为createanimatedstaticobjects或deforming
     - 减少解算量
   - bulletdata选项
     - geometryrepresentation设置为concave可提高解算精度，但耗时
@@ -2242,6 +2242,8 @@ popnetwork节点（刚体）
 ## 时间
 
 timeshift节点
+
+- 动画提取或冻结帧
 
 - 读取前n帧的数据
 - 属性视窗中的frame选项处写时间函数
@@ -2301,7 +2303,7 @@ timeblend节点
       - bind导入的属性既可以来自点层级，也可以来自面层级，都可以正确显示
   - compute lighting节点
     - 前接principledshadercore节点，后连surface_output节点
-  - displacement bound
+  - displacement bound选项
     - 涉及置换效果，必须添加并设置为1
     - editparameterinterface
   - 输入节点是surface_globals节点和displacement_globals节点
@@ -2310,6 +2312,7 @@ timeblend节点
     - surface_globals节点的I通道是以相机位置到模型表面的点的连线为方向的单位向量
   - 输出节点是surface_output节点和displacement_output节点
 - pbrvolumephasefunction
+  - 针对的是体积材质
   - 计算物体的BSDF，作用于pbr模式的F通道
   - out_F的BSDF+pbrphase的BSDF的结果输入到surface_output的F通道
   - 调节反射，scattering phase为负代表光被反向折射，为正代表光被正向折射，越靠近0物体越亮
@@ -2328,21 +2331,34 @@ timeblend节点
     - material builder节点中的置换输出节点的P通道只能识别相机坐标系
     - material builder节点中的输入是相机坐标系，输出也是相机坐标系
     - 对material builder节点中位置通道的置换需要先转换为世界坐标系，之后再转换为相机坐标系
+      - 使得P不受相机移动的影响
   - interpretation处选择转换的属性，例如法线normal，位置position
 - shading normal节点
-  - 计算相机坐标系下的法线，使得渲染准确
-  - 置换完之后要重新计算发现
+  - 计算相机坐标系下的法线
+  - 置换完之后要重新计算法线，使得渲染准确
+  - 输入置换完的转为相机坐标系下的P，输出相机坐标系下的N
 - displace节点
-  - 可根据输入计算法线贴图并输出到principledshadercore的baseN通道
-    - 将计算的法线贴图重新作为法线输出到表面显示
-  - 输入连value通道
-  - 输入的是相机坐标系下的数据
+  - displacementalongnormal模式沿法线置换
+    - 输入的是相机坐标系下的P和N，但是要注意value置换值要在世界坐标系下计算得到，使得纹理不随着相机移动而改变，置换效果不随着相机移动而改变
+    - offset要改为0
+    - 置换之后，输出的相机坐标系下的法线不是准确的，需要后连shadingnormal节点进行重新计算置换后的法线
 - restposition节点
   - 相当于bind导入外部的@rest，@rest需要提前在sop中通过sop的restposition节点初始化
   - 无需连接输入，直接可以作为输出
     - space选择world世界坐标，即世界坐标系下的固定位置
     - space选择camera相机坐标，即相机坐标系下的固定位置
   - 只能通过该节点读取sop中的@rest
+- texture节点
+  - 用于读取贴图
+  - 前连uvcoords节点读取模型的uv，后连principledshadercore节点的对应通道输出贴图
+    - 贴图文件名与 Principled Shader Core 输入通道的对应关系：
+      - **BaseColor** → `basecolor` 通道：直接连接，漫反射/基础颜色
+      - **Normal** → `baseN` 通道：直接连接法线贴图
+      - **Bump** → `baseN` 通道：需经过 Bump 节点处理后连接（与 Normal 二选一或叠加）
+      - **Roughness** → `rough` 通道：直接连接，控制表面粗糙程度
+      - **Gloss** → `rough` 通道：需反转（Invert 节点），因为 Gloss = 1 - Roughness
+      - **Specular** → `reflect` 通道：控制反射/高光强度
+      - **Cavity** → `basecolor` 通道（乘法修饰）：无直接对应通道，通常乘以 BaseColor 模拟缝隙阴影/AO效果
 - displacementtexture节点
   - 可以导入法线贴图
     - 需要有uv属性，连接uv通道，一般配合uvcoords节点
@@ -2419,7 +2435,7 @@ divide节点
 
 - 除法
 
-xyzdist节点
+xyzdist节点（不推荐，有bug）
 
 - 实现xyzdist函数的功能
 - input geometry可以是sop路径，promote parameter后在外面的vop属性中输入sop路径
@@ -3125,3 +3141,9 @@ pop系列节点
 - stream属性中可以设置组名指定影响的粒子流
 - 都支持组操作
 - VEX中访问粒子本身的属性推荐用@属性名，在非popwrangle节点内，函数的输入端的0号代表的不是粒子流，而是外部的输入
+
+材质vop（materialbuilder节点）的渲染管线
+
+- 先置换，后着色
+  - 置换阶段：相机坐标系P变形改变几何形状，顶点uv值不变
+  - 着色阶段：对变形后的表面插值uv，用uv采样贴图，使得principledshadercore接收的贴图能正确贴到变形后的表面

@@ -409,6 +409,42 @@ int($FF)                       // 取整，返回 int
 abs(-5)                        // 取绝对值，返回 float
 ```
 
+几何数据查询函数（用于读取节点的属性，即gs中的属性）
+
+```c
+// ── point 函数 ──────────────────────────────────────────────────────────────
+// 语法：point(surface_node, point_number, attribute, index)
+// 功能：读取指定 SOP 节点输出几何上某个点（Point）的属性值，返回 float
+//   surface_node — SOP 节点完整路径字符串，如 "/obj/geo1/grid1"
+//   point_number — 点编号（int），从 0 开始；$PT 表示当前点
+//   attribute    — 属性名字符串，不含 @ 前缀；"P" 表示点的位置
+//   index        — 分量索引（int）：向量/颜色属性用 0/1/2 取各分量；标量属性传 0
+point("/obj/geo1/facet1", 3, "P", 0)    // 第 3 号点的位置 X 分量，返回 float
+point("/obj/geo1/facet1", 3, "N", 2)    // 第 3 号点的法线 Z 分量，返回 float
+point("/obj/geo1/grid1", $PT, "Cd", 1)  // 当前点（$PT）的颜色 G 分量，返回 float
+
+// ── prim 函数 ───────────────────────────────────────────────────────────────
+// 语法：prim(surface_node, prim_num, attrib_name, attrib_index)
+// 功能：读取指定 SOP 节点输出几何上某个基元（Primitive）的属性值，返回 float
+//   surface_node — SOP 节点完整路径字符串
+//   prim_num     — 基元编号（int），从 0 开始；$PR 表示当前面；"P" 属性返回质心位置
+//   attrib_name  — 属性名字符串，不含 @ 前缀
+//   attrib_index — 分量索引（int），用法与 point 函数相同
+prim("/obj/geo1/facet1", 3, "P", 0)      // 第 3 号基元质心的 X 分量，返回 float
+prim("/obj/geo1/facet1", 3, "Cd", 1)     // 第 3 号基元颜色的 G 分量，返回 float
+prim("/obj/geo1/grid1", $PR, "myattr", 0) // 当前面（$PR）的自定义标量属性，返回 float
+
+// ── detail 函数 ─────────────────────────────────────────────────────────────
+// 语法：detail(surface_node, attrib_name, attrib_index)
+// 功能：读取指定 SOP 节点输出几何的 Detail（全局级）属性值
+//   surface_node — SOP 节点完整路径；不能引用自身节点（会产生循环依赖），需指定其他节点
+//   attrib_name  — 属性名字符串，不含 @ 前缀
+//   attrib_index — 分量索引（int）；标量属性传 0
+// 返回：float / int / string（视属性类型）
+detail("/obj/geo1/attribpromote1", "area", 0)  // 读取 detail 属性 area，返回 float
+detail("/obj/geo1/measure1", "mycount", 0)     // 读取 detail 属性 mycount，返回 float/int
+```
+
 # chramp
 
 在`aw`中制作`ramp`图

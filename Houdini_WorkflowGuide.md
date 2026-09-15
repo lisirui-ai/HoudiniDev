@@ -320,7 +320,7 @@ v@scale                                  //点的轴向的伸缩；类型是三�
 @group_组名                               //分组属性；为1在组内，为0不在组内
 @width                                   //线的宽度属性；渲染才可见
 @uv                                      //uv属性；类型是vector三维向量
-@name                                    //体积雾的面层级的属性；类型是字符串
+@name                                    //体积雾的面层级的属性；rbd碎块的面层级的属性；类型是字符串
 @density                                 //fog体积的浓度属性；类型是float；不影响体素的个数和大小；影响显示效果/渲染效果；fog内部的@density的值都一样，为volumewrangle中设置的@density大小；fog外部的属性值为0;可以为点云赋予@density，相当于pyrosource，方便后续生成体积并解算 
 @surface                                 //distance体积的距离属性；类型是float；体积表面的属性为0，内部距离为-，外部距离为＋；越往里，属性越小，当有内界时，属性减小到内界的属性；越往外，属性越大，当有外界时，属性增大到外界的属性
 @P                                        //对于点是位置属性，且可写；对于体积是体素的位置属性，只可读；对于粒子是位置属性
@@ -502,6 +502,9 @@ getbbox_size(输入端地址);                           //得到输入端模型
 getbbox_center(输入端地址);                         //得到输入端模型的boundingbox的中心位置；返回值是vector类型
 flownoise(@P,@Time);                              //得到变化连续的flow纹理；范围值介于0~1；返回值是float/vector类型
 itoa(int变量)；                                     //将一个int变量转换为string类型并返回
+ftoa(float变量);                                    //将一个float变量转换为string类型并返回；返回类型为string
+atoi(string变量);                                   //将一个string变量转换为int类型并返回；字符串内容须为合法整数，否则返回0；返回类型为int
+atof(string变量);                                   //将一个string变量转换为float类型并返回；字符串内容须为合法数字，否则返回0；返回类型为float
 getbbox_max(输入端地址);                             //得到输入端模型的boundingbox的每个轴向上对应的上界和下界在对应轴上投影的坐标的最大值；返回值是vector；当投影的坐标为负时，取最大，有正有负，取正；与坐标系有关；返回向量的分量可能有负值
 getbbox_min(输入端地址);                             //得到输入端模型的boundingbox的每个轴向上对应的上界和下界在对应轴上投影的坐标的最小值；返回值是vector；当投影的坐标为负时，取最小，有正有负，取负；与坐标系有关；返回向量的分量可能有负值
 max(传入参数1，传入参数2，...);                        //得到传入参数的最大值并返回
@@ -524,6 +527,11 @@ inpointgroup(几何体句柄, 组名, 点序号);                    //查询某
 inprimgroup(几何体句柄, 组名, 面序号);                     //查询某面是否属于指定组；几何体句柄为int型，通常传0；组名为string型；面序号为int型（@primnum）；返回int型，1表示在组内，0表示不在组内
 invertexgroup(几何体句柄, 组名, 面序号, 顶点局部序号);       //查询某顶点是否属于指定组；几何体句柄为int型，通常传0；组名为string型；面序号为int型；顶点局部序号为int型，该顶点在所属面中的局部编号；返回int型，1表示在组内，0表示不在组内
 inedgegroup(几何体句柄, 组名, 点序号1, 点序号2);            //查询某边是否属于指定组；边由两端点确定；几何体句柄为int型，通常传0；组名为string型；点序号1和点序号2为int型；返回int型，1表示在组内，0表示不在组内
+point(输入端序号, "属性名", 点序号);                          //读取point层级属性；输入端序号为直接相连的输入端的序号（从0开始）或sop路径字符串；属性名为string型，不需要加@；点序号为int型，即@ptnum，指定要读取哪个点的属性；返回值类型与属性类型一致，可为int/float/vector/string等
+prim(输入端序号, "属性名", 面序号);                           //读取prim层级属性；输入端序号为直接相连的输入端的序号（从0开始）或sop路径字符串；属性名为string型，不需要加@；面序号为int型，即@primnum，指定要读取哪个面的属性；返回值类型与属性类型一致，可为int/float/vector/string等
+vertex(输入端序号, "属性名", 面序号, 顶点局部序号);            //读取vertex层级属性；输入端序号为直接相连的输入端的序号（从0开始）或sop路径字符串；属性名为string型，不需要加@；面序号为int型（@primnum），指定该顶点所属的面；顶点局部序号为int型，该顶点在所属面中的局部编号（从0开始）；返回值类型与属性类型一致，可为int/float/vector/string等
+detail(输入端序号, "属性名", 0);                              //读取detail层级属性；输入端序号为直接相连的输入端的序号（从0开始）或sop路径字符串；属性名为string型，不需要加@；第三个参数固定传0（detail属性在整个几何体中全局唯一，无需序号区分）；返回值类型与属性类型一致，可为int/float/vector/string/数组等
+dot(向量a, 向量b);                                            //计算两个向量的点积；传入参数为vector型；返回值为float型，即两向量各分量对应相乘后求和的结果；返回值等于|a|*|b|*cos(夹角)；当两向量均为单位向量时返回值即为夹角余弦值，可用于判断朝向关系（大于0同侧，小于0反侧，等于0垂直）
 ```
 
 # 快捷键
@@ -541,6 +549,10 @@ y键断开连接
 ctrl+鼠标中键：在任意参数调节框中恢复到默认值
 
 右键参数栏（带滑块控制条）→ copy parameter / `paste`：将参数引用复制到其他参数栏和`aw`编程框，做到参数引用关联
+
+shift+s切换连线样式
+
+ctrl+🧠重新解算，ctrl+📷从当前视角新建相机
 
 # 颜色
 
@@ -707,7 +719,7 @@ ctrl+鼠标中键：在任意参数调节框中恢复到默认值
 
 `foreach`系列节点
 - 对每个元素单独进行计算，最后合并输出
-- 监视节点
+- 监视节点metadata
   - `detail`层级属性
     - `iteration`循环序号
     - `numiterations`循环总次数
@@ -729,6 +741,7 @@ ctrl+鼠标中键：在任意参数调节框中恢复到默认值
 
 - 根据点/面是否相连，为分隔的部分设置`class`属性
 - 可配合`foreach` named `primitive`进行使用
+- 作用相当于**assemble节点**，但不如**assemble节点**常用，**assemble节点**直接生成`name`属性
 
 **measure节点**
 
@@ -814,10 +827,11 @@ copy and **transform节点**
 
 - 类似**lattice节点**
 - 对比**lattice节点**，更加灵活，输入是模型或者点云均可，不要求输入`lattice`
+- 输入的是无动态的要驱动的高低模和有动态的点云
 
 **uvproject节点**
 
-- 为模型计算`uv`属性并记录到`vertice`层级
+- 为模型计算`uv`属性并记录到`vertice`层级，或者`point`层级
 - 基于模型整体的`uv`，不是基于每个面
 
 **merge节点**
@@ -1055,6 +1069,7 @@ copy and **transform节点**
 
 - 修改层级的属性
 - 对粒子（解算后的点）属性的修改，是在点层级
+- 不同层级的属性不共享
 
 **grouppromote节点**
 
@@ -1143,7 +1158,7 @@ copy and **transform节点**
 
 **volumerasterizeattributes节点**
 
-- 将点云转换为体积
+- 将点云转换为vdb属性场，根据点云的属性生成属性场
   - 可以由粒子驱动烟雾
 - 前连**pyrosource节点**/点云
 - `attributes`指定继承自粒子的属性
@@ -2352,20 +2367,20 @@ copy and **transform节点**
 材质类
 
 - **materialbuilder节点**
-  - principled shader **core节点**
+  - **principledshadercore节点**
     - 利用输入通道（例如自发光、透明、粗糙、颜色）结合`bind`导入的属性做处理
       - `bind`导入的属性既可以来自点层级，也可以来自面层级，都可以正确显示
-  - compute **lighting节点**
+  - **computelighting节点**
     - 前接**principledshadercore节点**，后连**surface_output节点**
-  - displacement `bound`选项
+  - `displacementbound`选项
     - 涉及置换效果，必须添加并设置为1
-    - editparameterinterface
+    - `editparameterinterface`
   - 输入节点是**surface_globals节点**和**displacement_globals节点**
     - 前者关注表面，后者关注置换
     - 前者的法线关注于原本表面的法线，后者的法线关注于置换后表面的法线
     - **surface_globals节点**的I通道是以相机位置到模型表面的点的连线为方向的单位向量
   - 输出节点是**surface_output节点**和**displacement_output节点**
-- pbrvolumephasefunction
+- **pbrvolumephasefunction节点**
   - 针对的是体积材质
   - 计算物体的`BSDF`，作用于`pbr`模式的F通道
   - `out_F`的`BSDF`+`pbrphase`的`BSDF`的结果输入到`surface_output`的F通道
@@ -2685,7 +2700,7 @@ importpoint/primitive/vertex/**detailattribute节点**
     - 通过`color`指定
   - 指定发光几何体及其材质
     - 在`arealightoption`中的`geometryobject`处指定光源对象
-      - 实体模型以及体积可以指定为光源
+      - 实体以及体积可以指定为光源
     - 点不能作为物体光，线可以
       - `Geometry Light` 只能从有面积的表面采样发光，粒子（点）没有面积，所以实际的光源是实体模型，如果粒子和实体模型`merge`后作为`geometryobject`，看起来粒子好像是光源显得更亮，只是因为`Geometry` Light 把整个 geometryobject 标记为光源，该对象在渲染中直接显示为发光体外观，`Merge` 后粒子成为光源对象的一部分，所以视觉上显得明亮发光，但粒子（点）没有面积，不参与实际的光照采样，对场景的照明贡献仍然为零，真正照亮场景的还是实体模型部分
       - 只有粒子指定为`geometryobject`：无可采样面，`light`初始化失败
@@ -2803,7 +2818,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 **vdbresample节点**
 
 - 调整体素的大小`voxelsize`
-  - using voxel size `only`模式
+  - `usingvoxelsizeonly`模式
 
 **pyrobakevolume节点**
 
@@ -2941,12 +2956,11 @@ importpoint/primitive/vertex/**detailattribute节点**
 - `@pscale`决定体积单元的范围，`voxelsize`决定体积单元的精细度
 
   - $$
-    \text{`@pscale`} \times 2 \quad (\text{直径}) > \text{voxelsize} \times 1.5
+    \text{@pscale} \times 2 \quad (\text{直径}) > \text{voxelsize} \times 1.5
     $$
-
-
-  - 只有当`@pscale`>voxelsize*0.75，体积单元才能正确渲染
-
+  
+  
+    - 只有当`@pscale`>`voxelsize`*0.75，体积单元才能正确渲染
 
 `distance`体积雾
 
@@ -2958,7 +2972,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 
 材质
 
-- 透明可以自发光，但不能显示`base` color
+- 透明可以自发光，但不能显示`base color`
 - 对于`pbr`渲染，颜色是F通道，对于`raytracing`渲染，颜色是`Cf`通道
 - `vex`中的颜色属性`Cd`属性不会被渲染
 - 自发光
@@ -2967,7 +2981,7 @@ importpoint/primitive/vertex/**detailattribute节点**
   - 在**principledshadercore节点**中设置自发光颜色，勾选`emissionilluminatesobjects`后会照亮其他物体，前提是其他物体的材质节点中有**principledshadercore节点**
     - `emissioncolor`会改变表面颜色
   - 和**light节点**的物体光一样都可以照亮其他物体，两者可以一起使用
-    - 和**light节点**的物体光相比，`light`是真正的物体发光源，可以调整光源的强度，而材质的自发光不可以调整发光强度
+    - 和**light节点**的物体光相比，**light**是真正的物体发光源，可以调整光源的强度，而材质的自发光不可以调整发光强度
 - 透明材质
   - `transparency`透明度
   - `ior`折射率
@@ -3217,7 +3231,7 @@ y+左键                                           //切断线
 `pop`系列节点
 
 - `stream`属性中可以设置组名指定影响的粒子流
-- 都支持组操作
+- 都支持组操作，且每个产生粒子的节点都有stream组属性来标记产生的粒子
 - `VEX`中访问粒子本身的属性推荐用@属性名，在非**popwrangle节点**内，函数的输入端的0号代表的不是粒子流，而是外部的输入
 
 材质`vop`（**materialbuilder节点**）的渲染管线
@@ -3225,3 +3239,8 @@ y+左键                                           //切断线
 - 先置换，后着色
   - 置换阶段：相机坐标系P变形改变几何形状，顶点`uv`值不变
   - 着色阶段：对变形后的表面插值`uv`，用`uv`采样贴图，使得`principledshadercore`接收的贴图能正确贴到变形后的表面
+
+`group`属性和`name`属性的区别
+
+- `name`属性是字符串类型
+- `group`属性是整型

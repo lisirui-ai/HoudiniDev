@@ -2020,7 +2020,7 @@ copy and **transform节点**
     - VEX
 
       ```c
-      seed+=@id
+      seed+=@id;
       ```
 
 - **popkill节点**

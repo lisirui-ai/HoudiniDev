@@ -716,6 +716,16 @@ ctrl+🧠重新解算，ctrl+📷从当前视角新建相机
 - 也可在`group`选项处直接写想要删除的部分的组编号，例如 `1,2,3`
 - 还可在下方`bounding` `volume`选项中点选`enable`按钮，在`sv`视窗按回车进入编辑小方框模式，小方框覆盖到的多边形会被删除
 
+**clean节点**
+
+- 清理几何体数据，修复无效或冗余的几何信息
+- `consolidate points`：将空间位置相同或极近的点焊接为一个点，可设置容差距离
+- `remove degenerate primitives`：删除退化面（面积为0的面，如三点共线的三角面）
+- `remove unused points`：删除孤立点（不属于任何面的点）
+- `fix overlaps`：删除重叠面（共享所有相同顶点的面）
+- `orient polygons`：统一所有多边形的朝向（卷绕顺序），使其一致朝向同一方向
+- 常用于从外部导入模型后（如`.obj`、`.fbx`）清理碎片数据，或布尔/破碎运算后修复残留无效几何体
+
 
 `foreach`系列节点
 - 对每个元素单独进行计算，最后合并输出
@@ -2331,9 +2341,10 @@ copy and **transform节点**
     - 设置输入和输出帧的范围
 
   - `byspeed`模式
-    - 设置输入和输出帧的范围
+    - 该模式下`outputframerange`失效
     - `speed`处设置变速几倍
-
+    - 更常用
+  
 - `interpolation`补帧
   - 勾选`interpolatebetweeninputframes`和取消勾选`interpolaterotationofnormals`，`quaternions`，`andtransforms`使得动画流畅，动画插值
 

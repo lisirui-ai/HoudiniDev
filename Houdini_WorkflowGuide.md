@@ -1499,11 +1499,6 @@ copy and **transform节点**
 **box节点**
 
 - 为输入端的几何体生成其`boundingbox`
-
-**clean节点**
-
-- 勾选`removeunusedpoints`删除没有用到的点
-
 **primitiveproperties节点**
 
 - 可用于不显示某个属性场/vdb

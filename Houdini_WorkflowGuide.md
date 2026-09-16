@@ -443,6 +443,16 @@ prim("/obj/geo1/grid1", $PR, "myattr", 0) // 当前面（$PR）的自定义标�
 // 返回：float / int / string（视属性类型）
 detail("/obj/geo1/attribpromote1", "area", 0)  // 读取 detail 属性 area，返回 float
 detail("/obj/geo1/measure1", "mycount", 0)     // 读取 detail 属性 mycount，返回 float/int
+
+// ── centroid 函数 ────────────────────────────────────────────────────────────
+// 语法：centroid(surface_node, type)
+// 功能：返回指定 SOP 节点输出几何所有点的包围盒中心坐标的某一分量，返回 float
+//   surface_node — SOP 节点完整路径字符串
+//   type         — 分量标识：D_X/0 取 X 分量，D_Y/1 取 Y 分量，D_Z/2 取 Z 分量
+// 注意：返回的是包围盒(Bounding Box)中心，不是所有点位置的平均值
+centroid("../center", D_X)   // 等价于 centroid("../center", 0)，返回包围盒中心 X 分量，float
+centroid("../center", D_Y)   // 等价于 centroid("../center", 1)，返回包围盒中心 Y 分量，float
+centroid("../center", D_Z)   // 等价于 centroid("../center", 2)，返回包围盒中心 Z 分量，float
 ```
 
 # chramp
@@ -2788,7 +2798,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 
 - `vdb`运算节点，对两个体积进行运算，类似**groupcombine节点**
 - 求交集，并集，布尔
-- 匹配体素大小`voxelsize`
+- 需要匹配体素大小`voxelsize`
 
 **convertvdb节点**
 
@@ -2840,23 +2850,47 @@ importpoint/primitive/vertex/**detailattribute节点**
 - 为`vdb`体积赋予材质
   - 不需要再自定义材质赋予体积
   - 比**pyrosolver节点**自带的`look`更好
+  
 - 输入端是`vdb`
   - 可以是多个`vdb`经过`merge`后相连
 
 - 前连`volume`体积/`vdb`体积
+
 - `fire`选项
   - 勾选`fire`
+  
   - `intensityscale`控制火焰亮度
     - 值越大，火焰越亮
       - 亮度=值*`intensityvolume`对应的`vdb`的值
-  - `firecolorramp`调整火焰颜色
-    - 横轴为将`colorvolume`的值对应的`vdb`的值映射为0到1之间后的值
-    - 修改对应属性的颜色
+    
+  - `fireintensityramp`调整火焰亮度
+    - 横轴是`intensityvolume`对应的`vdb`属性场在`sourcerange`范围内的值映射为0~1之后的值，纵轴是`intensityscale`火焰亮度的乘数
+    
+  - `colormode`设置为`colorramp`，基于`firecolorramp`调整火焰颜色
+    
+    - 横轴是`colorvolume`对应的`vdb`属性场在`sourcerange`范围内的值映射为0~1之后的值
+    
+  - `colormode`设置为`physicalblackbody`基于温度调整火焰颜色
+    
+    - 色温规律
+    
+      | 温度范围 | 颜色表现 |
+      |---|---|
+      | ~1000–2000K | 深红、暗橙色（如余烬、烛光） |
+      | ~2000–3000K | 橙红色、偏暖黄（如火焰根部） |
+      | ~3000–5000K | 黄白色（如白炽灯、日出） |
+      | ~5500–6500K | 纯白色（接近日光） |
+      | ~8000–10000K+ | 偏蓝白色（如晴空散射光） |
+    - `temperature at 0 (K)` 与 `temperature at 1 (K)`
+      - 将温度场`vdb`的归一化值（0~1）线性映射到实际物理温度（开尔文），值为0时对应前者，值为1时对应后者，中间值线性插值，映射后的温度再由黑体辐射公式决定发光颜色
+      - 温度场中存储的只是 0~1 的相对值
+  
 - `bindings`选项
   - fire
     - `intensityvolume`为负责控制火焰亮度的`vdb`的名称，`colorvolume`为负责控制火焰颜色的`vdb`的名称
   - smoke
     - `smokevolume`为负责控制烟雾颜色的`vdb`的名称
+  
 - `smoke`选项
   - 取消勾选`smoke`不渲染烟雾，使得只渲染`fire`
   - `densityscale`设置渲染的`density`浓度

@@ -2815,7 +2815,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 
 **vdbvisualization节点**
 
-- 辅助查看浓度
+- 浓度辅助显示vdb
 
 **cloudnoise节点**
 

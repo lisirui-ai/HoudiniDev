@@ -564,6 +564,8 @@ shift+s切换连线样式
 
 ctrl+🧠重新解算，ctrl+📷从当前视角新建相机
 
+ctrl+shift点击参数栏取消关联
+
 # 颜色
 
 `rgb`三个分量都相同，为黑白色系
@@ -1262,10 +1264,11 @@ copy and **transform节点**
   - `trailingseparation`控制发射源点的密度（`explosion`/`muzzleflash` 模式）
     - 值越小，点越密集，栅格化后的体积细节越丰富；值越大，适合远景背景爆炸
     - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@trailingsep` 属性逐点覆盖
+    - 会影响`pscale`属性
   - `trailinglength`设置拖尾的长度（世界单位），拖尾终点始终在爆炸中心
     - 缩短该值可使发射源属性仅存在于爆炸外壳而非内部
   - `trailingthickness`设置拖尾在内端（靠近中心）的宽度
-  - `pointseparation`控制发射源点的密度（`shockwave`/`blastrings` 模式）
+  - `pointseparation`控制发射源点的密度
     - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@trailingsep` 属性逐点覆盖
   - `trailingdepth`设置拖尾向形状内部延伸的宽度（`shockwave`/`blastrings` 模式）
     - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@trailingdepth` 属性逐点覆盖
@@ -1289,24 +1292,57 @@ copy and **transform节点**
 - `burst components`选项（发射源属性组件）
   - 每个组件负责生成一种属性的发射源点，输出点是所有组件的混合
   - `numberofsources`设置组件数量
-  - 每个组件可选择的属性（`source attribute`）：
+  - 每个组件可选择的属性（`attribute`）
     - `density`（灰色显示）：烟雾浓度
     - `temperature`（蓝色显示）：温度场，驱动浮力使烟雾上升
     - `divergence`（橙色显示）：散度场，驱动膨胀爆炸效果
     - `burn`（黄色显示）：燃烧场，驱动火焰效果
-    - `Cd`：自定义颜色
+    - `color`：自定义颜色
     - `Alpha`（紫色显示）：透明度
-  - `sourcevaluescale`设置该组件属性值的缩放系数
   - `prefixattributename`：勾选后为 `source_name` 属性添加 `burst_` 前缀，用于与**pyrotrailsource节点**区分
+  - 所有发射源点共用同一个 `source_name` 字符串属性，但每个点的值记录了该点应贡献给哪个属性场
+    - 例如：`density` 组件的点，`source_name = "density"`；`burn` 组件的点，`source_name = "burn"`
+    - **volumerasterizeattributes节点**栅格化某个属性时，只使用 `source_name` 中包含该属性名的点，其余点被忽略
+    - 这样避免了不同组件的点相互干扰：如用 `burn` 组件的点栅格化 `temperature` 时，这些点上 `temperature=0`，会拉低最终温度场的值，而 `source_name` 机制可以防止这种情况
   - 注意：`@v`（速度）属性为特例，默认被附加到所有组件的 `source_name` 中，即所有点都参与速度场的栅格化
     - 在 `Quick Setups` 菜单中选 `Cull Velocity` 可限制只有一个组件贡献速度
-  - `scalealongtrailing`勾选后可用 `ramp` 图控制属性值沿拖尾方向的衰减
-  - `scaleoverduration`勾选后可用 `ramp` 图控制属性值随爆炸生命周期的变化
+  - `sourcevaluescale`设置该组件属性值的缩放系数，逐点调整各发射源点的属性值大小
+  - `enable noise`勾选后为该组件的发射源属性值叠加噪波，使属性分布更不规则
+    - `noiseoperation`设置噪波与属性值的合并方式
+      - `add`：噪波值在 `-amplitude` 到 `+amplitude` 之间，叠加到属性值上
+      - `multiply`：噪波值在 `0` 到 `amplitude` 之间，与属性值相乘
+    - `amplitude`控制噪波强度，值越大，属性值的随机扰动越明显
+    - `size`控制噪波的基本特征尺寸，作用于各轴
+    - `offset`控制噪波场的采样偏移，改变该值可获得不同的噪波图案
+  - `source value`选项（所有组件的属性值全局控制）
+    - `defaultvalue`对所有组件的发射源属性值进行全局缩放，对 `Cd`（颜色）组件无效
+      - 默认为1；设为0时所有标量属性组件的属性值归零
+    - `scaleoverduration`勾选后开启按爆炸生命周期控制属性值的 `ramp` 图
+      - 勾选后视窗中发射源点的颜色会发生变化，以可视化方式显示 `ramp` 对各点属性值的缩放程度
+      - 横轴左侧为爆炸开始，右侧为爆炸结束；可使发射源属性在生命末期逐渐衰减
+      - 作用于标量属性组件：`density`、`temperature`、`burn`、`divergence`、`Alpha`（即控制这些属性在各发射源点上的数值大小，数值越大，栅格化后写入解算场的初始值越强）；对 `Cd`（颜色）组件无效（颜色无强度缩放的物理意义）
+    - `scalealongtrailing`勾选后开启按拖尾位置控制属性值的 `ramp` 图
+      - 勾选后视窗中发射源点的颜色会发生变化，以可视化方式显示 `ramp` 对各点属性值的缩放程度
+      - 横轴左侧为拖尾内端（靠近中心），右侧为拖尾外端（爆炸边缘）；可使靠近中心的发射源点属性值大于边缘
+      - 作用于标量属性组件：`density`、`temperature`、`burn`、`divergence`、`Alpha`（即控制这些属性在各发射源点上的数值大小）；对 `Cd`（颜色）组件无效
+  - `burst overrides`分组（单个组件相对于全局设置的覆盖值）
+    - `startframe`相对于 `burst animation` 中全局 `startframe` 的帧数偏移，仅作用于该组件
+      - 用于错开不同组件的触发时机，如设为5则该组件在全局爆炸触发后再延迟5帧开始发射
+    - `expansionscale`相对于 `burst animation` 中全局 `outwardexpansion` 的扩张倍数，仅作用于该组件
+      - 用于使不同组件的物理体积产生差异，如让 `burn` 组件比 `density` 组件扩张范围更大
+    - `seedoffset`勾选后将全局 `shapeoffset` 偏移指定量，仅作用于该组件
+      - 用于使不同组件之间的爆炸外形产生差异，避免所有组件形状完全重叠
 - `output attributes`选项（输出属性）
   - `sourceattribute`勾选后生成 `source_name` 属性，确保栅格化时每个组件只贡献自己对应的属性场
   - `particlescale`勾选后生成 `@pscale` 属性，控制每个发射源点的代表尺寸
   - `velocity`勾选后生成 `@v` 属性，记录每个点的速度（用于速度场栅格化）
     - `addvelocitynoise`为速度场添加噪波，产生更有机的运动效果
+  - `normalizedage`勾选后生成 `@agen` 属性，记录每个点归一化的生命进度
+    - 值从0开始（组件创建时）线性增长到1（组件消亡时），可用于驱动随时间变化的自定义效果
+  - `trailingposition`勾选后生成 `@trailingpos` 属性，记录每个发射源点在其拖尾上的位置
+    - 可用于自定义沿拖尾方向分布的效果
+  - `restposition`勾选后生成 `@rest` 属性，记录每个点在爆炸开始时的初始位置
+    - 与 `@P` 不同，`@rest` 不随爆炸点的运动而改变，始终保存起始坐标
 
 **volumerasterizeattributes节点**
 
@@ -1317,12 +1353,14 @@ copy and **transform节点**
   - `@density`、`@temperature`、`@pscale`、`@v`
 - `voxelsize`控制体素大小/精度
   - 一般与`dop`解算的精度一致
-
+- `source attribute`指定用于过滤发射源点的字符串属性名，默认为 `source_name`
+  - 栅格化某个属性时，只使用 `source_name` 值中包含该属性名的点参与计算，其余点被跳过
+  - 与**pyroburstsource节点**的 `source_name` 机制配合，确保各组件的点只贡献自己对应的属性场
+  - 若输入点云不来自**pyroburstsource节点**（如普通粒子），该参数留空即可
 - `particlescale`影响`@pscale`的缩放，进而影响体积单元的大小
 - `coverage`对属性进行缩放
   - 一般`coverageattribute`不设置任何属性
     - 继承的属性的值会自乘`coverageattribute`的值
-
 - 输出`vdb`
 
 **volumetrail节点**
@@ -2270,7 +2308,8 @@ copy and **transform节点**
   - `simulation`选项
     - `scaletime`控制解算的快慢，最终解算结果的速度是原解算结果的`scaletime`倍
 
-- `pyrosolver`（`sparse`）节点
+- **pyrosolver（sparse）节点**
+  
   - 解算器
   - 后连**output节点**
   - `advanced`选项
@@ -2342,7 +2381,7 @@ copy and **transform节点**
   
 - **volumesource节点**
   - 添加解算源
-  - 后连`pyrosolver`（`sparse`）节点的第三个输入端
+  - 后连**pyrosolver（sparse）节点**的第三个输入端
   - `input`和`soppath`指定外部的体积作为解算源
   - `volumes`选项
     - `fieldtomatch`将解算的场的属性赋给解算源体积
@@ -2351,14 +2390,14 @@ copy and **transform节点**
       - 读取外部解算源体积的属性并映射到解算场中
       - `sourcevolume`即外部解算源体积的属性
         - `temperature`属性对应的`sourcevolume`即外部解算源体积的`temperature`
-          - 必须通过`pyrosource`设置为1
-        - density
-        - 自定义速度属性
+        - `density`
+        - `v`
+        - `burn`
       - `targetfield`即映射到解算场的属性
         - `temperature`属性对应的`targetfield`即解算场的`temperature`
-          - 默认为1
-        - density
-        - vel
+        - `density`
+        - `vel`
+        - `divergence`
       - `sourcescale`控制解算源体积的属性映射到解算场时对解算场的值是否缩放
       - `operation`控制映射后的解算方式
         - `density`属性为`add`模式
@@ -2375,9 +2414,10 @@ copy and **transform节点**
     - 勾选`enlargefieldstocontainsources`
       - 确保外部体积`transform`放大后，能识别到体积，不勾选不会被识别
   
-- `smokeobject`（`sparse`）节点
+- **smokeobject（sparse）节点**
+  
   - 根据解算场生成体积
-  - 后连`pyrosolver`（`sparse`）节点的第一个输入端
+  - 后连**pyrosolver（sparse）节点**的第一个输入端
   - `guides`选项
     - `visualization`选项
       - 勾选`activeregion`显示体积区域

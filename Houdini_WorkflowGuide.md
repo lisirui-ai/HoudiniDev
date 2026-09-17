@@ -1161,6 +1161,38 @@ copy and **transform节点**
   - 不同于`amplitude`的整体大调
 - **attribnoise节点**可以叠加，即制作多重噪波效果
 
+**attributeadjust系列节点**（**attributeadjustfloat** / **attributeadjustinteger** / **attributeadjuststring** / **attributeadJustvector**）
+
+- 对几何体上指定属性的值进行修改，提供无需编写 VEX 或 VOP 的可视化属性调整界面
+  - 四个节点功能相同，仅处理的属性类型不同：`float` / `int` / `string` / `vector`
+  - 常与**pyroburstsource节点**配合，逐点设置 `@pscale`、`@startframe` 等属性
+- `group`指定作用的元素子集，留空则作用于所有元素
+- `blend`设置原始属性值与调整后属性值之间的混合比例
+  - 值为0时输出原始值（不调整），值为1时完全输出调整后的值
+  - 可通过 `Use Attribute` 模式指定一个 `float` 属性逐元素控制混合比例
+- `attribute name`指定要创建或修改的属性名称
+  - 属性不存在时自动创建；属性已存在时按 `operation` 模式修改
+  - 对 `vector` 属性可用 `v[0]`/`v.x` 等方式访问单个分量
+- `attribute class`设置属性所在的层级（点/面/顶点/全局）
+- `unit settings`设置参数值与属性值之间的单位换算
+  - 如 `@life` 属性存储单位是秒，可设置参数单位为帧，节点自动换算
+  - 预设：`Duration`（帧↔秒）、`Time`（帧↔时间偏移秒）、`Angle`（度↔弧度）
+- `operation`设置调整值与原始属性值的合并方式
+  - `set if missing`：属性不存在时才写入，已存在则保留原值
+  - `set always`：始终覆盖写入
+  - `add` / `subtract` / `multiply`：加/减/乘
+  - `minimum` / `maximum`：取两者中的较小/较大值
+- `pattern type`设置调整值的生成方式
+  - `constant`：所有元素使用同一个固定值
+  - `random`：在指定范围内为每个元素随机生成值
+    - `randomization by`：随机种子依据
+      - `element number`：以点序号为种子（点被打乱时随机结果会变）
+      - `custom attribute`：以指定整数属性为种子（点被打乱时随机结果不变，常用 `@id`）
+  - `noise`：基于空间相干噪波场为每个元素生成值，支持多种噪波类型及分形叠加
+  - `attribute`：直接读取另一个属性的值作为调整值，支持预乘/预加偏移
+- `enable post-process`开启后处理
+  - `minimum` / `maximum`：将输出属性值钳制在指定范围内
+
 **pyrosource节点**
 
 - 将模型转换为点云
@@ -1175,6 +1207,106 @@ copy and **transform节点**
 - `attributes`增加属性，可以被体积继承
   - 默认为1
   - `temperature`、`density`
+
+**pyroburstsource节点**
+
+- 以输入的点为中心，生成用于爆炸/冲击波/枪口焰等效果的烟雾发射源点云
+  - 输出是**点云**（不是体积），需经过**volumerasterizeattributes节点**栅格化为 `vdb` 属性场后才能参与解算
+  - 输入点的**数量**必须在所有帧上保持不变
+  - 输入点的位置 `@P` 可以动画（用于跟随快速移动的物体），其他控制爆炸形态的属性不能动画
+    - `@P` 只影响爆炸中心的位置，不影响形状计算，因此可以逐帧变化
+    - `@pscale`、`@N`、`@startframe`、`@trailingsep` 等形态属性若随帧变化，节点每帧会重新生成不同外形的点云，导致解算出现闪烁或错误效果
+  - 典型工作流：输入点 → **pyroburstsource节点** → **volumerasterizeattributes节点** → **pyrosolver节点**
+- `group`指定参与爆炸生成的输入点子集，留空则使用所有点
+- `guide display`设置视窗辅助显示模式
+  - `proxy shape`模式显示爆炸形状的外壳轮廓，爆炸动画结束后仍保持可见，便于对齐调整
+- `additional guides`勾选后在视窗中显示拖尾辅助线
+  - 可填入**pyrotrailsource节点**路径列表，便于多个发射源之间同步动画时机
+- `randomization by`控制使用 `set varying` 模式的参数的随机种子依据
+  - `point number`：以点序号为种子，上游节点重新生成几何体导致点序号改变时，随机结果会跟着变
+  - `seed attribute`：以指定整数属性为种子，点序号改变时随机结果保持不变
+    - `set varying` 参数（如 `initialsize`、`direction` 等）会为每个输入点生成不同随机值，`seed attribute` 确保同一个点无论排在第几位其随机结果始终相同
+- `seed attribute`指定用于随机种子的整数属性名称（`randomization by` 设为 `seed attribute` 时生效）
+- `burst shape`选项（爆炸形态）
+  - `bursttype`设置爆炸形状类型
+    - `explosion`：通用爆炸"blob"形状，适合普通爆炸火球
+    - `muzzleflash`：沿指定方向拉长的形状，适合枪口焰或朝某方向喷射的爆炸
+    - `shockwave`：三维球面上的任意切片，适合地面冲击波环或三维穹形冲击波
+    - `blastrings`：多组平行环，随穹形冲击波扩散而展开，适合核爆等超大规模爆炸
+  - `shapeoffset`控制爆炸形状的随机种子，不同值产生不同外形
+  - `initialsize`设置爆炸的初始大小（直径约等于该值的单位数）
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@pscale` 属性逐点覆盖
+  - `direction`设置爆炸的方向，影响 `muzzleflash` 模式和 `directionalexpansion`
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@N` 属性逐点覆盖
+  - `ringsperburst`设置每个输入点生成的环数（仅 `blastrings` 模式有效）
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@copynum` 属性逐点覆盖
+  - `spreadstartangle`设置散点从爆炸方向向量扩散的最小角度（仅 `shockwave` 模式有效）
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@spread_startangle` 属性逐点覆盖
+  - `spreadangle`设置散点从爆炸方向向量扩散的角度范围
+    - 值为180时为完整半球，值越小，冲击波越接近平面环形
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@spread_angle` 属性逐点覆盖
+  - `azimuthstartangle`控制散点绕爆炸方向的起始旋转角度（仅 `shockwave`/`blastrings` 模式有效）
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@azimuth_startangle` 属性逐点覆盖
+  - `azimuthangle`控制散点绕爆炸方向的旋转范围（仅 `shockwave`/`blastrings` 模式有效）
+    - 值为360时散点分布在方向向量四周一整圈；值越小，只生成局部弧段
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@azimuth_angle` 属性逐点覆盖
+  - `muzzlelength`控制枪口焰形状沿方向的拉伸长度（仅 `muzzleflash` 模式有效）
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@muzzle_length` 属性逐点覆盖
+  - `roundness`控制形状的对称性
+    - 值为1时所有刺突长度相同；值越低，刺突大小越不规则
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@roundness` 属性逐点覆盖
+  - `addnoise`勾选后为形状添加噪波扰动（仅 `shockwave`/`blastrings` 模式有效）
+    - 使冲击波/环形边缘更加不规则自然
+  - `numberoftrailings`控制从中心向外生成的刺突/拖尾数量
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@trailingnum` 属性逐点覆盖
+  - `trailingseparation`控制发射源点的密度（`explosion`/`muzzleflash` 模式）
+    - 值越小，点越密集，栅格化后的体积细节越丰富；值越大，适合远景背景爆炸
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@trailingsep` 属性逐点覆盖
+  - `trailinglength`设置拖尾的长度（世界单位），拖尾终点始终在爆炸中心
+    - 缩短该值可使发射源属性仅存在于爆炸外壳而非内部
+  - `trailingthickness`设置拖尾在内端（靠近中心）的宽度
+  - `pointseparation`控制发射源点的密度（`shockwave`/`blastrings` 模式）
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@trailingsep` 属性逐点覆盖
+  - `trailingdepth`设置拖尾向形状内部延伸的宽度（`shockwave`/`blastrings` 模式）
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@trailingdepth` 属性逐点覆盖
+- `burst animation`选项（爆炸动画）
+  - `startframe`设置爆炸触发的帧数
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@startframe` 属性逐点覆盖，实现不同点在不同帧触发
+  - `frameduration`设置扩张动画的持续帧数
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@life` 属性（单位为秒）逐点覆盖
+  - `outwardexpansion`控制爆炸向四周完全扩张后的最终大小（相对于 `initialsize` 的倍数）
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@expansion_outscale` 属性逐点覆盖
+  - `expansionoverdurationramp`控制爆炸在持续时间内的膨胀曲线
+    - 横轴为归一化时间，纵轴为扩张量；默认初期扩张快，后期减速
+  - `interiorexpansion`控制冲击波内环完全扩张后的最终大小（仅 `shockwave` 模式有效）
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@expansion_intoutscale` 属性逐点覆盖
+  - `exteriorexpansion`控制冲击波外环完全扩张后的最终大小（仅 `shockwave` 模式有效）
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@expansion_extoutscale` 属性逐点覆盖
+  - `directionalexpansion`控制爆炸沿 `direction` 方向的额外扩张倍数（在 `outwardexpansion` 基础上叠加）
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@expansion_dirscale` 属性逐点覆盖
+  - `directionaltranslation`控制爆炸沿 `direction` 方向的平移偏移量
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@expansion_dirtrans` 属性逐点覆盖
+- `burst components`选项（发射源属性组件）
+  - 每个组件负责生成一种属性的发射源点，输出点是所有组件的混合
+  - `numberofsources`设置组件数量
+  - 每个组件可选择的属性（`source attribute`）：
+    - `density`（灰色显示）：烟雾浓度
+    - `temperature`（蓝色显示）：温度场，驱动浮力使烟雾上升
+    - `divergence`（橙色显示）：散度场，驱动膨胀爆炸效果
+    - `burn`（黄色显示）：燃烧场，驱动火焰效果
+    - `Cd`：自定义颜色
+    - `Alpha`（紫色显示）：透明度
+  - `sourcevaluescale`设置该组件属性值的缩放系数
+  - `prefixattributename`：勾选后为 `source_name` 属性添加 `burst_` 前缀，用于与**pyrotrailsource节点**区分
+  - 注意：`@v`（速度）属性为特例，默认被附加到所有组件的 `source_name` 中，即所有点都参与速度场的栅格化
+    - 在 `Quick Setups` 菜单中选 `Cull Velocity` 可限制只有一个组件贡献速度
+  - `scalealongtrailing`勾选后可用 `ramp` 图控制属性值沿拖尾方向的衰减
+  - `scaleoverduration`勾选后可用 `ramp` 图控制属性值随爆炸生命周期的变化
+- `output attributes`选项（输出属性）
+  - `sourceattribute`勾选后生成 `source_name` 属性，确保栅格化时每个组件只贡献自己对应的属性场
+  - `particlescale`勾选后生成 `@pscale` 属性，控制每个发射源点的代表尺寸
+  - `velocity`勾选后生成 `@v` 属性，记录每个点的速度（用于速度场栅格化）
+    - `addvelocitynoise`为速度场添加噪波，产生更有机的运动效果
 
 **volumerasterizeattributes节点**
 

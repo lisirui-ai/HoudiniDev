@@ -1344,6 +1344,81 @@ copy and **transform节点**
   - `restposition`勾选后生成 `@rest` 属性，记录每个点在爆炸开始时的初始位置
     - 与 `@P` 不同，`@rest` 不随爆炸点的运动而改变，始终保存起始坐标
 
+**pyrotrailpath节点**
+
+- 以输入点为中心，向外散射并生成弹道拖尾路径曲线，用于爆炸碎片、弹片飞散等抛射物拖尾效果（Houdini 18.5+）
+  - 内部依次调用 **Pyro Scatter From Burst** 散点 + **Ballistic Path** 计算弹道，无需粒子解算
+  - 输出是**曲线（curve）**，路径上每点存有 `time` 属性（记录弹射体在该点的时刻）和每条曲线上的 `startframe` 原始属性
+  - 需后接**pyrotrailsource节点**将曲线转换为发射源点云
+  - 典型工作流：爆炸输入点 → **pyrotrailpath节点** → **pyrotrailsource节点** → **volumerasterizeattributes节点** → **pyrosolver节点**
+  - 与**pyroburstsource节点**配合使用：`pyroburstsource` 产生爆炸主体，`pyrotrailpath` 产生飞出的碎片拖尾
+- `group`指定参与生成拖尾的输入点子集，留空则使用所有点
+- `guide display`设置视窗辅助显示模式
+  - `distribution guide`模式可视化拖尾发射方向，由 `spread angle`、`azimuth angle` 等参数共同决定
+- `additional guides`勾选后在视窗中显示爆炸主体辅助线
+  - 可填入**pyroburstsource节点**路径列表，便于同步爆炸与拖尾的动画时机
+- `fuse input points`将多个输入点融合后作为单一爆炸源生成拖尾（当多点代表同一次爆炸时使用）
+  - `none`：所有点独立生成拖尾
+  - `all into one`：所有点融合为一个点后生成拖尾，`startframe` 取所有点的最小值，`N`（方向）取平均值
+  - `by attribute`：相同 `match attribute` 整数属性值的点融合在一起
+- `source`选项（拖尾发射形态）
+  - `shape`设置拖尾从爆炸中心的散射形状
+    - `sphere`：从爆炸中心向四周球状散射（用于球形爆炸碎片飞散）
+    - `line`：沿 `direction` 方向的一条线段散射（用于蘑菇云上升柱等柱状结构）
+  - `initial size`控制散射起始范围的直径（值为1时直径约为1个Houdini单位）
+  - `direction`设置爆炸的主轴方向
+    - `sphere` 模式下，`spread angle` 以此方向为基准零度计算；`line` 模式下，此方向即为线段方向
+  - `number of trails`每个输入点生成的拖尾数量
+  - `spread start angle` / `spread angle`（仅 `sphere` 模式）控制拖尾相对主轴方向的极角范围
+    - `spread start angle`：拖尾可发射的最小极角（从主轴方向算起）
+    - `spread angle`：在 `spread start angle` 基础上再向反主轴方向展开的角度；设为180°时拖尾向全方向发射
+  - `azimuth start angle` / `azimuth angle`（仅 `sphere` 模式）控制拖尾围绕主轴旋转的方位角范围
+    - `azimuth start angle`：起始方位角，0° 对应 +X 轴，逆时针递增
+    - `azimuth angle`：从起始方位角向两侧展开的总范围；360° 时拖尾环绕主轴一圈均匀分布
+  - `line start` / `line length`（仅 `line` 模式）控制散射线段的起始偏移和长度（单位：Houdini 单位）
+  - `prune by noise`勾选后按噪波图案剔除部分拖尾，产生不均匀的飞散效果
+- `trail generation`选项（弹道轨迹参数）
+  - `velocity scale`控制拖尾发射初速度的大小；值越大拖尾飞得越远
+  - `drag`控制空气阻力；值越大弹射体减速越快、飞行距离越短；0时轨迹为对称抛物线
+  - `mass`控制弹射体质量；值越大越能抵抗空气阻力、飞行更远
+  - `gravity`设置重力方向和大小；全部设为0时轨迹为直线，不受重力影响
+  - `fps`路径曲线每秒的采样段数，通常与项目帧率一致（每帧一段）
+  - `substeps`在每段路径内额外细分的步数，细分越多曲线越平滑，用于后续变形操作时更精确
+  - `start frame`拖尾开始运动的起始帧，节点会将其写入每条曲线的 `startframe` 原始属性
+    - 勾选 `offset per point` 后可为每条拖尾随机偏移起始帧，使弹片飞散时间更错落有致
+  - `trail duration`拖尾持续的帧数，值越大曲线越长
+  - `speed scale`弹射体沿轨迹运动的速度倍率；小于1时运动更慢，大于1时运动更快
+  - `clip below height`勾选后截断 Y 坐标低于 `clip height` 的轨迹段（用于防止拖尾穿入地面）
+  - `enable static collision`勾选后开启简单碰撞检测
+    - `collision geometry path`指定碰撞几何体的SOP路径；碰撞几何若含 `kill` 原始属性（值为1）则终止轨迹，否则发生反弹
+    - `number of bounces`允许的最大反弹次数；设为0时第一次碰撞即终止轨迹
+    - `bounce` / `bounce forward`分别控制法线方向和切线方向保留的速度比例（0=完全吸收，1=完全弹射）
+- `output attributes`输出属性选项
+  - `copy input attributes`勾选后将输入点的自定义属性复制到生成的曲线上
+  - `trail id`输出每条路径的唯一整数 ID 原始属性
+  - `trail index`输出每条路径的序号原始属性
+  - `launch speed`输出每条路径起始速度大小的原始属性
+  - `end time`输出每条路径结束时刻的原始属性
+- 可通过点属性覆盖节点参数，实现每个爆炸源点产生不同形态的拖尾
+
+  | 可覆盖的参数 | 属性名 | 属性类型 |
+  |---|---|---|
+  | `initial size` | `pscale` | float |
+  | `direction` | `N` | vector |
+  | `number of trails` | `copynum` | integer |
+  | `spread start angle` | `spread_startangle` | float |
+  | `spread angle` | `spread_angle` | float |
+  | `azimuth start angle` | `azimuth_startangle` | float |
+  | `azimuth angle` | `azimuth_angle` | float |
+  | `line start` | `line_start` | float |
+  | `line length` | `line_length` | float |
+  | `velocity scale` | `vscale` | float |
+  | `drag` | `drag` | float |
+  | `mass` | `mass` | float |
+  | `start frame` | `startframe` | float |
+  | `trail duration` | `life` | float |
+  | `speed scale` | `speed` | float |
+
 **volumerasterizeattributes节点**
 
 - 将点云转换为vdb属性场，根据点云的属性生成属性场

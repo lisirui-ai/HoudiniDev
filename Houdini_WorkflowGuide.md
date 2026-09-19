@@ -1346,29 +1346,43 @@ copy and **transform节点**
 
 **pyrotrailpath节点**
 
-- 以输入点为中心，向外散射并生成弹道拖尾路径曲线，用于爆炸碎片、弹片飞散等抛射物拖尾效果（Houdini 18.5+）
+- 以输入点为中心，向外散射并生成弹道拖尾路径曲线，用于爆炸碎片、弹片飞散等抛射物拖尾效果
   - 内部依次调用 **Pyro Scatter From Burst** 散点 + **Ballistic Path** 计算弹道，无需粒子解算
-  - 输出是**曲线（curve）**，路径上每点存有 `time` 属性（记录弹射体在该点的时刻）和每条曲线上的 `startframe` 原始属性
+  - 输出是**曲线（curve）**，路径上每点存有 `time` 浮点属性（记录弹射体在该点的时刻，每条曲线从0开始）和每条曲线上的 `startframe` 原始属性（记录触发帧数）
+  - **pyrotrailsource节点**会自动将 `startframe` 与 `time` 结合，确保拖尾在正确帧启动，因此必须保留这两个属性
   - 需后接**pyrotrailsource节点**将曲线转换为发射源点云
   - 典型工作流：爆炸输入点 → **pyrotrailpath节点** → **pyrotrailsource节点** → **volumerasterizeattributes节点** → **pyrosolver节点**
-  - 与**pyroburstsource节点**配合使用：`pyroburstsource` 产生爆炸主体，`pyrotrailpath` 产生飞出的碎片拖尾
+  - 与**pyroburstsource节点**配合使用：**pyroburstsource**产生爆炸主体，**pyrotrailpath** 产生飞出的碎片拖尾
+  
 - `group`指定参与生成拖尾的输入点子集，留空则使用所有点
-- `guide display`设置视窗辅助显示模式
-  - `distribution guide`模式可视化拖尾发射方向，由 `spread angle`、`azimuth angle` 等参数共同决定
+
 - `additional guides`勾选后在视窗中显示爆炸主体辅助线
-  - 可填入**pyroburstsource节点**路径列表，便于同步爆炸与拖尾的动画时机
+  - 可填入**pyroburstsource节点**路径列表，便于同步爆炸主体与拖尾的动画时机
+  
+- `randomization by`控制使用 `set varying` 模式的参数的随机种子依据
+  - `point number`：以点序号为种子，上游节点重新生成几何体导致点序号改变时，随机结果会跟着变
+  - `seed attribute`：以指定整数属性为种子，点序号改变时随机结果保持不变
+  
+- `seed attribute`指定用于随机种子的整数属性名称（`randomization by` 设为 `seed attribute` 时生效）
+
 - `fuse input points`将多个输入点融合后作为单一爆炸源生成拖尾（当多点代表同一次爆炸时使用）
   - `none`：所有点独立生成拖尾
   - `all into one`：所有点融合为一个点后生成拖尾，`startframe` 取所有点的最小值，`N`（方向）取平均值
   - `by attribute`：相同 `match attribute` 整数属性值的点融合在一起
+    - `match attribute`指定用于分组融合的整数属性名称
+  
 - `source`选项（拖尾发射形态）
   - `shape`设置拖尾从爆炸中心的散射形状
     - `sphere`：从爆炸中心向四周球状散射（用于球形爆炸碎片飞散）
     - `line`：沿 `direction` 方向的一条线段散射（用于蘑菇云上升柱等柱状结构）
   - `initial size`控制散射起始范围的直径（值为1时直径约为1个Houdini单位）
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@pscale` 属性逐点覆盖
   - `direction`设置爆炸的主轴方向
     - `sphere` 模式下，`spread angle` 以此方向为基准零度计算；`line` 模式下，此方向即为线段方向
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@N` 属性逐点覆盖
+  - `shape offset`控制散射起始点的随机种子，改变该值可在相同参数下获得不同形态的拖尾散射
   - `number of trails`每个输入点生成的拖尾数量
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@copynum` 属性逐点覆盖
   - `spread start angle` / `spread angle`（仅 `sphere` 模式）控制拖尾相对主轴方向的极角范围
     - `spread start angle`：拖尾可发射的最小极角（从主轴方向算起）
     - `spread angle`：在 `spread start angle` 基础上再向反主轴方向展开的角度；设为180°时拖尾向全方向发射
@@ -1376,29 +1390,55 @@ copy and **transform节点**
     - `azimuth start angle`：起始方位角，0° 对应 +X 轴，逆时针递增
     - `azimuth angle`：从起始方位角向两侧展开的总范围；360° 时拖尾环绕主轴一圈均匀分布
   - `line start` / `line length`（仅 `line` 模式）控制散射线段的起始偏移和长度（单位：Houdini 单位）
+  - `radius along length` ramp（仅 `line` 模式）控制沿线段长度方向各位置的散射半径；ramp 值为1时半径等于 `initial size`
   - `prune by noise`勾选后按噪波图案剔除部分拖尾，产生不均匀的飞散效果
+    - 启用后可能需要增大 `number of trails` 以补偿被剔除的拖尾数量
+  
 - `trail generation`选项（弹道轨迹参数）
   - `velocity scale`控制拖尾发射初速度的大小；值越大拖尾飞得越远
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@vscale` 属性逐点覆盖
+  - `top spread angle`（仅 `line` 模式）控制线段**远端**（距爆炸中心更远处）散射点发射速度方向与主轴的夹角
+    - 值为0时轨迹沿主轴方向；值为90时轨迹垂直于主轴水平飞出；线段上各点的扩散角在 `bottom spread angle` 与该值之间线性插值
+  - `bottom spread angle`（仅 `line` 模式）控制线段**近端**（靠近爆炸中心处）散射点发射速度方向与主轴的夹角
+  - `enable direction noise`勾选后为发射方向添加噪波扰动，使各拖尾飞散方向更随机自然
+  - `enable length noise`勾选后为发射初速度的大小添加噪波扰动，使各拖尾飞行距离产生变化
+    - `scale min` / `scale max`控制速度大小的缩放下限和上限（值为1表示不缩放）
+  - `limit length`勾选后限制发射速度的大小范围
+    - `limit min` / `limit max`分别设置最小和最大发射速度
   - `drag`控制空气阻力；值越大弹射体减速越快、飞行距离越短；0时轨迹为对称抛物线
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@drag` 属性逐点覆盖
   - `mass`控制弹射体质量；值越大越能抵抗空气阻力、飞行更远
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@mass` 属性逐点覆盖
   - `gravity`设置重力方向和大小；全部设为0时轨迹为直线，不受重力影响
   - `fps`路径曲线每秒的采样段数，通常与项目帧率一致（每帧一段）
   - `substeps`在每段路径内额外细分的步数，细分越多曲线越平滑，用于后续变形操作时更精确
   - `start frame`拖尾开始运动的起始帧，节点会将其写入每条曲线的 `startframe` 原始属性
-    - 勾选 `offset per point` 后可为每条拖尾随机偏移起始帧，使弹片飞散时间更错落有致
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@startframe` 属性逐点覆盖
+    - `start frame visualizer`勾选后将未触发的曲线显示为灰色，已触发的曲线显示为红色，便于可视化调试触发时机
+    - `offset per point`为每条散射出的拖尾单独随机偏移起始帧，使同一爆炸点产生的拖尾飞散时机错落有致
+      - `random distribution`：在 `start frame` 到 `start frame + offset per point` 之间随机选取起始帧（适合 `sphere` 模式）
+      - `along direction`：沿主轴方向按位置渐进偏移起始帧（适合 `line` 模式）
+    - `start frame over length` ramp（仅 `line` 模式）控制沿线段长度方向各位置的起始帧偏移；ramp 左侧对应线段近端，右侧对应远端；ramp 值为0时使用 `start frame`，值为1时使用 `start frame + offset per point`
   - `trail duration`拖尾持续的帧数，值越大曲线越长
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@life` 属性（单位为秒）逐点覆盖
   - `speed scale`弹射体沿轨迹运动的速度倍率；小于1时运动更慢，大于1时运动更快
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@speed` 属性逐点覆盖
   - `clip below height`勾选后截断 Y 坐标低于 `clip height` 的轨迹段（用于防止拖尾穿入地面）
   - `enable static collision`勾选后开启简单碰撞检测
     - `collision geometry path`指定碰撞几何体的SOP路径；碰撞几何若含 `kill` 原始属性（值为1）则终止轨迹，否则发生反弹
+      - 几何体必须是实体封闭模型
     - `number of bounces`允许的最大反弹次数；设为0时第一次碰撞即终止轨迹
     - `bounce` / `bounce forward`分别控制法线方向和切线方向保留的速度比例（0=完全吸收，1=完全弹射）
+  
 - `output attributes`输出属性选项
-  - `copy input attributes`勾选后将输入点的自定义属性复制到生成的曲线上
-  - `trail id`输出每条路径的唯一整数 ID 原始属性
+  - `copy input attributes`勾选后将输入点的自定义属性复制到生成的曲线上（内部使用的属性除外）
+  - `promote input attributes`勾选后将输入点的属性从点层级提升到曲线原始层级
+  - `trail id`勾选后生成 `trailid` 原始属性，记录每条路径的唯一整数 ID；同时也是 `randomization attribute` 所引用的种子来源
   - `trail index`输出每条路径的序号原始属性
   - `launch speed`输出每条路径起始速度大小的原始属性
   - `end time`输出每条路径结束时刻的原始属性
+  - `randomization attribute`勾选后将 `trailid` 原始属性输出到下游，使其可被外部节点读取；该属性与 `trail id` 同名同值
+  
 - 可通过点属性覆盖节点参数，实现每个爆炸源点产生不同形态的拖尾
 
   | 可覆盖的参数 | 属性名 | 属性类型 |
@@ -1418,6 +1458,94 @@ copy and **transform节点**
   | `start frame` | `startframe` | float |
   | `trail duration` | `life` | float |
   | `speed scale` | `speed` | float |
+
+**pyrotrailsource节点**
+
+- 将 **pyrotrailpath节点** 或 **ballistic path节点** 输出的弹道曲线转换为用于烟雾模拟的发射源点云
+  - 输入曲线必须带有 `time` 浮点型点属性（记录弹射体在路径各点上对应的时刻），由 **pyrotrailpath节点** 自动生成
+  - 输出是**点云**（不是体积），需经过**volumerasterizeattributes节点**栅格化为 vdb 属性场后才能参与解算
+  - 曲线数量必须在所有帧上保持不变；`trailingsep`、`trail_length`、`trail_radius`、`startframe`、`speed`、`fade_startage` 等控制拖尾属性的原始属性不能动画
+  - 曲线上的 `density`、`temperature`、`burn`、`divergence`、`Cd`、`Alpha` 原始属性作为对应组件源值的乘数；值为0时该曲线不生成对应组件；这些属性**可以**动画以逐帧控制每条拖尾的发射强度
+- `group`指定参与生成的输入曲线子集，留空则使用所有曲线
+- `guide display`设置视窗辅助显示
+  - `trail path`：在发射源点云旁同时显示输入弹道曲线，方便对齐调试
+- `additional guides`勾选后在视窗中显示爆炸主体辅助线
+  - 可填入**pyroburstsource节点**路径列表，便于同步爆炸主体与拖尾的动画时机
+- `randomization by`控制使用 `set varying` 模式的参数的随机种子依据
+  - `primitive number`：以曲线序号为种子，输入拓扑变化时随机结果随之改变
+  - `seed attribute`：以指定整数原始属性为种子，曲线顺序改变时随机结果保持不变
+- `seed attribute`指定用于随机种子的整数原始属性名称（`randomization by` 设为 `seed attribute` 时生效）
+- `trail shape`选项（拖尾形态）
+  - `point separation`控制生成点的密度；值越小点越密集，栅格化后体积细节越丰富；值越大适合背景远景
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入曲线的 `trailingsep` 原始属性逐条覆盖
+  - `length`设置拖尾在世界空间中的长度（Houdini 单位），值越大弹射体身后拖尾越长
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入曲线的 `trail_length` 原始属性逐条覆盖
+  - `radius`设置拖尾的粗细；配合 `radius along trailing ramp` 可控制拖尾沿长度方向的粗细变化
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入曲线的 `trail_radius` 原始属性逐条覆盖
+  - `radius along trailing`控制拖尾沿长度方向的粗细分布；ramp 横轴左侧对应拖尾末端，右侧对应拖尾头部
+  - `enable trailing noise`勾选后为拖尾点位置添加噪波扰动，使拖尾轨迹更不规则
+    - `noise rolloff`控制噪波沿拖尾长度方向的衰减；值越大，拖尾头部受噪波影响越小
+- `trail animation`选项（拖尾动画）
+  - `start frame`控制弹射体开始沿路径运动的起始帧
+    - 默认为 `shift forward` 模式，读取曲线上的 `startframe` 原始属性并以 `offset` 偏移
+    - 若输入曲线不含 `startframe` 属性，则默认从第 0 帧开始，由 `offset` 直接控制
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入曲线的 `startframe` 原始属性逐条覆盖
+  - `speed scale`控制弹射体沿路径运动的速度倍率；值越小运动越慢，拖尾随之变短
+    - 将参数旁菜单设为 `use attribute` 后，可通过输入曲线的 `speed` 原始属性逐条覆盖
+- `trail components`选项（拖尾属性组件）
+  - `default value`对所有组件的发射源属性值进行全局缩放，对 `Cd`（颜色）组件无效
+  - `scale over duration`勾选后开启按拖尾生命周期控制属性值的 ramp 图
+    - 横轴左侧为拖尾生命起点，右侧为生命终点；可使拖尾末期逐渐衰减，不对 `Cd` 生效
+  - `scale along trailing`勾选后开启按拖尾空间长度控制属性值的 ramp 图
+    - 横轴左侧对应拖尾末端，右侧对应头部；可使头部发射强度大于尾部，不对 `Cd` 生效
+  - `scale further using age`勾选后随弹射体年龄自动淡出发射源属性值
+    - `fade age`设置开始淡出的归一化年龄（0为发射起点，1为路径终点）；超过该值后属性值持续衰减至0
+  - `number of sources`设置拖尾属性组件数量
+  - 每个组件可选择的属性（`attribute`）
+    - `density`（灰色显示）：烟雾浓度
+    - `temperature`（蓝色显示）：温度场，驱动浮力使烟雾上升
+    - `divergence`（橙色显示）：散度场，驱动膨胀爆炸效果
+    - `burn`（黄色显示）：燃烧场，驱动火焰效果
+    - `color`：自定义颜色
+    - `Alpha`（紫色显示）：透明度
+  - `prefix attribute name`：勾选后为 `source_name` 属性添加 `trail_` 前缀，用于与**pyroburstsource节点**区分
+  - `source value scale`设置该组件属性值的缩放系数
+  - `enable noise`勾选后为该组件的发射源属性值叠加噪波
+    - `noise operation`设置噪波与属性值的合并方式
+      - `add`：噪波值在 `-amplitude` 到 `+amplitude` 之间，叠加到属性值上
+      - `multiply`：噪波值在 `0` 到 `amplitude` 之间，与属性值相乘
+  - `trail overrides`分组（单个组件相对于全局设置的覆盖值）
+    - `correct length stepping`勾选后确保该组件的拖尾长度至少等于弹射体在单帧内移动的距离，防止拖尾出现断裂
+    - `length scale`该组件相对于全局 `length` 的长度倍数，用于使不同组件拖尾长度产生差异
+    - `radius scale`该组件相对于全局 `radius` 的粗细倍数，用于使不同组件拖尾粗细产生差异
+- `output attributes`选项（输出属性）
+  - `source attribute`勾选后生成 `source_name` 字符串属性，确保栅格化时每个组件只贡献自己对应的属性场
+  - `particle scale`勾选后生成 `@pscale` 属性，控制每个发射源点的代表尺寸
+  - `velocity`勾选后生成 `@v` 属性，记录每个点的速度（用于速度场栅格化）
+    - `add velocity noise`为速度场添加噪波，产生更有机的运动效果
+  - `copy input attributes`勾选后将输入曲线的自定义属性复制到生成的点上（内部使用的属性除外）
+  - `normalized age`勾选后生成 `@agen` 属性，记录每个点归一化的生命进度（0 到 1）
+  - `trailing position`勾选后生成 `@trailingpos` 属性，记录每个点在拖尾上的位置
+  - `rest position`勾选后生成 `@rest` 属性，记录每个点在拖尾生成时的初始位置（不随点移动而改变）
+  - `randomization attribute`勾选后生成 `burstid` 属性，记录用于随机种子的值
+
+  | 可覆盖的参数 | 原始属性名 | 属性类型 |
+  |---|---|---|
+  | `point separation` | `trailingsep` | float |
+  | `length` | `trail_length` | float |
+  | `radius` | `trail_radius` | float |
+  | `start frame` | `startframe` | float |
+  | `speed scale` | `speed` | float |
+  | `fade by age` | `fade_startage` | float |
+
+  | 组件属性（作为源值乘数，可动画） | 原始属性名 | 属性类型 |
+  |---|---|---|
+  | `density` | `density` | float |
+  | `temperature` | `temperature` | float |
+  | `divergence` | `divergence` | float |
+  | `burn` | `burn` | float |
+  | `color` | `Cd` | vector |
+  | `Alpha` | `Alpha` | float |
 
 **volumerasterizeattributes节点**
 

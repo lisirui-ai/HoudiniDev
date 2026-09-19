@@ -1466,15 +1466,21 @@ copy and **transform节点**
   - 输出是**点云**（不是体积），需经过**volumerasterizeattributes节点**栅格化为 vdb 属性场后才能参与解算
   - 曲线数量必须在所有帧上保持不变；`trailingsep`、`trail_length`、`trail_radius`、`startframe`、`speed`、`fade_startage` 等控制拖尾属性的原始属性不能动画
   - 曲线上的 `density`、`temperature`、`burn`、`divergence`、`Cd`、`Alpha` 原始属性作为对应组件源值的乘数；值为0时该曲线不生成对应组件；这些属性**可以**动画以逐帧控制每条拖尾的发射强度
+  
 - `group`指定参与生成的输入曲线子集，留空则使用所有曲线
+
 - `guide display`设置视窗辅助显示
   - `trail path`：在发射源点云旁同时显示输入弹道曲线，方便对齐调试
+  
 - `additional guides`勾选后在视窗中显示爆炸主体辅助线
   - 可填入**pyroburstsource节点**路径列表，便于同步爆炸主体与拖尾的动画时机
+  
 - `randomization by`控制使用 `set varying` 模式的参数的随机种子依据
   - `primitive number`：以曲线序号为种子，输入拓扑变化时随机结果随之改变
   - `seed attribute`：以指定整数原始属性为种子，曲线顺序改变时随机结果保持不变
+  
 - `seed attribute`指定用于随机种子的整数原始属性名称（`randomization by` 设为 `seed attribute` 时生效）
+
 - `trail shape`选项（拖尾形态）
   - `point separation`控制生成点的密度；值越小点越密集，栅格化后体积细节越丰富；值越大适合背景远景
     - 将参数旁菜单设为 `use attribute` 后，可通过输入曲线的 `trailingsep` 原始属性逐条覆盖
@@ -1485,6 +1491,7 @@ copy and **transform节点**
   - `radius along trailing`控制拖尾沿长度方向的粗细分布；ramp 横轴左侧对应拖尾末端，右侧对应拖尾头部
   - `enable trailing noise`勾选后为拖尾点位置添加噪波扰动，使拖尾轨迹更不规则
     - `noise rolloff`控制噪波沿拖尾长度方向的衰减；值越大，拖尾头部受噪波影响越小
+  
 - `trail animation`选项（拖尾动画）
   - `start frame`控制弹射体开始沿路径运动的起始帧
     - 默认为 `shift forward` 模式，读取曲线上的 `startframe` 原始属性并以 `offset` 偏移
@@ -1492,14 +1499,13 @@ copy and **transform节点**
     - 将参数旁菜单设为 `use attribute` 后，可通过输入曲线的 `startframe` 原始属性逐条覆盖
   - `speed scale`控制弹射体沿路径运动的速度倍率；值越小运动越慢，拖尾随之变短
     - 将参数旁菜单设为 `use attribute` 后，可通过输入曲线的 `speed` 原始属性逐条覆盖
+  
 - `trail components`选项（拖尾属性组件）
   - `default value`对所有组件的发射源属性值进行全局缩放，对 `Cd`（颜色）组件无效
   - `scale over duration`勾选后开启按拖尾生命周期控制属性值的 ramp 图
     - 横轴左侧为拖尾生命起点，右侧为生命终点；可使拖尾末期逐渐衰减，不对 `Cd` 生效
   - `scale along trailing`勾选后开启按拖尾空间长度控制属性值的 ramp 图
     - 横轴左侧对应拖尾末端，右侧对应头部；可使头部发射强度大于尾部，不对 `Cd` 生效
-  - `scale further using age`勾选后随弹射体年龄自动淡出发射源属性值
-    - `fade age`设置开始淡出的归一化年龄（0为发射起点，1为路径终点）；超过该值后属性值持续衰减至0
   - `number of sources`设置拖尾属性组件数量
   - 每个组件可选择的属性（`attribute`）
     - `density`（灰色显示）：烟雾浓度
@@ -1514,10 +1520,11 @@ copy and **transform节点**
     - `noise operation`设置噪波与属性值的合并方式
       - `add`：噪波值在 `-amplitude` 到 `+amplitude` 之间，叠加到属性值上
       - `multiply`：噪波值在 `0` 到 `amplitude` 之间，与属性值相乘
-  - `trail overrides`分组（单个组件相对于全局设置的覆盖值）
+  - `trail overwrite`分组（单个组件相对于全局设置的覆盖值）
     - `correct length stepping`勾选后确保该组件的拖尾长度至少等于弹射体在单帧内移动的距离，防止拖尾出现断裂
     - `length scale`该组件相对于全局 `length` 的长度倍数，用于使不同组件拖尾长度产生差异
     - `radius scale`该组件相对于全局 `radius` 的粗细倍数，用于使不同组件拖尾粗细产生差异
+  
 - `output attributes`选项（输出属性）
   - `source attribute`勾选后生成 `source_name` 字符串属性，确保栅格化时每个组件只贡献自己对应的属性场
   - `particle scale`勾选后生成 `@pscale` 属性，控制每个发射源点的代表尺寸
@@ -3257,10 +3264,27 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `temperature at 0 (K)` 与 `temperature at 1 (K)`
       - 将温度场`vdb`的归一化值（0~1）线性映射到实际物理温度（开尔文），值为0时对应前者，值为1时对应后者，中间值线性插值，映射后的温度再由黑体辐射公式决定发光颜色
       - 温度场中存储的只是 0~1 的相对值
-  
+
+- `secondaryfire`选项（第三发射组件）
+  - 勾选 `enable second fire` 启用；用于为爆炸拖尾等效果添加额外的自发光，常与 **pyrotrailsource节点** 产生的拖尾体积配合使用
+  - 与 `fire` 选项在功能和参数上完全一致，唯一区别是**不支持 masking**
+  - `intensityscale`控制第二火焰的亮度；将参数旁菜单设为 `use ramp` 后可通过 `fireintensityramp` 重新映射亮度
+  - `sourcerange`设置强度场值映射到 ramp 横轴的最小/最大范围；提高最小值可缩小自发光区域
+  - `colormode`设置颜色计算方式
+    - `colorramp`：通过 `firecolorramp` 将强度场值映射到颜色
+    - `physicalblackbody`：根据温度场值由黑体辐射公式计算颜色
+    - `planckblackbody`：在 `physicalblackbody` 基础上额外引入辐射功率，高温时颜色更亮，需相应降低 `intensityscale`
+  - `temperaturescale`在进行黑体颜色映射前对颜色场值进行缩放
+  - `temperature at 0 (K)` / `temperature at 1 (K)`：将颜色场的归一化值（0~1）线性映射到实际物理温度（开尔文）
+  - `enable tone mapping`勾选后对黑体曲线进行色调映射
+    - `adaptation`压缩或拉伸低端亮度（类似曝光阴影调整）
+    - `burn`控制高端亮度的映射
+
 - `bindings`选项
   - fire
     - `intensityvolume`为负责控制火焰亮度的`vdb`的名称，`colorvolume`为负责控制火焰颜色的`vdb`的名称
+  - second fire
+    - `intensityvolume`为负责控制第二火焰亮度的`vdb`的名称，`colorvolume`为负责控制第二火焰颜色的`vdb`的名称
   - smoke
     - `smokevolume`为负责控制烟雾颜色的`vdb`的名称
   

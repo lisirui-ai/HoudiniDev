@@ -2595,29 +2595,39 @@ copy and **transform节点**
 - **volumesource节点**
   
   - 添加解算源
+  
   - `soppath`处指定`fog`的路径
+  
   - 后连**pyrosolver（sparse）节点**的第三个输入端
+  
   - `input`和`soppath`指定外部的体积作为解算源
+  
   - `volumes`选项
     - `fieldtomatch`将解算的场的属性赋给解算源体积
       - 默认为`density`属性，即外形
+      
     - 勾选`enlarge fields to contain sources`
       - 当解算源体积超出当前解算场的边界时，自动扩展解算场的范围以完整包含解算源，防止源在边界处被截断导致效果缺失
+      
     - operations
       - 读取外部解算源体积的属性并映射到解算场中
+      
       - `sourcevolume`即外部 SOP 中被读取的体积图元名称
         - 填`temperature`即读取外部 SOP 中名为`temperature`的体积图元
-        - `density`
-        - `v`
-        - `burn`
+        - `density`→`density`
+        - `temperature`→`temperature`
+        - `v`→`vel`
+        - `burn`→`flame`
+        
       - `targetfield`即被写入的解算场名称
+        
         - 填`temperature`即将读取结果写入解算场中的`temperature`场
-        - `density`
-        - `vel`
-        - `divergence`
+        - 名称写法如上
+        
       - `sourcescale`控制解算源体积的属性映射到解算场时对解算场的值是否缩放
+      
       - `operation`控制映射后的解算方式
-
+      
         | 模式 | 计算结果 | 备注 |
         |---|---|---|
         | `copy` | 目标场 = 源体积值 | 直接覆盖 |
@@ -2631,17 +2641,18 @@ copy and **transform节点**
         | `pull` | 目标场逐渐趋向源体积值 | 速度由 `accelerationstrength` / `decelerationstrength` 控制，增长平滑但比 `add` 慢 |
         | `blend` | 目标场 = (源体积值×源权重 + 目标场值×目标权重) / (源权重 + 目标权重) | 同时将源权重叠加到目标权重场 |
         | `none` | 目标场保持不变 | — |
-
+    
         > 目标场由 `smokeobject (sparse)` 创建，初始值为 **0**，第一帧 `operation` 执行前目标场均为 0
-
+      
         > 源体积值为 `sourcevolume` 参数指定的 SOP 体积图元中每个体素的数值，每帧从 SOP 直接重新读取，不受解算影响、不累积；若 SOP 无动画则每帧相同，若 SOP 有动画则随之变化
-
+      
         - `density`属性为`add`模式
         - `temperature`属性为`pull`模式
           - 温度的实际值逐渐上升
           - `accelerationstrength`和`decelerationstrength`控制增减的快慢
         - `vel`属性为`add`/`pull`模式
         - `add`模式比`pull`模式增加的快
+        
       - `fieldrank`控制属性的类型
         - `scalar`为浮点型
           - `density`、`temperature`、`burn`

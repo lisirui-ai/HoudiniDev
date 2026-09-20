@@ -3346,7 +3346,10 @@ importpoint/primitive/vertex/**detailattribute节点**
 - `smoke`选项
   - 取消勾选`smoke`不渲染烟雾，使得只渲染`fire`
   - `densityscale`设置渲染的`density`浓度
-
+  - `smoke color`调整烟雾的整体颜色
+    - 右侧菜单为 `constant`（默认）：烟雾使用统一的纯色；爆炸场景中通常设为黑色
+    - 右侧菜单切换为 `use ramp`：通过 `smoke color ramp` 将密度值映射到颜色，可实现密度越高颜色越深等效果，视觉更自然
+  
 - `scatter`选项
   - 作用：开启后生成一个额外的 `scatter` 体积场，用于模拟爆炸内部光的散射效果，使爆炸更具体积感和光照深度；常用于爆炸效果
   - 勾选 `enable scatter` 启用
@@ -3371,6 +3374,7 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `mask width`：控制遮罩属性值范围的宽度；与 `mask center` 共同决定有效遮罩区间
   - `bindings`选项卡中
     - `source volume`：驱动散射强度和颜色的 vdb 名称，一般填 `temperature` 或 `flame`
+    - `mask volume`：用于遮罩散射发光的 vdb 名称，其属性值将与 `mask center` / `mask width` 定义的范围比较，决定各体素的散射发光强度，一般填`density`
     - `scatter volume`：节点生成的散射体积的名称，供 Pyro Shader 使用
 
 # 其他

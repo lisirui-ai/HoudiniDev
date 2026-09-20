@@ -2671,8 +2671,8 @@ copy and **transform节点**
   - `properties`选项
     - 勾选`maxsize`限制激活区域的大小
       - 超过激活区域的体积不会被显示
-    - boundaryconditions
-      - treatx/y/zasclosebelow/above
+    - `boundaryconditions`
+      - `treatx/y/zasclosebelow/above`
         - x/y/z轴上设置空气墙（与体积发生碰撞的被动刚体）
         - `below`时，对应轴上小于设定值的体积不会被显示
         - `above`时，对应轴上大于设定值的体积不会被显示，即空气墙位置
@@ -3063,6 +3063,26 @@ importpoint/primitive/vertex/**detailattribute节点**
 - 在**ps节点**的`surface`通道连接的**texture节点**是渲染才能看到的；只有在**ps节点**属性视窗`textures`选项中`base` `color`添加的贴图才是直接可以看到的
 
 单击左侧工具架的渲染按钮可渲染框选的区域
+
+**Render Flipbook（拍平）**
+
+- 作用：将视窗内容逐帧截图并以全速在 mplay 中播放，是介于视窗实时预览和正式渲染之间的中间方案，适合复杂场景/解算的快速预览
+- 使用方式
+  - 首次使用：在视窗左侧工具架**右键**单击 Flipbook 工具 → 选择 `Flipbook with new settings` 打开设置对话框
+  - 再次使用：直接**左键**单击 Flipbook 工具，沿用上次设置直接拍平
+- `output`选项卡
+  - `frame range/inc`：设置起始帧、结束帧和帧步长，默认引用时间轴的 `$RFSTART` 和 `$RFEND`
+  - `flipbook to mplay`：勾选后将每帧写入 mplay 供交互预览（默认开启）
+  - `output files`：填写路径后将帧额外保存到磁盘；若关闭 `flipbook to mplay`，则只保存到磁盘
+  - `initialize simulation OPs`：拍平前重置所有解算节点，确保解算从第0帧重新开始
+  - `render`：控制渲染视窗范围，`current viewport` 渲染当前视窗，`current beauty pass` 排除背景/网格/控制柄等只渲染几何体
+- `effects`选项卡
+  - `antialias`：抗锯齿质量
+  - `motion blur`：开启运动模糊及子帧采样数
+- `size`选项卡
+  - `zoom`：缩小输出图像尺寸以节省内存/磁盘
+  - `resolution`：自定义输出分辨率（默认跟随视窗大小）
+  - `crop out view mask overlay`：勾选后裁掉相机宽高比以外的区域
 
 **mantra节点**
 

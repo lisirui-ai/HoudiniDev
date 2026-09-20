@@ -2590,7 +2590,9 @@ copy and **transform节点**
       - 不同精度的解算，想要寿命相等，需要调整值，值不同
   
 - **volumesource节点**
+  
   - 添加解算源
+  - `soppath`处指定`fog`的路径
   - 后连**pyrosolver（sparse）节点**的第三个输入端
   - `input`和`soppath`指定外部的体积作为解算源
   - `volumes`选项

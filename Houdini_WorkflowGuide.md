@@ -1244,8 +1244,9 @@ copy and **transform节点**
     - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@copynum` 属性逐点覆盖
   - `spreadstartangle`设置散点从爆炸方向向量扩散的最小角度（仅 `shockwave` 模式有效）
     - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@spread_startangle` 属性逐点覆盖
-  - `spreadangle`设置散点从爆炸方向向量扩散的角度范围
-    - 值为180时为完整半球，值越小，冲击波越接近平面环形
+  - `spreadangle`设置散点从爆炸方向向量扩散的最大角度覆盖范围
+    - `explosion`模式：值为90时生成半球（适合地面爆炸），值为180时生成完整球（全方向爆炸）
+    - `shockwave`模式：与`spreadstartangle`配合，设置从爆炸方向反方向开始扩散的角度范围，值为180时散点覆盖全方向
     - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@spread_angle` 属性逐点覆盖
   - `azimuthstartangle`控制散点绕爆炸方向的起始旋转角度（仅 `shockwave`/`blastrings` 模式有效）
     - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@azimuth_startangle` 属性逐点覆盖

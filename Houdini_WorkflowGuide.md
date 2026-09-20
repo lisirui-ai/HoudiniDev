@@ -3346,8 +3346,28 @@ importpoint/primitive/vertex/**detailattribute节点**
 - `smoke`选项
   - 取消勾选`smoke`不渲染烟雾，使得只渲染`fire`
   - `densityscale`设置渲染的`density`浓度
-  
 
+- `scatter`选项
+  - 作用：开启后生成一个额外的 `scatter` 体积场，用于模拟爆炸内部光的散射效果，使爆炸更具体积感和光照深度；常用于爆炸效果
+  - 勾选 `enable scatter` 启用
+  - `intensityscale`：设置散射发光强度，值越大散射越亮
+  - `hot core scale`：对散射中亮度较高区域额外增强，用于凸显爆炸核心裂缝细节；爆炸衰减后效果减弱
+  - `color mode`：设置散射颜色的计算方式
+    - `color ramp`：通过 `scatter color ramp` 将 `source volume` 的值映射到颜色
+    - `physical blackbody`：根据温度由黑体辐射公式计算颜色
+    - `planck blackbody`：在 `physical blackbody` 基础上引入辐射功率，高温时颜色更亮
+  - `source range`：设置 `source volume` 值映射到 ramp 横轴的最小/最大范围
+    - 提高最小值可排除低温区域的散射发光，缩小发光区域
+    - 将最大值向最小值靠近可使散射更亮
+  - `blur`：勾选后对散射体积进行模糊，模拟光在内部扩散的效果
+    - `use blur steps`：开启多尺度模糊，使用 2~3 步可进一步柔化散射区域
+    - `filter voxel radius` / `filter radius`：模糊半径（体素单位/世界单位）
+    - `blur iterations`：模糊操作重复次数，值越大越柔和
+    - `downsample`：在计算散射场前对 source volume 降采样，可提速，代价是损失部分细节
+  - `masking`：基于 `mask volume` 的阈值范围遮罩散射发光区域，用于保留爆炸的细节纹理
+  - `bindings`选项卡中
+    - `source volume`：驱动散射强度和颜色的 vdb 名称，一般填 `temperature` 或 `flame`
+    - `scatter volume`：节点生成的散射体积的名称，供 Pyro Shader 使用
 
 # 其他
 

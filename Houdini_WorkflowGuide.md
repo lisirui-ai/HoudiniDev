@@ -643,6 +643,8 @@ ctrl+shift点击参数栏取消关联
     - 设置为`intothisobject`
     
   - 后接**filecache节点**将解算结果缓存
+  
+- `number of objects`增加读取的模型/属性
 
 
 ## 点

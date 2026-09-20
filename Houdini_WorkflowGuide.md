@@ -3357,7 +3357,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 
 - 一般`vdb`大小的三个分量控制在500，精度适中，1000高精度
 
-- 进`dop`解算前必须在点云点层级（未生成体积前）定义的三种属性
+- 进`dop`解算前必须在点云点层级（未生成体积前）定义的三种属性，以便**volumerasterizeattributes**生成属性场
 
   ```c++
   @pscale                                                     //控制体积单元的大小；一般在aw节点中控制，使用噪波增加随机度；必须比体素大小/精度大       
@@ -3375,6 +3375,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 - 每个属性场对应一个`vdb`体积
 
   - `flame`属性场可以影响`temperature`属性场、`density`属性场、`divergence`属性（隐含的，热胀）、`vel`属性场
+- `vel`属性场内的值是向量类型，有正有负，反映方向
 
 - `vdb`体积的名称
 
@@ -3398,14 +3399,14 @@ importpoint/primitive/vertex/**detailattribute节点**
 
   - **gasfieldwrangle节点**`vex`控制
   - 节点内置的噪波和内部的`gas`系列整体噪波节点
-  
+
 - `@pscale`决定体积单元的范围，`voxelsize`决定体积单元的精细度
 
   - $$
     \text{@pscale} \times 2 \quad (\text{直径}) > \text{voxelsize} \times 1.5
     $$
-  
-  
+
+
     - 只有当`@pscale`>`voxelsize`*0.75，体积单元才能正确渲染
 
 `distance`体积雾

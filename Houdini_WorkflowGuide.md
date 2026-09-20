@@ -1994,7 +1994,7 @@ copy and **transform节点**
   - temperature
     - 温度场是必须有的，要么来自于`sourcing`，要么来自于`emit`
     - `coolingrate`处设置温度降低的速率
-      - 越大，温度降的越块
+      - 越大，温度降的越块，后面所产生的浮力越小
     - 勾选`emitfromflame`使得`flame`属性场可以影响`temperature`属性场
       - `flame`属性场发射温度，升温
         - 一般用于爆炸
@@ -3363,8 +3363,12 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `use blur steps`：开启多尺度模糊，使用 2~3 步可进一步柔化散射区域
     - `filter voxel radius` / `filter radius`：模糊半径（体素单位/世界单位）
     - `blur iterations`：模糊操作重复次数，值越大越柔和
-    - `downsample`：在计算散射场前对 source volume 降采样，可提速，代价是损失部分细节
+    - `downsample`：在计算散射场前对 `source volume` 降采样，可提速，代价是损失部分细节
   - `masking`：基于 `mask volume` 的阈值范围遮罩散射发光区域，用于保留爆炸的细节纹理
+    - 此处范围指的是 **`mask volume` 属性值的范围**，而非空间范围；与体素在空间中的位置无关，决定的是「某体素的 `mask volume` 属性值落在此范围内时如何调整其散射发光强度」
+    - 有效遮罩范围 = `[mask center - mask width × 0.5, mask center + mask width × 0.5]`，范围内 `mask volume` 值从最小到最大对应发光乘数从 `1` 到 `0`，即 mask 值越大的区域散射发光越弱
+    - `mask center`：控制遮罩属性值范围的中心值；值越小，更多区域被遮罩、爆炸整体发光减弱；值越大，内部发光透过烟雾裂缝显现，爆炸更具内发光感
+    - `mask width`：控制遮罩属性值范围的宽度；与 `mask center` 共同决定有效遮罩区间
   - `bindings`选项卡中
     - `source volume`：驱动散射强度和颜色的 vdb 名称，一般填 `temperature` 或 `flame`
     - `scatter volume`：节点生成的散射体积的名称，供 Pyro Shader 使用

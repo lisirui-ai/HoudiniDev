@@ -2598,6 +2598,8 @@ copy and **transform节点**
   - `volumes`选项
     - `fieldtomatch`将解算的场的属性赋给解算源体积
       - 默认为`density`属性，即外形
+    - 勾选`enlarge fields to contain sources`
+      - 当解算源体积超出当前解算场的边界时，自动扩展解算场的范围以完整包含解算源，防止源在边界处被截断导致效果缺失
     - operations
       - 读取外部解算源体积的属性并映射到解算场中
       - `sourcevolume`即外部解算源体积的属性

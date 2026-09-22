@@ -1571,6 +1571,11 @@ copy and **transform节点**
   - 与**pyroburstsource节点**的 `source_name` 机制配合，确保各组件的点只贡献自己对应的属性场
   - 若输入点云不来自**pyroburstsource节点**（如普通粒子），该参数留空即可
 - `particlescale`影响`@pscale`的缩放，进而影响体积单元的大小
+- `velocity blur`选项
+  - 勾选`velocity blur`开启速度模糊栅格化：沿粒子速度路径创建多个采样点，将原始点的覆盖权重分散到这些采样点上，使高速运动的粒子在体积中产生拖尾/模糊效果
+  - `shutter`：速度模糊的快门时间
+  - `shutter offset`：快门偏移
+  - `blur samples`：沿速度路径的采样点数量，值越大结果越平滑准确，但计算更慢
 - `coverage`对属性进行缩放
   - 一般`coverageattribute`不设置任何属性
     - 继承的属性的值会自乘`coverageattribute`的值

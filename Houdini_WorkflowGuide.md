@@ -2549,6 +2549,12 @@ copy and **transform节点**
       - 设置解算快慢/烟雾升的快慢，相当于**timewarp节点**
     - calculatespeedfield
       - 勾选计算并记录速度属性
+  - `flames`选项
+    - `flame`场存储反应物（燃料）的剩余寿命，`flames`选项卡控制随着`flame`值的消耗如何生成三种输出
+      - 勾选`emit smoke`：`flame`消耗时向`density`场注入烟灰（碳黑/浓烟）
+      - 勾选`add temperature`：`flame`消耗时向`temperature`场注入热量，使气体持续上升
+      - 勾选`add expansion`：`flame`消耗时向`divergence`场注入膨胀，产生爆炸扩张效果
+    - `flame lifespan`：控制反应物消耗的速度；值为 2 表示初始 `flame` 值为 1 的反应物需要 2 秒才能完全耗尽，值越大反应物燃烧越慢、火焰持续越久
   - `shape`选项
     - disturbance
       - 影响速度场
@@ -2617,7 +2623,8 @@ copy and **transform节点**
         - `density`→`density`
         - `temperature`→`temperature`
         - `v`→`vel`
-        - `burn`→`flame`
+        - `burn`/`flame`→`flame`（SOP 中的体积图元名可自定义为`burn`或`flame`，但映射到解算场中只能是`flame`）
+        - `divergence`→`divergence`
         
       - `targetfield`即被写入的解算场名称
         

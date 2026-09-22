@@ -2676,6 +2676,8 @@ copy and **transform节点**
       - 勾选`multifield`显示`multifield`选项中的内容
       - 勾选`temperature`显示温度
   - `properties`选项
+    - `center`：解算容器的起始位置；勾选`maxsize`后同时指定最大边界框的中心位置
+      - 解算容器初始为空，在首次注入时自动扩展；将`center`设置在靠近初始解算源的位置可降低扩展开销
     - 勾选`maxsize`限制激活区域的大小
       - 超过激活区域的体积不会被显示
     - `boundaryconditions`

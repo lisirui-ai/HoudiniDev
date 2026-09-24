@@ -658,6 +658,31 @@ ctrl+shift点击参数栏取消关联
 - 属性视窗中几项控制撒点的随机性（一般不建议开启随机性）
 - 两项控制撒点上限和最大撒点数
 
+**pointreplicate节点**
+
+- 在每个输入点周围生成一团点云（cloud of points）
+- 每团点云先在以原点为中心、z 轴对齐的局部空间中生成，再按照标准拷贝/实例化规则由输入点的属性（如 `@P`、`@N`、`@orient`、`@pscale` 等）进行变换
+- 相比 **copy节点**，在需要大量独特点云时性能更优
+- 若输入粒子上存在 `@id` 属性，则以其作为随机种子；若存在 `@rest` 属性，则噪波在 rest 空间下计算，从而在粒子模拟上得到稳定的噪波点云
+- 主要参数
+  - `group`：指定要复制的输入点组
+  - `keep input geometry`：保留原始输入点不删除
+  - `points per point`：每个输入点生成的副本点数量
+  - `generate from attribute`：启用后，以输入点上指定的 float 属性值作为生成概率，与 `points per point` 相乘得到实际生成数
+  - `shape`：生成点云的形状（球、圆盘、线等），也可指定 `file` 或外部 `sop` 作为自定义形状
+  - `orientation`：2D/1D 形状在局部空间中的朝向
+  - `center`：点云在局部空间的中心偏移，增大 z 值可使点云沿对齐向量（通常为 `@N` 或 `@v`）偏移
+  - `size` / `uniform scale`：点云的局部尺寸与整体缩放
+  - `velocity stretch`：沿局部 z 轴按输入点速度拉伸点云，模拟运动模糊效果
+  - `seed`：随机数种子
+  - `quasi-stratified sampling`：分层采样，空间分布更均匀，有轻微性能开销
+  - `add noise`：在局部空间叠加噪波，噪波类型、频率、振幅、turbulence 等均可调节
+  - `copy source attributes`：将输入点属性复制到副本点上，可指定属性列表
+  - `inherit velocity`：副本点从输入点继承速度的比例
+  - `radial velocity`：副本点基于其偏离源点的位置额外附加的径向速度
+  - `keep source attributes`：保留每个副本点对应的源点编号属性（`source point attribute`）和在点云内的索引属性（`source index attribute`）
+  - `create output group`：将所有副本点添加到指定点组
+
 **copytopoints节点**
 - 物体的朝向拷贝后朝着点云法线方向
 - 物体在拷贝前需要在世界`xz`平面的上方
@@ -883,6 +908,24 @@ copy and **transform节点**
 - 改变点的序号
 - `shift`模式
   - 可由时间驱动不断变化点的序号
+
+**enumerate节点**
+
+- 对选定组内的点、面或顶点依次写入递增的整数或字符串属性
+- 与内置的点/面编号（`@ptnum`/`@primnum`）的区别：仅对指定组内的元素编号，组外元素不受影响
+- 主要参数
+  - `group`：指定要编号的点/面组
+  - `group type`：组的元素类型（点、面、顶点）
+  - `piece attribute`：指定一个整数或字符串属性作为分块依据，同值元素视为同一块，配合 `mode` 对各块分别编号
+  - `mode`：分块编号模式
+    - `enumerate piece elements`：对每块内的元素独立从 0 开始顺序编号
+    - `enumerate pieces`：同一块内所有元素写入相同的编号，适合将字符串分块属性（如 `@name`）转换为唯一整数编号
+  - `attribute`：存储编号结果的属性名
+  - `type`：属性类型，整数或字符串
+  - `prefix`：类型为字符串时，在编号前拼接的前缀字符串
+- 常见用途
+  - 配合 `piece attribute` 将 `@name` 字符串属性转换为整数 `@piece` 属性，便于后续 VEX 计算
+  - 对组内元素生成局部序号（而非全局 `@ptnum`），用于驱动动画偏移或交错效果
 
 **switch节点**
 

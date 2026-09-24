@@ -1283,7 +1283,7 @@ copy and **transform节点**
   - `shapeoffset`控制爆炸形状的随机种子，不同值产生不同外形
   - `initialsize`设置爆炸的初始大小（直径约等于该值的单位数）
     - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@pscale` 属性逐点覆盖
-  - `direction`设置爆炸的方向，影响 `muzzleflash` 模式和 `directionalexpansion`
+  - `direction`设置爆炸的方向
     - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@N` 属性逐点覆盖
   - `ringsperburst`设置每个输入点生成的环数（仅 `blastrings` 模式有效）
     - 将参数旁菜单设为 `use attribute` 后，可通过输入点的 `@copynum` 属性逐点覆盖

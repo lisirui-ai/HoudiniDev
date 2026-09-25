@@ -1541,7 +1541,6 @@ copy and **transform节点**
   | `radius` | `trail_radius` | float |
   | `start frame` | `startframe` | float |
   | `speed scale` | `speed` | float |
-  | `fade by age` | `fade_startage` | float |
 
 - `trail shape`选项（拖尾形态）
   - `point separation`控制生成点的密度；值越小点越密集，栅格化后体积细节越丰富；值越大适合背景远景

@@ -1532,13 +1532,21 @@ copy and **transform节点**
   
 - `seed attribute`指定用于随机种子的整数原始属性名称（`randomization by` 设为 `seed attribute` 时生效）
 
+- `use attribute` 模式：部分参数旁的菜单可切换为 `use attribute`，节点将读取输入曲线上对应的原始（primitive）属性值来逐条覆盖全局参数，实现每条拖尾独立控制；这些属性**不允许**随时间动画
+
+  | 可覆盖的参数 | 对应原始属性名 | 属性类型 |
+  |---|---|---|
+  | `point separation` | `trailingsep` | float |
+  | `length` | `trail_length` | float |
+  | `radius` | `trail_radius` | float |
+  | `start frame` | `startframe` | float |
+  | `speed scale` | `speed` | float |
+  | `fade by age` | `fade_startage` | float |
+
 - `trail shape`选项（拖尾形态）
   - `point separation`控制生成点的密度；值越小点越密集，栅格化后体积细节越丰富；值越大适合背景远景
-    - 将参数旁菜单设为 `use attribute` 后，可通过输入曲线的 `trailingsep` 原始属性逐条覆盖
   - `length`设置拖尾在世界空间中的长度（Houdini 单位），值越大弹射体身后拖尾越长
-    - 将参数旁菜单设为 `use attribute` 后，可通过输入曲线的 `trail_length` 原始属性逐条覆盖
   - `radius`设置拖尾的粗细；配合 `radius along trailing ramp` 可控制拖尾沿长度方向的粗细变化
-    - 将参数旁菜单设为 `use attribute` 后，可通过输入曲线的 `trail_radius` 原始属性逐条覆盖
   - `radius along trailing`控制拖尾沿长度方向的粗细分布；ramp 横轴左侧对应拖尾末端，右侧对应拖尾头部
   - `enable trailing noise`勾选后为拖尾点位置添加噪波扰动，使拖尾轨迹更不规则
     - `noise rolloff`控制噪波沿拖尾长度方向的衰减；值越大，拖尾头部受噪波影响越小
@@ -1547,9 +1555,7 @@ copy and **transform节点**
   - `start frame`控制弹射体开始沿路径运动的起始帧
     - 默认为 `shift forward` 模式，读取曲线上的 `startframe` 原始属性并以 `offset` 偏移
     - 若输入曲线不含 `startframe` 属性，则默认从第 0 帧开始，由 `offset` 直接控制
-    - 将参数旁菜单设为 `use attribute` 后，可通过输入曲线的 `startframe` 原始属性逐条覆盖
   - `speed scale`控制弹射体沿路径运动的速度倍率；值越小运动越慢，拖尾随之变短
-    - 将参数旁菜单设为 `use attribute` 后，可通过输入曲线的 `speed` 原始属性逐条覆盖
   
 - `trail components`选项（拖尾属性组件）
   - `default value`对所有组件的发射源属性值进行全局缩放，对 `Cd`（颜色）组件无效
@@ -1586,24 +1592,6 @@ copy and **transform节点**
   - `trailing position`勾选后生成 `@trailingpos` 属性，记录每个点在拖尾上的位置
   - `rest position`勾选后生成 `@rest` 属性，记录每个点在拖尾生成时的初始位置（不随点移动而改变）
   - `randomization attribute`勾选后生成 `burstid` 属性，记录用于随机种子的值
-
-  | 可覆盖的参数 | 原始属性名 | 属性类型 |
-  |---|---|---|
-  | `point separation` | `trailingsep` | float |
-  | `length` | `trail_length` | float |
-  | `radius` | `trail_radius` | float |
-  | `start frame` | `startframe` | float |
-  | `speed scale` | `speed` | float |
-  | `fade by age` | `fade_startage` | float |
-
-  | 组件属性（作为源值乘数，可动画） | 原始属性名 | 属性类型 |
-  |---|---|---|
-  | `density` | `density` | float |
-  | `temperature` | `temperature` | float |
-  | `divergence` | `divergence` | float |
-  | `burn` | `burn` | float |
-  | `color` | `Cd` | vector |
-  | `Alpha` | `Alpha` | float |
 
 **volumerasterizeattributes节点**
 

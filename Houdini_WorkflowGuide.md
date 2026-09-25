@@ -2043,6 +2043,7 @@ copy and **transform节点**
   - flame
     - 勾选`createflamefile`创建`flame`属性/场
     - 在`fields`选项中勾选`density`和`temperature`的`emitfromflame`，使得`flame`属性场可以影响`density`属性场和`temperature`属性场，产生真实的物理效果
+    - 在`shape`选项中勾选`flameexpansion`，使`flame`场驱动`divergence`产生膨胀效果，至此`flame`场对密度、温度、膨胀三个维度均生效，作用完整
     - `flamelifespan`设置`flame`属性的消散，单位是秒
       - 越小，消散的越早，越大，消散的越晚
 - `shape`选项/`force`选项
@@ -2107,8 +2108,8 @@ copy and **transform节点**
           - 确定范围需要配合`fieldguide`来确定
         - 单击`computerange`计算当前帧控制属性的最值
   - flameexpansion
-    - 勾选产生膨胀力场，产生`divergence`属性场，影响`vel`属性场，模拟爆炸
-    - `divergence`属性可以在没有浮力的情况下产生膨胀也就是爆炸效果
+    - 勾选后基于 `flame` 属性场发射 `divergence`，`flame` 值越高的区域膨胀越强，从而影响 `vel` 属性场模拟爆炸膨胀效果
+    - `divergence` 属性可以在没有浮力的情况下产生膨胀也就是爆炸效果
   - shredding
     - 对速度场产生高频细碎的旋转，从而产生更加细碎的噪波
       - 比`turbulence`更加细碎

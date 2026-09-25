@@ -3538,7 +3538,7 @@ importpoint/primitive/vertex/**detailattribute节点**
     $$
 
 
-    - 只有当`@pscale`>`voxelsize`*0.75，体积单元才能正确渲染
+    - 建议`@pscale`>`voxelsize`*0.75，否则体积单元小于一个体素，渲染时细节会丢失；但不满足此条件仍可解算，并非强制要求
 
 `distance`体积雾
 

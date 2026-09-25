@@ -1,2 +1,1 @@
-# CGFullStackDev
-CG
+# CG

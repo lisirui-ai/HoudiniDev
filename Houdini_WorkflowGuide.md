@@ -2223,23 +2223,19 @@ copy and **transform节点**
             ```
     
   - **force_output节点**
-    - 最先执行，在所有其他步骤之前
+    - 对 pyro 解算施加力或其他动态效果
     - 连接`gasturbulence`、`gasshred`、`merge`、`gasfieldwrangle`等施力节点，对速度场`@vel`施加力
       - 此处施加的力会参与后续的压力投影修正，是修改`@vel`的首选挂载点，效果最自然
       - 直接影响烟雾/火焰的运动轨迹，如旋转、弯曲、被风吹动等效果
   - **sources_output节点**
-    - 在力之后、平流之前执行
-    - 连接修改`density`、`temperature`、`fuel`等源场的节点，控制烟雾/火焰的生成量和位置
-      - 最常见用法：前连**volumesource节点**，将 SOP 中准备好的发射源体积注入解算
-        - **volumesource节点**的`sourcecontext`选项设为`pyrosolver`，选择对应的`density`/`temperature`/`fuel`等目标场
-        - **volumesource节点**的输入端连接来自 SOP 的发射源几何体（通常经过**pyroburstsource**或**pyrotrailsource**准备）
-      - 此时稀疏模拟的`active` `field`尚未更新，在稀疏模拟下慎用
+    - 在内置发射（built-in sourcing）之后执行，用于自定义发射操作
+    - 前连**volumesource节点**，将 SOP 中准备好的发射源体积（`density`、`temperature`、`fuel` 等）注入对应的属性场，控制烟雾/火焰的生成量和位置
+      - 在稀疏模拟下此时 `active field` 尚未更新；若需要执行可稀疏化的操作，建议改挂在 **force_output节点** 下
       - 可用于按条件动态开关发射源、或修改特定区域的属性场强度
   - **advection_output节点**
-    - 最晚执行，在平流阶段
-    - 前连接`gasfieldwrangle`等节点，在平流发生前读取或修改速度场`@vel`
+    - 在内置平流之前执行，暴露此时的准确速度场
+    - 用于手动平流其他属性场或几何体（如`@Cd`等自定义场）
       - 此处对`@vel`的修改会被后续的压力投影部分抵消，不适合作为主要施力点
-      - 适合读取原始速度数据、或手动平流`cd`等自定义属性场
 
 
 **popnetwork节点**（粒子）

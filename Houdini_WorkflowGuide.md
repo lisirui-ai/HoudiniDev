@@ -2230,9 +2230,9 @@ copy and **transform节点**
   - **sources_output节点**
     - 在内置发射（built-in sourcing）之后执行，用于自定义发射操作
     - 前连**volumesource节点**，将 SOP 中准备好的发射源体积（`density`、`temperature`、`fuel` 等）注入对应的属性场，控制烟雾/火焰的生成量和位置
-      - 在稀疏模拟（`pyrosolver_sparse`）下此时 `active field` 尚未更新；若需要执行可稀疏化的操作，建议改挂在 **force_output节点** 下
+      - 在稀疏模拟（**pyrosolver_sparse**）下此时 `active field` 尚未更新；若需要执行可稀疏化的操作，建议改挂在 **force_output节点** 下
         - sparse：只计算 `active field` 标记为激活的体素（有烟雾/火焰的区域），跳过空白体素，节省内存和算力
-        - dense（即 `pyrosolver`）：所有体素全量计算，无 `active field` 概念，此问题不适用
+        - dense（**pyrosolver**）：所有体素全量计算，无 `active field` 概念，此问题不适用
       - 可用于按条件动态开关发射源、或修改特定区域的属性场强度
   - **advection_output节点**
     - 在内置平流之前执行，暴露此时的准确速度场

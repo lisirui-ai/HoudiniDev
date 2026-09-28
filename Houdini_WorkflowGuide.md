@@ -1511,7 +1511,7 @@ copy and **transform节点**
   - 输入曲线必须带有 `time` 浮点型点属性（记录弹射体在路径各点上对应的时刻），由 **pyrotrailpath节点** 自动生成
   - 输出是**点云**（不是体积），需经过**volumerasterizeattributes节点**栅格化为 vdb 属性场后才能参与解算
   - 曲线数量必须在所有帧上保持不变；`trailingsep`、`trail_length`、`trail_radius`、`startframe`、`speed`、`fade_startage` 等控制拖尾属性的原始属性不能动画
-  - 曲线上的 `density`、`temperature`、`burn`、`divergence`、`Cd`、`Alpha` 原始属性作为对应组件最终源值的**乘数**
+  - 曲线上的`primitives`层级的 `density`、`temperature`、`burn`、`divergence`、`Cd`、`Alpha` 原始属性作为对应组件最终源值的**乘数**
     - 乘数作用于节点内部已计算好的源属性值（即已综合 `source value scale`、噪波、ramp 等所有面板参数后的结果）
     - 等效公式：`最终源值 = 节点内部计算值（含 source value scale、噪波等）× 输入端 primitive 上的 @density`（其余组件同理）
     - 值为 `0` 时该曲线不生成对应组件（例如将某些曲线的 `@density` 设为 `0`，这些拖尾不产生 density 组件）

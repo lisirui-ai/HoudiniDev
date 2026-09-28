@@ -2230,6 +2230,9 @@ copy and **transform节点**
   - **sources_output节点**
     - 在力之后、平流之前执行
     - 连接修改`density`、`temperature`、`fuel`等源场的节点，控制烟雾/火焰的生成量和位置
+      - 最常见用法：前连**volumesource节点**，将 SOP 中准备好的发射源体积注入解算
+        - **volumesource节点**的`sourcecontext`选项设为`pyrosolver`，选择对应的`density`/`temperature`/`fuel`等目标场
+        - **volumesource节点**的输入端连接来自 SOP 的发射源几何体（通常经过**pyroburstsource**或**pyrotrailsource**准备）
       - 此时稀疏模拟的`active` `field`尚未更新，在稀疏模拟下慎用
       - 可用于按条件动态开关发射源、或修改特定区域的属性场强度
   - **advection_output节点**

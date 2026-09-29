@@ -1991,8 +1991,12 @@ copy and **transform节点**
   - 解算精度应该对齐`vdb`的`voxelsize`
 - `sourcing`处增加读取的通道/属性
   - 读取上游的体积的某个属性到解算对象的某个属性中，使得上游属性能被写到属性场作为初值参与解算
-    - `temperature`、`density`、`vel`、`Cd`、`flame`
-      - 注意`Cd`属性要与`density`相乘，`density`接近0，颜色越深，为了消除`density`对`Cd`的影响，后续节点中需要对`Cd`随机
+    - `temperature`、`density`、`vel`、`Cd`、`flame`、`divergence`
+      - `Cd` 属性会被解算器内部 sourcing 节点自动预乘 `density`（即 `Cd_stored = Cd_true × density`），使低密度边缘颜色自然归零，防止平流时边缘"漏色"，用户无需手动操作
+        - 解算完成后需要去除预乘的影响以还原真实颜色；理论上应除以 `density`，但 `pyrosolver`（dense）输出中没有独立的颜色权重场（`Cd_weight`），因此改用 VEX的`normalize(@Cd)` 接口（返回同方向的单位向量）来消除 `density` 的影响
+          - 原理：`density` 是标量，乘到向量上后取模长时可从分子分母同时约掉
+            - `normalize(Cd_true × density) = (Cd_true × density) / |Cd_true × density| = (Cd_true × density) / (|Cd_true| × density) = Cd_true / |Cd_true| = normalize(Cd_true)`
+            - 结果只保留原始颜色的方向（色相/各通道比例），与 `density` 大小完全无关
       - v属性不仅受温度/浮力的影响，还受空气阻力的影响
         - 烟雾解算的空气阻力无需设置，节点内部自带的
       - `density`不是必须的，不读取时，不设置初始`density`

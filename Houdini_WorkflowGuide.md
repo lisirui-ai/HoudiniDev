@@ -1990,6 +1990,7 @@ copy and **transform节点**
 
   - 解算精度应该对齐`vdb`的`voxelsize`
 - `sourcing`处增加读取的通道/属性
+  
   - 读取上游的体积的某个属性到解算对象的某个属性中，使得上游属性能被写到属性场作为初值参与解算
     - `temperature`、`density`、`vel`、`Cd`、`flame`、`divergence`
       - `Cd` 属性会被解算器内部 sourcing 节点自动预乘 `density`（即 `Cd_stored = Cd_true × density`），使低密度边缘颜色自然归零，防止平流时边缘"漏色"，用户无需手动操作
@@ -3346,7 +3347,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 - 输入端是`vdb`
   - 可以是多个`vdb`经过`merge`后相连
 
-- 若输入的 `vdb` 中包含 `Cd` 属性场，节点内部 `pyroshader` 的 `colorwithcdvolume` 默认勾选，会自动将 `Cd` 场加入材质着色，无需额外配置
+- 若输入的 `vdb` 中包含 `Cd` 属性场，节点内部 **pyroshader** 的 `colorwithcdvolume` 默认勾选，会自动将 `Cd` 属性场加入材质着色，无需额外配置
 
 - 前连`volume`体积/`vdb`体积
 

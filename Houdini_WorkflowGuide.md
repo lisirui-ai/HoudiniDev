@@ -3346,6 +3346,8 @@ importpoint/primitive/vertex/**detailattribute节点**
 - 输入端是`vdb`
   - 可以是多个`vdb`经过`merge`后相连
 
+- 若输入的 `vdb` 中包含 `Cd` 属性场，节点内部 `pyroshader` 的 `colorwithcdvolume` 默认勾选，会自动将 `Cd` 场加入材质着色，无需额外配置
+
 - 前连`volume`体积/`vdb`体积
 
 - `fire`选项

@@ -2194,6 +2194,21 @@ copy and **transform节点**
     - 后连**force_output节点**
     - 等价于外部`shape`中的`shredding`，对属性场产生高频细碎的噪波纹理
     - `controlsettings`选项中设置噪波的生效范围/作用对象
+  - **gaswind节点**
+    - 后连**force_output节点**
+    - 对流体速度场施加环境风力，将速度场的方向和速度逐渐过渡到目标风向和风速
+    - `wind`选项中设置风力参数
+      - `windscale`：风速大小（缩放系数）
+      - `winddirection`：风吹的方向（向量）
+      - `turnspeed`：流体方向转向风向的速率，值越大转向越快
+      - `joinspeed`：流体速度大小向风速靠拢的速率，值越大速度匹配越快
+      - 勾选`usecontrolfield`后用控制场对风力进行空间范围限制
+        - `controlfield`：控制场名称（如`temperature`），场值高的区域风力更强
+        - `controlrange`：对控制场值进行归一化的最小/最大范围（输出缩放范围0~1）
+        - `remapcontrolfield`：启用后可用 Ramp 曲线自定义控制场值到风力缩放的映射关系
+      - 勾选`useboundcontrol`后可沿指定轴向对风力进行空间渐变控制
+        - `boundrange`：指定轴上的最小/最大坐标范围，范围内风力从0线性过渡到1
+        - `boundcontrolramp`：自定义范围内风力缩放的映射曲线
   - **merge节点**
     - 使得不同的**gas节点**一起产生作用
     - 后连**force_output节点**

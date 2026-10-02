@@ -368,6 +368,9 @@ $FEND                                  //动画结束帧号；由时间轴控件
 $RFSTART                               //playbar 中显示范围的起始帧号；playbar可只显示动画的一个子集
 $RFEND                                 //playbar 中显示范围的结束帧号
 $NFRAMES                               //动画总帧数；等于 $FEND - $FSTART + 1
+$CEX                                   //当前几何体包围盒中心的X坐标；典型用途：在Transform节点平移参数填 -$CEX 可将物体X轴居中到世界原点
+$CEY                                   //当前几何体包围盒中心的Y坐标；典型用途：填 -$CEY 可将物体Y轴居中到世界原点
+$CEZ                                   //当前几何体包围盒中心的Z坐标；典型用途：填 -$CEZ 可将物体Z轴居中到世界原点
 ```
 
 HScript 拥有独立的表达式函数库，与 VEX 函数相互独立，部分函数同名（如 `sin`、`fit`、`rand`）

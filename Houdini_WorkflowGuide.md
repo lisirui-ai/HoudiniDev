@@ -3155,6 +3155,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 - `output`选项卡
   - `frame range/inc`：设置起始帧、结束帧和帧步长，默认引用时间轴的 `$RFSTART` 和 `$RFEND`
   - `flipbook to mplay`：勾选后将每帧写入 mplay 供交互预览（默认开启）
+  - `flipbook session label`：仅在 `flipbook to mplay` 开启时生效，指定接收帧的 mplay 会话名称；相同标签的帧会路由到同一个会话，不同标签可同时向多个 mplay 窗口发送拍平结果以便并排比较；若填写的标签对应一个已打开的 mplay 窗口，Houdini 会将新帧直接发送到该窗口
   - `output files`：填写路径后将帧额外保存到磁盘；若关闭 `flipbook to mplay`，则只保存到磁盘
   - `initialize simulation OPs`：拍平前重置所有解算节点，确保解算从第0帧重新开始
   - `render`：控制渲染视窗范围，`current viewport` 渲染当前视窗，`current beauty pass` 排除背景/网格/控制柄等只渲染几何体

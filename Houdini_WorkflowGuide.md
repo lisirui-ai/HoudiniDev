@@ -2867,7 +2867,7 @@ copy and **transform节点**
   - 碰撞相关字段的体素尺寸；可独立于整体分辨率，设为较小值可提高碰撞精度
   - 适合低分辨率原型阶段提升碰撞质量，避免穿插
 - `closed boundaries`（封闭边界）
-  - 勾选后粒子到达 **flipsolver节点** 的 `Volume Limits` 边界时会被反弹，适合水箱模拟
+  - 标记该流体对象使用封闭边界；需同时在 **flipsolver节点** `particle motion` → `behavior` 下勾选 `collide with volume limits`，粒子才会被约束在 Volume Limits 范围内反弹，适合水箱模拟
 - `initial data`选项（粒子初始化方式）
   - `input type`：选择粒子初始化方式
     - `surface sop`：在指定 SOP 几何体内部按粒子间距生成粒子（最常用）
@@ -2901,6 +2901,8 @@ copy and **transform节点**
   - `CFL condition`：自动子步控制因子，控制粒子每步最多移动多少倍粒子间距（如 0.5 即每步最多移动 50% 粒子间距）
 - `particle motion`选项
   - `apply external forces`：应用来自外部 DOP 力节点（如重力 **gravity节点**）的力
+  - `behavior` 子选项
+    - 勾选 `collide with volume limits`：将粒子约束在 Volume Limits 所设范围内；需 **flipobject节点** 已勾选 `closed boundaries` 才生效，两者配合实现水箱封闭边界反弹
   - `collision detection`：粒子与碰撞体的处理方式
     - `none`：不做粒子级碰撞检测，仅靠压力解算避免穿插（最快，可能穿透）
     - `particle`：精确粒子碰撞，支持摩擦和反弹，最准确但最慢
@@ -2920,7 +2922,7 @@ copy and **transform节点**
     - 勾选 `visualize limits`：在视窗中显示解算范围边界框引导线
     - `box size`：解算范围的最大尺寸（三维）
     - `box center`：解算范围中心点位置
-    - 勾选 `dynamically resize fields`：每帧根据粒子实际分布动态调整体积场大小，节省内存；需在 **flipobject节点** 开启 `closed boundaries` 使粒子在边界处反弹（水箱模拟）
+    - 勾选 `dynamically resize fields`：每帧根据粒子实际位置动态调整体积场大小以刚好包住所有粒子，节省内存；调整范围不超过 `box size` 所设上限
     - `use waterline`：在封闭边界上方设为开放边界，液面以上粒子可自由流出，减少边界反射；配合 `waterline`（水面高度）和 `waterline direction`（朝上方向）使用
 - `viscosity`选项
   - 勾选 `enable viscosity`：启用粘度解算；粘度值在 **flipobject节点** 的 `physical` 标签中设置

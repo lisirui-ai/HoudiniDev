@@ -2854,7 +2854,6 @@ copy and **transform节点**
 - 节点连接关系（DOP 内部）
   - **flipobject节点** 的输出端 → **flipsolver节点** 的第一个输入端（object 输入）
   - **flipsolver节点** 的输出端 → **output节点**
-  - 注意：是 **flipobject** 输出给 **flipsolver**，而非反向
 - `particle separation`（粒子间距）
   - 控制粒子之间的交互距离，值越小粒子越密集，精度越高但计算越慢
   - 减小粒子间距意味着更多粒子，但每个粒子质量更小，单位面积总质量不变

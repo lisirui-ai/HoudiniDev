@@ -2877,12 +2877,18 @@ copy and **transform节点**
   - `sop path`：指定 SOP 几何体路径，配合 `input type` 使用
   - `jitter seed` / `jitter scale`：对初始粒子添加随机扰动，使初始状态不对称、更自然
   - `initial velocity`：设置粒子的初始速度
-  - `add viscosity attribute`：在粒子上添加 `viscosity` 属性（默认值为 1）；粘度属性通常作为乘数，值为 1 表示使用 **flipsolver节点** 的全局粘度值，新发射的粒子也会继承该默认值
+  - `add viscosity attribute`：在粒子上添加 `viscosity` 属性（默认值为 1）；粘度属性通常作为乘数，值为 1 表示使用**flipsolver节点**的全局粘度值，新发射的粒子也会继承该默认值；与`physical`→`viscosity`的关系：`physical`里设置全局粘度字段值，逐粒子的最终粘度 = 全局粘度值 × 粒子`viscosity`属性，可通过**flipsolver节点**的`viscosity`标签使用逐粒子属性覆盖全局值
   - `add temperature attribute`：在粒子上添加 `temperature` 属性，可用于驱动温度相关效果（如温度越高流动性越强，常用于熔岩等模拟）
   - `add divergence field`：添加散度场；开启后可通过散度场对粒子速度引入人工散度（正值使粒子向外扩散，负值使粒子向内聚拢），并可在**flipsolver节点**的`divergence`标签中进一步控制；需先在此处开启，**flipsolver节点**的`divergence`标签功能才能生效
 - `physical`选项
-  - `density`：流体密度，存储于 `density` 字段，影响压力解算
-  - `viscosity`：流体粘度的全局初始值，存储于 `viscosity` 字段；需在 **flipsolver节点** 的 `viscosity` 标签开启 `enable viscosity` 后生效；默认单位下约 1000 为厚流体，10000 为面团级粘度
+  - 碰撞面存在两个方向：**法向**（垂直于碰撞面，即"撞进去"的方向）和**切向**（平行于碰撞面，即"沿面滑过去"的方向）；`bounce` 控制法向，`bounce forward`/`friction` 控制切向
+  - `bounce`：法向弹性系数；1.0 表示完全弹性碰撞（不损失能量），0 表示完全非弹性碰撞（碰后静止）
+  - `bounce forward`：切向弹性系数，控制碰撞后沿碰撞面滑动方向速度的保留比例
+  - `friction`：摩擦系数；0 为无摩擦，值越大切向速度衰减越快
+  - `dynamic friction scale`：动摩擦与静摩擦的比例缩放；1.0 表示动摩擦等于静摩擦，0 表示一旦克服静摩擦即无摩擦
+  - `temperature`：流体初始温度值，存储于`temperature`属性；可用于驱动温度相关效果（如温度越高流动性越强）
+  - `density`：流体密度，存储于`density`字段，影响压力解算
+  - `viscosity`：流体粘度的全局初始值，存储于`viscosity`字段；需在**flipsolver节点**的`viscosity`标签开启`enable viscosity`后生效；默认单位下约 1000 为厚流体，10000 为面团级粘度
 - `collisions`选项
   - `volume offset`：控制粒子与碰撞体边界之间的偏移距离（单位：粒子半径倍数）
     - 设为 0 时粒子直接在碰撞边界处发生碰撞；设为 1.0 时距离碰撞体一个粒子半径处碰撞

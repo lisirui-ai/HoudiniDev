@@ -2849,7 +2849,8 @@ copy and **transform节点**
 
 **flipobject节点**
 
-- 用于创建 FLIP（Fluid Implicit Particle）流体模拟对象，是 Houdini 液体解算的核心节点
+- 创建一个流体粒子对象（particle fluid object），并附带 **flipsolver节点** 解算所需的全部数据与参数
+  - 粒子是 FLIP 流体粒子，不是普通的 POP 粒子：FLIP 粒子只是液体状态的采样点，压力/速度场解算在网格上进行，每帧粒子与网格互相传递数据；POP 粒子则是独立个体，彼此不通过网格交互
 - 通常在 **dopnetwork节点** 内部使用，配合 **flipsolver节点** 完成液体解算
 - 节点连接关系（DOP 内部）
   - **flipobject节点** 的输出端 → **flipsolver节点** 的第一个输入端（object 输入）

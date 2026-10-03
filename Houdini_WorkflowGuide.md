@@ -2915,24 +2915,21 @@ copy and **transform节点**
   - `velocity transfer`：粒子速度与网格之间的传递方式
     - `FLIP (splashy)`：传递速度变化量，适合大规模高能量液体（河流、海洋），但液面噪点较多
     - `APIC (swirly)`：保留角动量传递完整速度，适合小规模或高粘度液体（熔岩、蜂蜜），液面更平滑但略慢
+  - `volume limits` 子标签（解算范围限制）
+    - 防止粒子飞散过远导致体积场过大，超出范围的粒子可被杀死
+    - 勾选 `visualize limits`：在视窗中显示解算范围边界框引导线
+    - `box size`：解算范围的最大尺寸（三维）
+    - `box center`：解算范围中心点位置
+    - 勾选 `dynamically resize fields`：每帧根据粒子实际分布动态调整体积场大小，节省内存；需在 **flipobject节点** 开启 `closed boundaries` 使粒子在边界处反弹（水箱模拟）
+    - `use waterline`：在封闭边界上方设为开放边界，液面以上粒子可自由流出，减少边界反射；配合 `waterline`（水面高度）和 `waterline direction`（朝上方向）使用
 - `viscosity`选项
   - 勾选 `enable viscosity`：启用粘度解算；粘度值在 **flipobject节点** 的 `physical` 标签中设置
 - `surface tension`选项
-  - `surface tension`：表面张力系数，模拟水滴收缩、液体表面张力等效果；启用后通常需要增加子步数以保持稳定
-- `volume motion`→`volume limits`选项（解算范围限制）
-  - 限制粒子飞散过远导致体积网格过大的问题，超出范围的粒子可被杀死或反弹
-  - 勾选 `visualize limits`：在视窗中显示解算范围的边界框引导线
-  - `box size`：解算范围的最大尺寸（三维）
-  - `box center`：解算范围中心点位置
-  - 勾选 `dynamically resize fields`：每帧根据粒子实际分布动态调整体积场大小，在限制范围内自动缩放，节省内存
-  - 勾选 `closed boundaries`（与 **flipobject节点** 的 `closed boundaries` 配合）：在封闭边界处反弹粒子，适合水箱模拟
-  - `use waterline`：在封闭边界上方设置开放边界，液面以上的粒子可自由流出，减少边界反射；需搭配 `waterline`（水面高度）和 `waterline direction`（水面法线方向）使用
+  - `surface tension`：表面张力系数，模拟水滴收缩效果；启用后通常需要增加子步数以保持稳定
 - `collisions`选项（解算器侧）
   - `velocity scale`：碰撞速度缩放，>1 产生更大飞溅效果；通常设为 1
-  - `surface extrapolation`：当液面距碰撞体在此体素数以内时，将其视为碰撞的一部分，使液体沿弯曲表面流动更平滑；不建议设为 0
+  - `surface extrapolation`：当液面距碰撞体在此体素数以内时视为碰撞区域，使液体沿弯曲表面流动更平滑；不建议设为 0
 
-
-  
 ## 时间
 
 **timeshift节点**

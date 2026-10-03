@@ -2856,7 +2856,7 @@ copy and **transform节点**
   - **flipsolver节点** 的输出端 → **output节点**
 - `particle separation`（粒子间距）
   - 控制粒子之间的交互距离，值越小粒子越密集，精度越高但计算越慢
-  - 减小粒子间距意味着更多粒子，但每个粒子质量更小，单位面积总质量不变
+  - 减小粒子间距 → 粒子数量增多，每个粒子代表的液体体积更小、质量更轻，但同一区域内所有粒子的质量之和不变，即流体总密度不受分辨率影响
 - `particle radius scale`（粒子半径缩放）
   - 粒子实际半径 = `particle separation` × `particle radius scale`
   - 值越大液体体积越大但表面细节越少；Houdini 12 之前默认内部固定为 2

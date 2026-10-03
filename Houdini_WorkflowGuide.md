@@ -2883,9 +2883,9 @@ copy and **transform节点**
 - `collisions`选项
   - `volume offset`：控制粒子与碰撞体边界之间的偏移距离（单位：粒子半径倍数）
     - 设为 0 时粒子直接在碰撞边界处发生碰撞；设为 1.0 时距离碰撞体一个粒子半径处碰撞
-- `visualization`选项（`guides` 标签页下各子标签）
-  - `particles` 子标签：控制粒子点云的显示
-  - 其余子标签可显示各个场（标量场/向量场）的可视化，便于调试
+- `guides`选项
+  - `visualization` 子标签：所有显示类型的快速总开关面板
+  - 其余子标签为各字段/数据的详细显示设置，包括：`particles`（粒子点云）、`surface`（液面等值面）、`velocity`（速度向量）、`collision`（碰撞体）、`collision velocity`（碰撞速度）、`pressure`（压力场）、`source`（发射源）、`density`（密度场）、`viscosity`（粘度场）、`divergence`（散度场）
 
 **flipsolver节点**
 

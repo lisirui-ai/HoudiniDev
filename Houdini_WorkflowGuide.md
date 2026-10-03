@@ -2871,7 +2871,7 @@ copy and **transform节点**
 - `initial data`选项（粒子初始化方式）
   - `input type`：选择粒子初始化方式
     - `surface sop`：在指定 SOP 几何体内部按粒子间距生成粒子（最常用）
-    - `particle field`：将 SOP 几何体中的每个点作为一个粒子（可用于续算或自定义分布）
+    - `particle field`：将 SOP 点云中的每个点直接作为一个流体粒子，粒子位置完全由点云决定，不受 `particle separation` 约束；适用于自定义初始粒子分布、续算已有 FLIP 模拟（点上已存有 `v`、`pscale`、`density` 等 FLIP 属性时，关闭 `initialize fluid attributes` 可避免属性被覆盖）、或合并多个不同初始条件的流体
     - `file`：从 `.bgeo` 文件直接初始化流体（用于重启模拟）
     - `narrow band`：生成窄带 FLIP，仅在液面附近生成粒子，内部用体积表示（大规模液体优化）
   - `sop path`：指定 SOP 几何体路径，配合 `input type` 使用

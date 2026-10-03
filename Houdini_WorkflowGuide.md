@@ -2890,10 +2890,11 @@ copy and **transform节点**
 **flipsolver节点**
 
 - FLIP 流体解算器，驱动 **flipobject节点** 中粒子的运动与液面重建
-- 节点连接关系
-  - 第一个输入端（object）：连接 **flipobject节点** 输出端
-  - 第二个输入端（volume source / POP forces）：可连接 **sourcevolume节点** 持续发射粒子，或接入 POP 力节点（如 **popforce节点**）作用于粒子
-  - 注意：**flipsolver节点** 内嵌 POP 解算器，任何修改 `v`、`targetv`、`force` 属性的 POP 节点均可接入
+- 节点连接关系（共 4 个输入端）
+  - 第一个输入端（`fluid to solve`）：连接 **flipobject节点** 输出端，传入待解算的流体对象
+  - 第二个输入端（`particle velocity`）：粒子速度更新后、传入体积场之前注入；适合接入修改 `v`、`targetv`、`force` 属性的 POP 力节点（如 **popforce节点**、**popspin节点**）
+  - 第三个输入端（`volume velocity`）：体积速度场建立后、散度消除之前注入；适合接入操作速度场的微解算器（microsolver）
+  - 第四个输入端（`sourcing post-solve`）：解算结束后执行；接入 **volumesource节点** 持续向场景注入/移除粒子（如水龙头、消亡区域等发射源效果）
 - `substeps`选项
   - `time scale`：解算时间缩放比例；>1 加速，<1 慢动作
   - `min/max substeps`：最小/最大子步数
@@ -2918,6 +2919,14 @@ copy and **transform节点**
   - 勾选 `enable viscosity`：启用粘度解算；粘度值在 **flipobject节点** 的 `physical` 标签中设置
 - `surface tension`选项
   - `surface tension`：表面张力系数，模拟水滴收缩、液体表面张力等效果；启用后通常需要增加子步数以保持稳定
+- `volume motion`→`volume limits`选项（解算范围限制）
+  - 限制粒子飞散过远导致体积网格过大的问题，超出范围的粒子可被杀死或反弹
+  - 勾选 `visualize limits`：在视窗中显示解算范围的边界框引导线
+  - `box size`：解算范围的最大尺寸（三维）
+  - `box center`：解算范围中心点位置
+  - 勾选 `dynamically resize fields`：每帧根据粒子实际分布动态调整体积场大小，在限制范围内自动缩放，节省内存
+  - 勾选 `closed boundaries`（与 **flipobject节点** 的 `closed boundaries` 配合）：在封闭边界处反弹粒子，适合水箱模拟
+  - `use waterline`：在封闭边界上方设置开放边界，液面以上的粒子可自由流出，减少边界反射；需搭配 `waterline`（水面高度）和 `waterline direction`（水面法线方向）使用
 - `collisions`选项（解算器侧）
   - `velocity scale`：碰撞速度缩放，>1 产生更大飞溅效果；通常设为 1
   - `surface extrapolation`：当液面距碰撞体在此体素数以内时，将其视为碰撞的一部分，使液体沿弯曲表面流动更平滑；不建议设为 0

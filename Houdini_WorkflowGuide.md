@@ -2859,7 +2859,7 @@ copy and **transform节点**
   - 减小粒子间距 → 粒子数量增多，每个粒子代表的液体体积更小、质量更轻，但同一区域内所有粒子的质量之和不变，即流体总密度不受分辨率影响
 - `particle radius scale`（粒子半径缩放）
   - 粒子实际半径 = `particle separation` × `particle radius scale`
-  - 值越大液体体积越大但表面细节越少；Houdini 12 之前默认内部固定为 2
+  - 值越大液体体积越大但表面细节越少（粒子半径越大，液面越平滑但细节被抹去）
 - `grid scale`（网格缩放）
   - 控制平流网格的体素尺寸相对于粒子间距的比例，默认值适用于大多数情况
 - `collision separation`（碰撞分辨率）

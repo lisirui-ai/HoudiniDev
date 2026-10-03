@@ -2877,6 +2877,9 @@ copy and **transform节点**
   - `sop path`：指定 SOP 几何体路径，配合 `input type` 使用
   - `jitter seed` / `jitter scale`：对初始粒子添加随机扰动，使初始状态不对称、更自然
   - `initial velocity`：设置粒子的初始速度
+  - `add viscosity attribute`：在粒子上添加 `viscosity` 属性（默认值为 1）；粘度属性通常作为乘数，值为 1 表示使用 **flipsolver节点** 的全局粘度值，新发射的粒子也会继承该默认值
+  - `add temperature attribute`：在粒子上添加 `temperature` 属性，可用于驱动温度相关效果（如温度越高流动性越强，常用于熔岩等模拟）
+  - `add divergence field`：添加散度场；开启后可通过散度场对粒子速度引入人工散度（正值使粒子向外扩散，负值使粒子向内聚拢），并可在 **flipsolver节点** 的 `divergence` 标签中进一步控制；需先在此处开启，**flipsolver节点** 的 `divergence` 标签功能才能生效
 - `physical`选项
   - `density`：流体密度，存储于 `density` 字段，影响压力解算
   - `viscosity`：流体粘度的全局初始值，存储于 `viscosity` 字段；需在 **flipsolver节点** 的 `viscosity` 标签开启 `enable viscosity` 后生效；默认单位下约 1000 为厚流体，10000 为面团级粘度

@@ -2867,7 +2867,7 @@ copy and **transform节点**
   - 碰撞相关字段的体素尺寸；可独立于整体分辨率，设为较小值可提高碰撞精度
   - 适合低分辨率原型阶段提升碰撞质量，避免穿插
 - `closed boundaries`（封闭边界）
-  - 标记该流体对象使用封闭边界；需同时在 **flipsolver节点** `particle motion` → `behavior` 下勾选 `collide with volume limits`，粒子才会被约束在 Volume Limits 范围内反弹，适合水箱模拟
+  - 标记该流体对象使用封闭边界；需同时在 **flipsolver节点** `particle motion` → `behavior` 下勾选 `collide with volume limits`，粒子才会被约束在 `volume limits` 范围内反弹，适合水箱模拟
 - `initial data`选项（粒子初始化方式）
   - `input type`：选择粒子初始化方式
     - `surface sop`：在指定 SOP 几何体内部按粒子间距生成粒子（最常用）

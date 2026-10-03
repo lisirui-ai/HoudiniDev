@@ -2905,6 +2905,9 @@ copy and **transform节点**
 **flipsolver节点**
 
 - FLIP 流体解算器，驱动 **flipobject节点** 中粒子的运动与液面重建
+- FLIP 是粒子与网格的混合解算机制，每帧流程：① 粒子速度传入网格 → ② 网格上做压力解算（使速度场无散度，保证流体不可压缩）→ ③ 网格速度变化量传回粒子 → ④ 粒子按网格速度移动；因此参数分为两类：
+  - `particle motion`：控制粒子层面——外力响应、碰撞交互、粒子补充/删除（reseeding）等
+  - `volume motion`：控制网格/体积场层面——粒子与网格的速度传递方式（FLIP/APIC）、解算范围等
 - 节点连接关系（共 4 个输入端）
   - 第一个输入端（`fluid to solve`）：连接 **flipobject节点** 输出端，传入待解算的流体对象
   - 第二个输入端（`particle velocity`）：粒子速度更新后、传入体积场之前注入；适合接入修改 `v`、`targetv`、`force` 属性的 POP 力节点（如 **popforce节点**、**popspin节点**）

@@ -1988,7 +1988,7 @@ copy and **transform节点**
         - 此时`sim`文件自覆盖，更新当前帧以及之前k帧的数据
         - 播放条的蓝条/内存中的解算缓存只覆盖当前帧以及之前的k帧，不断更新
 
-## 解算
+## dop
 
 **solver节点**
 - 内部的**Prev_Frame节点**保存并更新为上一帧的结果，不保存更早帧的结果
@@ -2847,7 +2847,83 @@ copy and **transform节点**
   - 输出解算结果
   - 前连**rbdpackedobject节点**，后连**output节点**
 
+**flipobject节点**
 
+- 用于创建 FLIP（Fluid Implicit Particle）流体模拟对象，是 Houdini 液体解算的核心节点
+- 通常在 **dopnetwork节点** 内部使用，配合 **flipsolver节点** 完成液体解算
+- 节点连接关系（DOP 内部）
+  - **flipobject节点** 的输出端 → **flipsolver节点** 的第一个输入端（object 输入）
+  - **flipsolver节点** 的输出端 → **output节点**
+  - 注意：是 **flipobject** 输出给 **flipsolver**，而非反向
+- `particle separation`（粒子间距）
+  - 控制粒子之间的交互距离，值越小粒子越密集，精度越高但计算越慢
+  - 减小粒子间距意味着更多粒子，但每个粒子质量更小，单位面积总质量不变
+- `particle radius scale`（粒子半径缩放）
+  - 粒子实际半径 = `particle separation` × `particle radius scale`
+  - 值越大液体体积越大但表面细节越少；Houdini 12 之前默认内部固定为 2
+- `grid scale`（网格缩放）
+  - 控制平流网格的体素尺寸相对于粒子间距的比例，默认值适用于大多数情况
+- `collision separation`（碰撞分辨率）
+  - 碰撞相关字段的体素尺寸；可独立于整体分辨率，设为较小值可提高碰撞精度
+  - 适合低分辨率原型阶段提升碰撞质量，避免穿插
+- `closed boundaries`（封闭边界）
+  - 勾选后粒子到达 **flipsolver节点** 的 `Volume Limits` 边界时会被反弹，适合水箱模拟
+- `initial data`选项（粒子初始化方式）
+  - `input type`：选择粒子初始化方式
+    - `surface sop`：在指定 SOP 几何体内部按粒子间距生成粒子（最常用）
+    - `particle field`：将 SOP 几何体中的每个点作为一个粒子（可用于续算或自定义分布）
+    - `file`：从 `.bgeo` 文件直接初始化流体（用于重启模拟）
+    - `narrow band`：生成窄带 FLIP，仅在液面附近生成粒子，内部用体积表示（大规模液体优化）
+  - `sop path`：指定 SOP 几何体路径，配合 `input type` 使用
+  - `jitter seed` / `jitter scale`：对初始粒子添加随机扰动，使初始状态不对称、更自然
+  - `initial velocity`：设置粒子的初始速度
+- `physical`选项
+  - `density`：流体密度，存储于 `density` 字段，影响压力解算
+  - `viscosity`：流体粘度的全局初始值，存储于 `viscosity` 字段；需在 **flipsolver节点** 的 `viscosity` 标签开启 `enable viscosity` 后生效；默认单位下约 1000 为厚流体，10000 为面团级粘度
+- `collisions`选项
+  - `volume offset`：控制粒子与碰撞体边界之间的偏移距离（单位：粒子半径倍数）
+    - 设为 0 时粒子直接在碰撞边界处发生碰撞；设为 1.0 时距离碰撞体一个粒子半径处碰撞
+- `visualization`选项（`guides` 标签页下各子标签）
+  - `particles` 子标签：控制粒子点云的显示
+  - 其余子标签可显示各个场（标量场/向量场）的可视化，便于调试
+
+**flipsolver节点**
+
+- FLIP 流体解算器，驱动 **flipobject节点** 中粒子的运动与液面重建
+- 节点连接关系
+  - 第一个输入端（object）：连接 **flipobject节点** 输出端
+  - 第二个输入端（volume source / POP forces）：可连接 **sourcevolume节点** 持续发射粒子，或接入 POP 力节点（如 **popforce节点**）作用于粒子
+  - 注意：**flipsolver节点** 内嵌 POP 解算器，任何修改 `v`、`targetv`、`force` 属性的 POP 节点均可接入
+- `substeps`选项
+  - `time scale`：解算时间缩放比例；>1 加速，<1 慢动作
+  - `min/max substeps`：最小/最大子步数
+  - `CFL condition`：自动子步控制因子，控制粒子每步最多移动多少倍粒子间距（如 0.5 即每步最多移动 50% 粒子间距）
+- `particle motion`选项
+  - `apply external forces`：应用来自外部 DOP 力节点（如重力 **gravity节点**）的力
+  - `collision detection`：粒子与碰撞体的处理方式
+    - `none`：不做粒子级碰撞检测，仅靠压力解算避免穿插（最快，可能穿透）
+    - `particle`：精确粒子碰撞，支持摩擦和反弹，最准确但最慢
+    - `move outside collision`：将穿入碰撞体的粒子推出，比 `particle` 方式快，不适用于薄体或快速移动的碰撞体
+  - `reseeding` 子选项
+    - 勾选 `reseed particles`：解算中自动补充/删除粒子，维持粒子均匀分布，改善液面质量
+    - `particles per voxel`：每个体素的目标粒子数
+    - `surface oversampling`：液面附近目标粒子数的倍增系数（值越大液面越细腻）
+    - `birth threshold`：当前粒子数低于目标数的此比例时补充粒子
+    - `death threshold`：当前粒子数超过目标数的此比例时删除粒子
+- `volume motion`选项
+  - `velocity transfer`：粒子速度与网格之间的传递方式
+    - `FLIP (splashy)`：传递速度变化量，适合大规模高能量液体（河流、海洋），但液面噪点较多
+    - `APIC (swirly)`：保留角动量传递完整速度，适合小规模或高粘度液体（熔岩、蜂蜜），液面更平滑但略慢
+- `viscosity`选项
+  - 勾选 `enable viscosity`：启用粘度解算；粘度值在 **flipobject节点** 的 `physical` 标签中设置
+- `surface tension`选项
+  - `surface tension`：表面张力系数，模拟水滴收缩、液体表面张力等效果；启用后通常需要增加子步数以保持稳定
+- `collisions`选项（解算器侧）
+  - `velocity scale`：碰撞速度缩放，>1 产生更大飞溅效果；通常设为 1
+  - `surface extrapolation`：当液面距碰撞体在此体素数以内时，将其视为碰撞的一部分，使液体沿弯曲表面流动更平滑；不建议设为 0
+
+
+  
 ## 时间
 
 **timeshift节点**

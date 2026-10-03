@@ -3962,3 +3962,9 @@ y+左键                                           //切断线
 
 - `name`属性是字符串类型
 - `group`属性是整型
+
+gs视窗（Geometry Spreadsheet）
+
+- DOP 解算数据以层级结构存储：每个 DOP 对象节点（如 **flipobject节点**）下挂载若干子数据（sub-data），其中 `Geometry` 类型的子数据存储当前帧的粒子几何体（点、属性等）
+- 在 DOP 网络编辑器中选中对象节点后，其下方会显示各子数据节点；选中 `Geometry` 子数据节点，gs 视窗即可读取该帧的粒子属性（如 `P`、`v`、`pscale`、`id` 等）
+- DOP 表达式函数（如 `dopfield()`）中访问几何数据时，路径格式为 `<dopnetwork路径>/<对象名>:geometry`

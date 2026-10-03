@@ -2890,8 +2890,11 @@ copy and **transform节点**
   - `density`：流体密度，存储于`density`字段，影响压力解算
   - `viscosity`：流体粘度的全局初始值，存储于`viscosity`字段；需在**flipsolver节点**的`viscosity`标签开启`enable viscosity`后生效；默认单位下约 1000 为厚流体，10000 为面团级粘度
 - `collisions`选项
+  - 碰撞体指与流体发生碰撞交互的其他 DOP 对象（如**staticobject节点**容器壁、**rbdpackedobject节点**刚体、逐帧变形的几何体等）；`use point velocity` 和 `use volume velocity` 专门针对**变形碰撞体**——当碰撞体逐帧改变形状时，需要估算其表面速度，流体才能正确响应（如产生飞溅）
   - `volume offset`：控制粒子与碰撞体边界之间的偏移距离（单位：粒子半径倍数）
     - 设为 0 时粒子直接在碰撞边界处发生碰撞；设为 1.0 时距离碰撞体一个粒子半径处碰撞
+  - `use point velocity for collisions`：使用碰撞体上点的速度来估算形变效果；适用于碰撞体逐帧变形且点拓扑稳定（点数不变、点对应关系帧间一致）的情况
+  - `use volume velocity for collisions`：使用碰撞体的体积表示（SDF）的变化来估算形变速度；适用于碰撞体点数不固定但有体积表示的情况
 - `guides`选项
   - `visualization` 子标签：所有显示类型的快速总开关面板
   - 其余子标签为各字段/数据的详细显示设置，包括：`particles`（粒子点云）、`surface`（液面等值面）、`velocity`（速度向量）、`collision`（碰撞体）、`collision velocity`（碰撞速度）、`pressure`（压力场）、`source`（发射源）、`density`（密度场）、`viscosity`（粘度场）、`divergence`（散度场）

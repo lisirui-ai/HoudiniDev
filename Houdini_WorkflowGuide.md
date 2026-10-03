@@ -2886,6 +2886,9 @@ copy and **transform节点**
 - `guides`选项
   - `visualization` 子标签：所有显示类型的快速总开关面板
   - 其余子标签为各字段/数据的详细显示设置，包括：`particles`（粒子点云）、`surface`（液面等值面）、`velocity`（速度向量）、`collision`（碰撞体）、`collision velocity`（碰撞速度）、`pressure`（压力场）、`source`（发射源）、`density`（密度场）、`viscosity`（粘度场）、`divergence`（散度场）
+    - 各字段子标签下常见参数：
+      - `visualization scale`：先对字段值进行缩放
+      - `visualization range`：再将缩放后的值映射到显示颜色，设置映射的最小/最大范围，超出范围的值会被截断显示
 
 **flipsolver节点**
 

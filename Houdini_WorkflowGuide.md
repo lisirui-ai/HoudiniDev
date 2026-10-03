@@ -2690,13 +2690,25 @@ copy and **transform节点**
   
 - **volumesource节点**
   
-  - 添加解算源
+  - 将 SOP 中的体积数据或点云导入烟雾、Pyro、FLIP 等 DOP 解算中，是解算源的通用接口
+  
+  - `initialize`：预设选择器，根据目标解算类型自动配置参数
+    - `source smoke`：烟雾发射源预设
+    - `source flip`：FLIP 流体发射源预设；选择后启用`particles`标签下的粒子发射参数，将 SOP 点云注入 FLIP 解算
+    - 其他预设同理，选择后参数会自动调整到对应解算类型的常用配置
   
   - `soppath`处指定`fog`的路径
   
-  - 后连**pyrosolver（sparse）节点**的第三个输入端
+  - 后连**pyrosolver（sparse）节点**的第三个输入端；用于 FLIP 时接入**flipsolver节点**的第四个输入端（`sourcing post-solve`）
   
   - `input`和`soppath`指定外部的体积作为解算源
+  
+  - `particles`选项（`initialize`为`source flip`时使用）
+    - 勾选`source particles`：将 SOP 点云中的每个点作为新粒子注入 FLIP 解算，实现持续发射效果（如水龙头）
+    - `group`：仅导入指定组内的点
+    - `stream name`：将发射的粒子放入指定组，便于后续区分不同发射源的粒子
+    - `kill inside sop`：将进入指定 SOP SDF 区域内的粒子删除（可用于设置消亡区域）
+    - `kill inside dop`：将进入指定 DOP SDF 区域内的粒子删除
   
   - `volumes`选项
     - `fieldtomatch`将解算的场的属性赋给解算源体积

@@ -2881,7 +2881,7 @@ copy and **transform节点**
   - `add temperature attribute`：在粒子上添加 `temperature` 属性，可用于驱动温度相关效果（如温度越高流动性越强，常用于熔岩等模拟）
   - `add divergence field`：添加散度场；开启后可通过散度场对粒子速度引入人工散度（正值使粒子向外扩散，负值使粒子向内聚拢），并可在**flipsolver节点**的`divergence`标签中进一步控制；需先在此处开启，**flipsolver节点**的`divergence`标签功能才能生效
 - `physical`选项
-  - 碰撞面存在两个方向：**法向**（垂直于碰撞面，即"撞进去"的方向）和**切向**（平行于碰撞面，即"沿面滑过去"的方向）；`bounce` 控制法向，`bounce forward`/`friction` 控制切向
+  - 碰撞面存在两个方向：法向（垂直于碰撞面，即"撞进去"的方向）和切向（平行于碰撞面，即"沿面滑过去"的方向）；`bounce` 控制法向，`bounce forward`/`friction` 控制切向
   - `bounce`：法向弹性系数；1.0 表示完全弹性碰撞（不损失能量），0 表示完全非弹性碰撞（碰后静止）
   - `bounce forward`：切向弹性系数，控制碰撞后沿碰撞面滑动方向速度的保留比例
   - `friction`：摩擦系数；0 为无摩擦，值越大切向速度衰减越快

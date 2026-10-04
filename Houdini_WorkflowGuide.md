@@ -3394,6 +3394,12 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `flipbook to mplay`：勾选后将每帧写入 mplay 供交互预览（默认开启）
   - `flipbook session label`：仅在 `flipbook to mplay` 开启时生效，指定接收帧的 mplay 会话名称；相同标签的帧会路由到同一个会话，不同标签可同时向多个 mplay 窗口发送拍平结果以便并排比较；若填写的标签对应一个已打开的 mplay 窗口，Houdini 会将新帧直接发送到该窗口
   - `output files`：填写路径后将帧额外保存到磁盘；若关闭 `flipbook to mplay`，则只保存到磁盘
+    - 路径中必须包含 `$F` 变量作为帧号占位符，否则每帧会覆盖同一文件；`$F` 后跟数字表示零填充位数，例如 `$F4` 生成 `0001`、`0002` 等四位帧号
+    - 典型格式：`$HIP/flipbook/filename.$F4.jpg`（`$HIP` 为当前工程目录）
+    - 不可用连字符紧接帧号（如 `name-$F.jpg`），mplay 会将其解释为负帧号
+    - 若需要输出视频，在 mplay 中选择 `File → Export`：
+      - `Video For Windows 64-bit…`（Windows）：导出 `.avi` 视频
+      - `FFmpeg…`（跨平台）：导出 `.mp4`（MPEG-4）、`.mkv`（Matroska）、`.webm`（WebM）
   - `initialize simulation OPs`：拍平前重置所有解算节点，确保解算从第0帧重新开始
   - `render`：控制渲染视窗范围，`current viewport` 渲染当前视窗，`current beauty pass` 排除背景/网格/控制柄等只渲染几何体
 - `effects`选项卡

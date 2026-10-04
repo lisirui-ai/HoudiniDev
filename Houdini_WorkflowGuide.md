@@ -1972,7 +1972,7 @@ copy and **transform节点**
 
 - 将输入几何体转换为 SDF 体积，用于驱动 FLIP 流体发射；通常与**volumesource节点**配合，将生成的体积及粒子导入 DOP 解算
 - 输入端：连接用于定义发射形状的几何体（如球体、曲面等）
-- 输出端：生成的 SDF/fog 体积及粒子（启用`create particles`时同时输出点云）
+- 输出端：默认生成 SDF 体积；启用`create particles`时同时输出粒子点云
 - `initialize`：预设选择器，根据使用场景自动配置参数
 - `volume name`：生成的 VDB 名称；若输入几何体已有同名 SDF，则直接使用，否则自动从输入几何体计算 SDF
 - `voxel size`：生成 VDB 的体素尺寸，决定 SDF 精度

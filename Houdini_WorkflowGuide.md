@@ -2726,7 +2726,7 @@ copy and **transform节点**
   
 - **volumesource节点**
   
-  - 将 SOP 中的体积数据或点云导入烟雾、Pyro、FLIP 等 DOP 解算中，是解算源的通用接口
+  - 将 SOP 中的体积数据或点云导入Pyro、FLIP 等 DOP 解算中，是解算源的通用接口
   
   - `initialize`：预设选择器，根据目标解算类型自动配置参数
     - `source smoke`：烟雾发射源预设
@@ -2747,6 +2747,7 @@ copy and **transform节点**
     - `stream name`：将发射的粒子放入指定组，便于后续区分不同发射源的粒子
     - `kill inside sop`：将进入指定 SOP SDF 区域内的粒子删除（可用于设置消亡区域）
     - `kill inside dop`：将进入指定 DOP SDF 区域内的粒子删除
+    - 点云属性继承：`source particles` 导入点时，SOP 点上的全部属性均自动带入解算几何体，无需额外映射；`@v`（初始速度）、`@pscale`（粒子半径）、`@Cd`（颜色）、自定义属性等均会一并注入新粒子；体积场则不会自动继承，需在 `volumes → operations` 中逐项显式配置 `Source Volume → Target Field` 映射
   
   - `volumes`选项
     - `fieldtomatch`将解算的场的属性赋给解算源体积

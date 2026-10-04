@@ -1976,11 +1976,13 @@ copy and **transform节点**
 - `initialize`：预设选择器，根据使用场景自动配置参数
 - `volume name`：生成的 VDB 名称；若输入几何体已有同名 SDF，则直接使用，否则自动从输入几何体计算 SDF
 - `voxel size`：生成 VDB 的体素尺寸，决定 SDF 精度；在 FLIP 解算中 SDF 只用于定义发射区域边界（**volumesource节点**据此判断哪里可以发射），不需要达到粒子精度，通常设为`particle separation`的 2～4 倍即可，过细反而浪费计算
-- `shell thickness`：勾选后将输入几何体视为薄壳（只在表面生成体积，而非填充实体）；在 FLIP 持续发射场景中，**volumesource节点**每帧会删掉与现有液面重叠的新粒子，流体内部已有粒子，新发射的内部粒子全会被删掉，只有表面附近粒子才真正进入解算，因此用薄壳只在表面发射更高效
+  - 注意：此处精度影响的是发射源形状的近似精度（粒子从哪里出生），而非运动中的液面精度——粒子一旦进入解算，液面形态完全由粒子密度（`particle separation`）决定，SDF 不再参与；`voxel size` 过大只会导致发射源几何体的边界被磨平/圆滑，不影响模拟进行后的液面质量
+  - 液面精度由以下几处控制：① **flipobject节点**的`particle separation`——值越小粒子越密，液体细节越丰富；② **flipobject节点**的`particle radius scale`——粒子半径越大液面越平滑但细节越少；③ 渲染前用**particlefluidsurface节点**重建液面网格时的`voxelsize`——值越小重建曲面越细腻
+- `shell thickness`：勾选后将输入几何体视为薄壳（只在表面生成体积，而非填充实体）；在 FLIP 持续发射场景中，**volumesource节点**的`kill inside dop`会将当帧新发射的、落在现有 FLIP 液面 SDF 内部的粒子全部删除，因此内部粒子无论如何都会被删掉，只有表面附近（液面 SDF 外侧）的粒子才真正进入解算；用薄壳只在表面生成粒子，可避免生成大量必然被删除的内部粒子，提升效率
 - `output fog`：勾选后输出 fog VDB 而非 SDF，用于烟雾类解算
 - `create particles`：在几何体内部生成粒子点云，与**volumesource节点**的`source particles`配合使用
   - `particle group`：粒子放入的组名
-  - `particle separation`：粒子间距，决定粒子密度
+  - `particle separation`：粒子间距，决定新粒子出生时的密度；应与**flipobject节点**的`particle separation`保持一致——液面精度由**flipobject节点**的`particle separation`主导（决定解算网格精度），`flipsource`的此值仅控制发射源区域粒子的初始分布密度；偏大则发射区粒子偏稀（液面有空隙），偏小则粒子过密（reseeding 会删除多余粒子）
   - `jitter seed` / `jitter scale`：对粒子位置添加随机扰动
   - `oversampling` / `oversampling bandwidth`：在 SDF 零等值面附近过采样粒子，提升液面附近粒子密度；带宽以`particle separation`的倍数为单位
   - `radius attribute`：勾选后在粒子上添加半径属性，值等于`particle separation`

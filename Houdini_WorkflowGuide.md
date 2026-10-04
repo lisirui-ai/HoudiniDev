@@ -2886,7 +2886,7 @@ copy and **transform节点**
 
 **flipobject节点**
 
-- 创建一个流体粒子对象（particle fluid object），并附带 **flipsolver节点** 解算所需的全部数据与参数
+- 创建一个流体粒子对象（particle fluid object），并附带 **flipsolver节点** 解算所需的全部数据与参数（速度场、压力场、液面场等 DOP 数据结构）；无论发射源由 `initial data` 还是**volumesource节点**承担，此节点作为解算容器均为必须
   - 粒子是 FLIP 流体粒子，不是普通的 POP 粒子：FLIP 粒子只是液体状态的采样点，压力/速度场解算在网格上进行，每帧粒子与网格互相传递数据；POP 粒子则是独立个体，彼此不通过网格交互
 - 通常在 **dopnetwork节点** 内部使用，配合 **flipsolver节点** 完成液体解算
 - 节点连接关系（DOP 内部）

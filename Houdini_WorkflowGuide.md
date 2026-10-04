@@ -1699,17 +1699,30 @@ copy and **transform节点**
 
 **uvtexture节点**
 
-- `arclengthspline`模式
-
-  - 用于生成线的`@uv`属性，可用于生成线上点的位置映射
-
-    - `attributeclass`设置为`point`
-
-    - 后接**aw节点**
-
+- 为几何体生成 UV 纹理坐标属性，用于贴图和凹凸映射
+- `uv attribute`：生成的 UV 属性名称，默认为`uv`
+- `texture type`：投影方式
+  - `orthographic`：沿轴方向直接投影
+  - `polar`：球形包裹
+  - `cylindrical`：圆柱形包裹；对闭合网格/NURBS 曲面会自动断开接缝处并增加顶点，防止接缝处 UV 插值错误
+  - `rows & columns`：按网格行列分配 UV，适用于以网格构建的几何体；U 沿行，V 沿列
+  - `face`：将贴图副本映射到每个面的法线方向，贴图不随面的形状缩放/变形
+  - `modify source`：保留已有 UV 坐标，仅缩放/偏移
+  - `uniform spline`：仅用于多边形曲线及 NURBS/Bezier 曲线曲面；按 U/V 基底均匀采样，将采样值作为 UV 坐标
+  - `average spline`：仅用于多边形曲线及 NURBS/Bezier 曲线曲面；以每个控制点的 Greville 点坐标作为 UV
+  - `arc length spline`：仅用于多边形曲线及 NURBS/Bezier 曲线曲面；按弧长采样，将采样值作为 UV 坐标
+    - 用于生成线的`@uv`属性，可用于生成线上点的位置映射
+    - `attribute class`设置为`point`
+    - 后接**aw节点**可将 UV 转为`@curveu`：
       ```c++
-      @curveu=@uv.x;                                      //@curveu=@ptnum/(@numpt-1)
+      @curveu=@uv.x;    //@curveu=@ptnum/(@numpt-1)
       ```
+  - `perspective from camera`：以摄像机透视投影方式分配 UV，使世界空间与摄像机投影完全对齐
+- `projection axis`：投影轴方向
+- `attribute class`：UV 属性类型（`point` / `vertex`）
+  - `vertex` 可对多边形每个顶点独立设置 UV，灵活控制接缝
+- `scale` / `offset`：对 UV 坐标进行缩放/偏移
+- `fix boundary seams`：修正圆柱/球形投影时的接缝处 UV 环绕
 
 **rbdmaterialfracture节点**
 

@@ -2749,6 +2749,7 @@ copy and **transform节点**
         - `v`→`vel`
         - `burn`/`flame`→`flame`（SOP 中的体积图元名可自定义为`burn`或`flame`，但映射到解算场中只能是`flame`）
         - `divergence`→`divergence`
+        - `surface`→`surface`
         
       - `targetfield`即被写入的解算场名称
         
@@ -2767,12 +2768,12 @@ copy and **transform节点**
         | `multiply` | 目标场 = 目标场 × 源体积值 | — |
         | `divide` | 目标场 = 目标场 ÷ 源体积值 | — |
         | `maximum` | 目标场 = max(目标场, 源体积值) | 向量场可按向量长度比较 |
-        | `minimum` | 目标场 = min(目标场, 源体积值) | 向量场可按向量长度比较 |
+        | `minimum` | 目标场 = min(目标场, 源体积值) | 向量场可按向量长度比较；如`FLIP`解算的`surface`液面 |
         | `average` | 目标场 = (目标场 + 源体积值) / 2 | — |
         | `pull` | 目标场逐渐趋向源体积值 | 速度由 `accelerationstrength` / `decelerationstrength` 控制，增长平滑但比 `add` 慢 |
         | `blend` | 目标场 = (源体积值×源权重 + 目标场值×目标权重) / (源权重 + 目标权重) | 同时将源权重叠加到目标权重场 |
         | `none` | 目标场保持不变 | — |
-    
+      
         > 目标场由 `smokeobject (sparse)` 创建，初始值为 **0**，第一帧 `operation` 执行前目标场均为 0
       
         > 源体积值为 `sourcevolume` 参数指定的 SOP 体积图元中每个体素的数值，每帧从 SOP 直接重新读取，不受解算影响、不累积；若 SOP 无动画则每帧相同，若 SOP 有动画则随之变化

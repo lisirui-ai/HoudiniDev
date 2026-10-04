@@ -1968,6 +1968,26 @@ copy and **transform节点**
   - `displaymode`设置为`invisible`
     - 不显示某个属性场/vdb
 
+**flipdopsource节点**（又称 FLIP DOP Source）
+
+- 将输入几何体转换为 SDF 体积，用于驱动 FLIP 流体发射；通常与**volumesource节点**配合，将生成的体积及粒子导入 DOP 解算
+- 输入端：连接用于定义发射形状的几何体（如球体、曲面等）
+- 输出端：生成的 SDF/fog 体积及粒子（启用`create particles`时同时输出点云）
+- `initialize`：预设选择器，根据使用场景自动配置参数
+- `volume name`：生成的 VDB 名称；若输入几何体已有同名 SDF，则直接使用，否则自动从输入几何体计算 SDF
+- `voxel size`：生成 VDB 的体素尺寸，决定 SDF 精度
+- `shell thickness`：勾选后将输入几何体视为薄壳（只在表面生成体积，而非填充实体）
+- `output fog`：勾选后输出 fog VDB 而非 SDF，用于烟雾类解算
+- `create particles`：在几何体内部生成粒子点云，与**volumesource节点**的`source particles`配合使用
+  - `particle group`：粒子放入的组名
+  - `particle separation`：粒子间距，决定粒子密度
+  - `jitter seed` / `jitter scale`：对粒子位置添加随机扰动
+  - `oversampling` / `oversampling bandwidth`：在 SDF 零等值面附近过采样粒子，提升液面附近粒子密度；带宽以`particle separation`的倍数为单位
+  - `radius attribute`：勾选后在粒子上添加半径属性，值等于`particle separation`
+- `velocity`：勾选后为生成的粒子赋予初始速度，存储于`v`属性
+- `add rest attribute`：在粒子上添加`rest`属性（当前位置 + `rest offset`偏移量），用于在液体着色器中映射噪波/贴图
+- `dual rest attributes`：同时添加`rest2`属性，配合**flipsolver节点**的双休止属性支持，避免长时间模拟时的跳变
+
 **dopnetwork节点**
 
 - `cache`选项
@@ -2697,7 +2717,9 @@ copy and **transform节点**
     - `source flip`：FLIP 流体发射源预设；选择后启用`particles`标签下的粒子发射参数，将 SOP 点云注入 FLIP 解算
     - 其他预设同理，选择后参数会自动调整到对应解算类型的常用配置
   
-  - `soppath`处指定`fog`的路径
+  - `soppath`处指定解算源几何体的路径
+    - 烟雾/Pyro 解算时指定`fog`体积路径
+    - FLIP 解算时指定 SDF（signed distance field）路径，用于定义粒子发射的液面形状
   
   - 后连**pyrosolver（sparse）节点**的第三个输入端；用于 FLIP 时接入**flipsolver节点**的第四个输入端（`sourcing post-solve`）
   

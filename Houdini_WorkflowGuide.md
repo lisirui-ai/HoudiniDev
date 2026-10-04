@@ -2719,7 +2719,7 @@ copy and **transform节点**
   
   - `soppath`处指定解算源几何体的路径
     - 烟雾/Pyro 解算时指定`fog`体积路径
-    - FLIP 解算时指定 SDF（signed distance field）路径，用于定义粒子发射的液面形状
+    - FLIP 解算时指定**flipdopsource节点**的输出路径，该节点同时输出 SDF 体积（定义发射区域边界）和粒子点云（待注入的新粒子），两者由**volumesource节点**一并导入解算
   
   - 后连**pyrosolver（sparse）节点**的第三个输入端；用于 FLIP 时接入**flipsolver节点**的第四个输入端（`sourcing post-solve`）
   

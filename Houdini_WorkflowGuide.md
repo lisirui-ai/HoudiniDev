@@ -2970,7 +2970,6 @@ copy and **transform节点**
   - `min/max substeps`：最小/最大子步数
   - `CFL condition`：自动子步控制因子，控制粒子每步最多移动多少倍粒子间距（如 0.5 即每步最多移动 50% 粒子间距）
 - `particle motion`选项
-  - 以下子选项启用后会在粒子上生成对应属性，可在 SOP 中读取用于着色或后处理：`droplet`（水滴判断）、`vorticity`（涡度）、`rest` / `rest2`（静止坐标，用于贴图）、`id`（粒子唯一标识）
   - `apply external forces`：应用来自外部 DOP 力节点（如重力 **gravity节点**）的力
   - `behavior` 子选项
     - 勾选 `collide with volume limits`：将粒子约束在 Volume Limits 所设范围内；需 **flipobject节点** 已勾选 `closed boundaries` 才生效，两者配合实现水箱封闭边界反弹
@@ -2978,6 +2977,7 @@ copy and **transform节点**
     - `none`：不做粒子级碰撞检测，仅靠压力解算避免穿插（最快，可能穿透）
     - `particle`：精确粒子碰撞，支持摩擦和反弹，最准确但最慢
     - `move outside collision`：将穿入碰撞体的粒子推出，比 `particle` 方式快，不适用于薄体或快速移动的碰撞体
+  - 以下子选项启用后会在粒子上生成对应属性，可在 SOP 中读取用于着色或后处理：`droplet`（水滴判断）、`vorticity`（涡度）、`rest` / `rest2`（静止坐标，用于贴图）、`id`（粒子唯一标识）
   - `reseeding` 子选项
     - 勾选 `reseed particles`：解算中自动补充/删除粒子，维持粒子均匀分布，改善液面质量
     - `particles per voxel`：每个体素的目标粒子数

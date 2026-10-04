@@ -3038,6 +3038,33 @@ copy and **transform节点**
   - `surface tension` 子标签
     - 勾选 `enable surface tension`：启用表面张力解算
     - `surface tension`：表面张力系数，模拟水滴收缩效果；启用后通常需要增加子步数以保持稳定
+  - `density` 子标签
+    - 默认密度由 **flipobject节点** `physical` 标签统一设置；此子标签允许通过粒子属性实现逐粒子变密度，用于模拟多密度流体（如油水混合）
+    - 勾选 `density by attribute`：启用后读取粒子上指定浮点属性作为密度来源
+    - `mix method`：粒子属性值与现有密度场的混合方式
+    - `density scale`：密度场的整体缩放系数，用于快速全局调整密度量级
+  - `air` 子标签
+    - 默认情况下空气区域不参与解算，被视为空洞，导致气泡会随液体运动而坍塌或膨胀；此子标签可强制空气区域参与不可压缩约束
+    - 勾选 `enforce air incompressibility`：将不可压缩约束同时应用于空气体积，防止气泡坍塌，产生上升气泡效果（如水壶咕噜效果）；**注意**：与 `solve pressure with adaptivity` 不兼容
+    - 勾选 `apply moving collision`：移动碰撞体通过气穴间接与液体交互——碰撞体对气穴施加的压缩量会在气穴与液面交界处得到补偿
+    - `min air region voxels`：体素数低于此值的气穴不强制执行不可压缩约束，用于抑制碰撞表面沿线产生的细小噪点气泡
+  - `divergence` 子标签
+    - 默认解算为无散度（相邻粒子既不聚拢也不分散）；此子标签通过粒子属性向解算注入散度，正值使粒子向外扩散，负值使粒子聚拢，可模拟液体沸腾、膨胀等效果
+    - 需先在 **flipobject节点** 开启 `add divergence field` 才能生效
+    - 勾选 `diverge by attribute`：启用后读取粒子上指定浮点属性作为散度来源
+    - `mix method`：粒子属性值与现有散度场的混合方式；散度场不会逐帧重置
+    - `divergence scale`：散度场的整体缩放系数
+  - `solver` 子标签
+    - `spatial scale`：场景空间尺度（单位：米）；场景以米建模时保持默认 1，以厘米建模时设为 0.01；影响粒子操作容差、密度与粘度的解算默认值
+    - `mass scale`：场景质量尺度（单位：千克）；以千克建模时保持默认 1，以克建模时设为 0.001
+    - `feedback scale`：流体对碰撞刚体的反作用力缩放比例；0 表示流体不对刚体施加任何力
+    - `extrapolation mode`：解算器速度外推方式
+      - `normal`：快速方式，能正确处理弯曲碰撞容器，推荐默认使用
+      - `fast-moving colliders`：较慢但对快速移动碰撞体更精确，适合少子步数场景
+    - `max cells to extrapolate`：在流体区域外侧填充速度值的体素层数；流体运动极快或子步数极少时需增大此值
+    - 勾选 `use pressure to warm start solver`：将上一帧的压力场作为本帧压力解算的初始猜测值，加速收敛，对静态深水箱效果最明显
+    - 勾选 `solve pressure with adaptivity`：对液面深处的压力使用自适应粗化近似，大幅减少深水箱的压力解算时间；**注意**：与 `enforce air incompressibility` 不兼容
+    - 勾选 `use opencl`：使用 GPU（OpenCL）求解粘度和压力线性系统；对高分辨率含粘度模拟提升明显；启用时应关闭 `solve pressure with adaptivity`
 
 ## 时间
 

@@ -1703,8 +1703,8 @@ copy and **transform节点**
 - `uv attribute`：生成的 UV 属性名称，默认为`uv`
 - `texture type`：投影方式
   - `orthographic`：沿轴方向直接投影
-  - `polar`：球形包裹
-  - `cylindrical`：圆柱形包裹；对闭合网格/NURBS 曲面会自动断开接缝处并增加顶点，防止接缝处 UV 插值错误
+  - `polar`：球形包裹；对闭合网格/NURBS 曲面会自动断开接缝处并增加顶点，防止接缝处 UV 插值错误
+  - `cylindrical`：圆柱形包裹；同上，对闭合网格/NURBS 曲面自动断开接缝处
   - `rows & columns`：按网格行列分配 UV，适用于以网格构建的几何体；U 沿行，V 沿列
   - `face`：将贴图副本映射到每个面的法线方向，贴图不随面的形状缩放/变形
   - `modify source`：保留已有 UV 坐标，仅缩放/偏移
@@ -1722,7 +1722,8 @@ copy and **transform节点**
 - `attribute class`：UV 属性类型（`point` / `vertex`）
   - `vertex` 可对多边形每个顶点独立设置 UV，灵活控制接缝
 - `scale` / `offset`：对 UV 坐标进行缩放/偏移
-- `fix boundary seams`：修正圆柱/球形投影时的接缝处 UV 环绕
+- `rotation`：绕投影轴旋转 UV 坐标
+- `fix boundary seams`：确保贴图在接缝处正确环绕
 
 **rbdmaterialfracture节点**
 

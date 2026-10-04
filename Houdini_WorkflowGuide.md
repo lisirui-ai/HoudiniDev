@@ -1968,7 +1968,7 @@ copy and **transform节点**
   - `displaymode`设置为`invisible`
     - 不显示某个属性场/vdb
 
-**flipdopsource节点**（又称 FLIP DOP Source）
+**flipdopsource节点**
 
 - 将输入几何体转换为 SDF 体积，用于驱动 FLIP 流体发射；通常与**volumesource节点**配合，将生成的体积及粒子导入 DOP 解算
 - 输入端：连接用于定义发射形状的几何体（如球体、曲面等）

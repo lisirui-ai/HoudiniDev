@@ -2747,6 +2747,8 @@ copy and **transform节点**
     - `stream name`：将发射的粒子放入指定组，便于后续区分不同发射源的粒子
     - `kill inside sop`：将进入指定 SOP SDF 区域内的粒子删除（可用于设置消亡区域）
     - `kill inside dop`：将进入指定 DOP SDF 区域内的粒子删除
+    - 勾选 `life expectancy`：为新粒子设置 `life` 属性，控制粒子的存活时长（秒）；在 FLIP 解算中生效需同时在 **flipsolver节点** `particle motion → behavior` 下开启 `age particles`（粒子计龄）和 `reap particles`（寿命耗尽时删除粒子）
+    - `life variance`：粒子实际寿命在 `life expectancy` 基础上随机浮动的范围（秒）；设为 0 则所有粒子寿命完全相同
     - 点云属性继承：`source particles` 导入点时，SOP 点上的全部属性均自动带入解算几何体，无需额外映射；`@v`（初始速度）、`@pscale`（粒子半径）、`@Cd`（颜色）、自定义属性等均会一并注入新粒子；体积场则不会自动继承，需在 `volumes → operations` 中逐项显式配置 `Source Volume → Target Field` 映射
   
   - `volumes`选项

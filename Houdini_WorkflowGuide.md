@@ -1975,8 +1975,8 @@ copy and **transform节点**
 - 输出端：默认生成 SDF 体积；启用`create particles`时同时输出粒子点云
 - `initialize`：预设选择器，根据使用场景自动配置参数
 - `volume name`：生成的 VDB 名称；若输入几何体已有同名 SDF，则直接使用，否则自动从输入几何体计算 SDF
-- `voxel size`：生成 VDB 的体素尺寸，决定 SDF 精度
-- `shell thickness`：勾选后将输入几何体视为薄壳（只在表面生成体积，而非填充实体）
+- `voxel size`：生成 VDB 的体素尺寸，决定 SDF 精度；在 FLIP 解算中 SDF 只用于定义发射区域边界（**volumesource节点**据此判断哪里可以发射），不需要达到粒子精度，通常设为`particle separation`的 2～4 倍即可，过细反而浪费计算
+- `shell thickness`：勾选后将输入几何体视为薄壳（只在表面生成体积，而非填充实体）；在 FLIP 持续发射场景中，**volumesource节点**每帧会删掉与现有液面重叠的新粒子，流体内部已有粒子，新发射的内部粒子全会被删掉，只有表面附近粒子才真正进入解算，因此用薄壳只在表面发射更高效
 - `output fog`：勾选后输出 fog VDB 而非 SDF，用于烟雾类解算
 - `create particles`：在几何体内部生成粒子点云，与**volumesource节点**的`source particles`配合使用
   - `particle group`：粒子放入的组名

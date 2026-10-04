@@ -2986,6 +2986,17 @@ copy and **transform节点**
   - `velocity transfer`：粒子速度与网格之间的传递方式
     - `FLIP (splashy)`：传递速度变化量，适合大规模高能量液体（河流、海洋），但液面噪点较多
     - `APIC (swirly)`：保留角动量传递完整速度，适合小规模或高粘度液体（熔岩、蜂蜜），液面更平滑但略慢
+  - `force scale`：压力解算给粒子施加的速度变化量缩放比例；1 为完全应用，0 为不应用
+  - `velocity smoothing`：粒子更新速度时与相邻粒子共享速度的程度；值越大液面越平滑，但能量耗散也越多（仅 FLIP 模式下有效）
+  - `smooth surface`：勾选后使用更精确的算法追踪液面 SDF，对静止或缓慢流动的液体效果明显；湍流场景（河流、瀑布）中差异不大，可关闭以略微提升性能
+  - `update surface`：每个子步结束时液面 SDF 的更新方式
+    - `None`：不更新
+    - `Advect`：通过速度场平流更新，速度较快但精度稍低
+    - `Rebuild`：从粒子位置完整重建 SDF，最精确但最慢
+  - `update velocity`：每帧结束时速度场的更新方式
+    - `None`：不更新
+    - `Advect`：通过速度场平流更新，速度较快但精度稍低
+    - `Rebuild`：从粒子位置完整重建速度场，最精确但最慢
   - `volume limits` 子标签（解算范围限制）
     - 防止粒子飞散过远导致体积场过大，超出范围的粒子可被杀死
     - 勾选 `visualize limits`：在视窗中显示解算范围边界框引导线
@@ -2993,13 +3004,14 @@ copy and **transform节点**
     - `box center`：解算范围中心点位置
     - 勾选 `dynamically resize fields`：每帧根据粒子实际位置动态调整体积场大小以刚好包住所有粒子，节省内存；调整范围不超过 `box size` 所设上限
     - `use waterline`：在封闭边界上方设为开放边界，液面以上粒子可自由流出，减少边界反射；配合 `waterline`（水面高度）和 `waterline direction`（朝上方向）使用
-- `viscosity`选项
-  - 勾选 `enable viscosity`：启用粘度解算；粘度值在 **flipobject节点** 的 `physical` 标签中设置
-- `surface tension`选项
-  - `surface tension`：表面张力系数，模拟水滴收缩效果；启用后通常需要增加子步数以保持稳定
-- `collisions`选项（解算器侧）
-  - `velocity scale`：碰撞速度缩放，>1 产生更大飞溅效果；通常设为 1
-  - `surface extrapolation`：当液面距碰撞体在此体素数以内时视为碰撞区域，使液体沿弯曲表面流动更平滑；不建议设为 0
+  - `collisions` 子标签（解算器侧）
+    - `velocity scale`：碰撞速度缩放，>1 产生更大飞溅效果；通常设为 1
+    - `surface extrapolation`：当液面距碰撞体在此体素数以内时视为碰撞区域，使液体沿弯曲表面流动更平滑；不建议设为 0
+  - `viscosity` 子标签
+    - 勾选 `enable viscosity`：启用粘度解算；粘度值在 **flipobject节点** 的 `physical` 标签中设置
+  - `surface tension` 子标签
+    - 勾选 `enable surface tension`：启用表面张力解算
+    - `surface tension`：表面张力系数，模拟水滴收缩效果；启用后通常需要增加子步数以保持稳定
 
 ## 时间
 

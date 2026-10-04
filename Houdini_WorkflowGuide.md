@@ -2983,6 +2983,14 @@ copy and **transform节点**
     - `surface oversampling`：液面附近目标粒子数的倍增系数（值越大液面越细腻）
     - `birth threshold`：当前粒子数低于目标数的此比例时补充粒子
     - `death threshold`：当前粒子数超过目标数的此比例时删除粒子
+  - `droplets` 子选项
+    - 勾选 `detect droplets`：识别从液体主体分离出去的孤立粒子，赋予其 `droplet` 浮点属性（0 = 流体粒子，1 = 完全孤立水滴）；值越接近 1，粒子受流体压力场的影响越小，且不再向流体速度场回馈速度，避免单颗下落粒子对平静液面造成不真实的扰动；还可打散飞溅前缘的细丝，使飞溅更扩散自然
+    - `min particle density`：当周围粒子密度低于此值时，该粒子的 `droplet` 值被视为 1（完全水滴）
+    - `max particle density`：当周围粒子密度高于此值时，该粒子的 `droplet` 值被视为 0（完全流体）
+    - `behavior`：水滴粒子的处理方式
+      - `blend with fluid`：水滴重新汇入流体时，将水滴速度与现有流体速度按比例混合
+      - `kill on detection`：一旦检测到水滴状态立即删除该粒子
+      - `kill at fluid`：水滴重新汇入流体时删除该粒子
 - `volume motion`选项
   - `velocity transfer`：粒子速度与网格之间的传递方式
     - `FLIP (splashy)`：传递速度变化量，适合大规模高能量液体（河流、海洋），但液面噪点较多

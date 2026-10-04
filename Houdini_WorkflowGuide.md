@@ -2970,6 +2970,7 @@ copy and **transform节点**
   - `min/max substeps`：最小/最大子步数
   - `CFL condition`：自动子步控制因子，控制粒子每步最多移动多少倍粒子间距（如 0.5 即每步最多移动 50% 粒子间距）
 - `particle motion`选项
+  - 以下子选项启用后会在粒子上生成对应属性，可在 SOP 中读取用于着色或后处理：`droplet`（水滴判断）、`vorticity`（涡度）、`rest` / `rest2`（静止坐标，用于贴图）、`id`（粒子唯一标识）
   - `apply external forces`：应用来自外部 DOP 力节点（如重力 **gravity节点**）的力
   - `behavior` 子选项
     - 勾选 `collide with volume limits`：将粒子约束在 Volume Limits 所设范围内；需 **flipobject节点** 已勾选 `closed boundaries` 才生效，两者配合实现水箱封闭边界反弹
@@ -2991,6 +2992,22 @@ copy and **transform节点**
       - `blend with fluid`：水滴重新汇入流体时，将水滴速度与现有流体速度按比例混合
       - `kill on detection`：一旦检测到水滴状态立即删除该粒子
       - `kill at fluid`：水滴重新汇入流体时删除该粒子
+  - `vorticity` 子选项
+    - 勾选 `add vorticity attribute`：计算当前流体速度场的涡度，并混合到粒子的 `vorticity` 属性中；可用于驱动旋涡特效或着色器
+    - `preservation rate`：每秒保留粒子上已有 `vorticity` 测量值的比例（如 0.1 即每秒保留 10%，其余被当前帧新计算值覆盖）
+    - `mix method`：新计算的涡度与粒子上已有 `vorticity` 属性值的混合方式
+    - `vorticity scale`：对计算得到的涡度值进行整体缩放
+  - `separation` 子选项
+    - 压力解算结束后粒子仍可能比 `pscale` 更近（速度投影会抵消分离力导致液体体积压缩），此子选项通过额外的分离松弛步骤维持粒子间距
+    - 勾选 `apply particle separation`：启用粒子分离松弛
+    - `separation iterations`：分离松弛的迭代次数；通常设为 1，因为逐帧累积效果与多次迭代等效
+    - `separation rate`：每次迭代将粒子向目标间距移动的比例；减小此值相当于执行小于 1 次的迭代
+    - `separation scale`：目标间距的缩放系数，用于补偿球体堆积问题导致粒子无法完全按 `pscale` 排列的误差
+  - `rest` 子选项
+    - 勾选 `add rest attribute`：为每个粒子创建 `rest` 属性，记录粒子在流体中的位置随时间的变化，可用于在液体着色器中贴图噪波或纹理
+    - 勾选 `dual rest attributes`：额外创建 `rest2` 属性，始终比 `rest` 落后一个重置周期；长时间模拟时在两者之间混合可避免属性重置时的跳变（popping）
+    - `frames between reset`：`rest` 属性每隔多少帧重置一次
+    - `frame offset`：`rest` 属性重置所在的帧偏移；预卷（preroll）后再重置可得到更好的初始效果
 - `volume motion`选项
   - `velocity transfer`：粒子速度与网格之间的传递方式
     - `FLIP (splashy)`：传递速度变化量，适合大规模高能量液体（河流、海洋），但液面噪点较多

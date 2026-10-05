@@ -2082,6 +2082,7 @@ copy and **transform节点**
     - `surface polygons`：输出多边形液面（最常用）
     - `surface polygon soup`：输出 polygon soup 格式
     - `particles` / `particles and compressed fluid surface` / `compressed fluid surface`：各类预览模式，不生成最终液面
+  - `isovalue`：在体积场值等于此值的等值面处生成液面；默认为 0（即"有体积"与"无体积"的分界面）；增大此值可使液面整体向外扩展
   - `adaptivity`：多边形精度；值越高生成的面越少但精度越低，值越低网格越密
   - `transfer attributes`：将粒子上指定属性（如 `v`、`Cd`）插值转移到生成的液面网格上；`@v` 可用于运动模糊渲染
   - `visualize`：在视窗中将速度或涡度以顶点颜色形式叠加显示在液面上，方便调试；可选 `velocity`（速度）或 `vorticity`（涡度）

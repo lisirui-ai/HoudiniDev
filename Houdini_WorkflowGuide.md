@@ -2114,7 +2114,7 @@ copy and **transform节点**
   - `voxel size`：`emit` 发射场的体素尺寸；通常手动填写表达式与 **flipobject节点** 的粒子间距对齐，例如 `ch("…/particlesep") * ch("…/gridscale")`
 - `emission`选项卡（内含 `Masks`、`Sources`、`Deformation Sources`、`Extra Sources`、`Post-Process` 子标签）
   - `masks → depth` 子选项：勾选 `limit by depth` 可将发射限制在液面指定深度范围内；`maximum half-width` 用于 Narrow Band 模式，控制 SDF 激活区域以节省计算
-  - `sources → speed` 子选项：速度超过最小值的液体区域可发射白沫；速度达到最大值时必定发射；支持 `remap` 曲线自定义映射
+  - `sources → speed` 子选项：`speed range` 设置最小值和最大值——速度低于最小值不发射；速度在最小值到最大值之间线性映射到 (0, 1) 的发射概率；速度达到最大值时必定发射；支持 `remap` 曲线覆盖默认线性映射
   - `sources → curvature` 子选项：基于液面 SDF 曲率的发射，有效识别破碎波的前缘；`max velocity angle` 限制仅在速度方向与表面法线夹角小于该值时才发射——破碎波前缘的流体速度与法线方向近似对齐（夹角小），因此较小的值只允许破碎波前缘发射；值越大，速度与法线偏差更大的区域（如沿液面切向流动的区域）也可发射，范围更广；支持 `range` 和 `remap` 精细控制
   - `sources → acceleration` 子选项：基于 Euler 加速度（固定空间位置处速度的时间变化率）的发射；识别液体汇聚区（气泡被困处），如浪头落回水面；支持 `range` 和 `remap` 精细控制
   - `sources → vorticity` 子选项：基于速度场涡度的发射；识别液体内部旋涡区域，通常发生在液面以下；支持 `range` 和 `remap` 精细控制

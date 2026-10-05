@@ -2099,6 +2099,33 @@ copy and **transform节点**
   - 勾选 `use bounding box`：将液面重建限制在指定包围盒内（用于局部预览或边界裁剪）；勾选 `close boundaries` 可在包围盒边界封口
   - `flatten`子选项：将包围盒边缘区域的液面向水平面平滑过渡，便于与周围海洋曲面无缝拼接
 
+**whitewatersource节点**
+
+- 根据 FLIP 液体解算结果生成白沫（泡沫/飞沫/气泡）的发射场（`emit` VDB），供 **whitewaterSolver节点** 读取并生成白沫粒子；`emit` 场的密度直接决定白沫的生成速率
+- 节点采用尺度无关设计，可在低分辨率下调好效果，高分辨率渲染时直接提升粒子数而无需重新调参
+- 四个输入端
+  - 第一输入端（`liquid simulation`）：来自 FLIP 解算（或 **fluidcompress节点** 压缩后）的 `surface` SDF 和 `vel` 速度场（及可选粒子和压力场）
+  - 第二输入端（`container`）：FLIP 解算域几何体或自定义 VDB SDF，用于限制发射范围
+  - 第三输入端（`collisions`）：FLIP 解算的碰撞体表面和速度场
+  - 第四输入端（`extra source points`）：额外的自定义发射点，点上需携带 `emission attribute` 指定的属性值
+- 四个输出端：`emit` 发射场（+ 可选 `surface`/`vel`）/ 容器透传 / 碰撞体透传 / 可视化预览粒子
+- `emission`选项卡（发射源控制，各源独立叠加）
+  - `speed`：速度超过最小值的液体区域可发射白沫；速度达到最大值时必定发射；适用于快速运动区域
+  - `curvature`：基于液面 SDF 曲率的发射；有效识别破碎波的前缘；`max velocity angle` 限制仅在速度方向与表面法线夹角小于该值时才发射
+  - `acceleration`：基于 Euler 加速度的发射；识别液体汇聚区（气泡被困处），如浪头落回水面
+  - `vorticity`：基于速度场涡度的发射；识别液体内部旋涡区域，通常发生在液面以下
+  - `splash`：基于孤立飞溅粒子的发射；需在第一输入端同时提供粒子；识别快速运动的稀疏粒子（飞溅液滴）
+  - `pressure`：基于压力场与液面梯度对齐程度的发射；识别浪面即将崩碎前的状态；需提供压力场、碰撞体和容器
+  - `deformation sources`：基于液面局部变形（拉伸/压缩/缩放）的发射，识别表面快速形变区域
+  - 各发射源均支持 `range`（映射范围）和 `remap`（自定义曲线重映射）精细控制
+- `fluid fields`选项卡
+  - 勾选 `output fluid fields`：同时输出 `surface` 和 `vel` 场（默认开启）；若只需缓存 `emit` 场可关闭以节省磁盘
+  - 勾选 `modify fluid fields`：将输出的 `surface` 和 `vel` 场裁剪至容器范围内；若启用了液面滤波，输出滤波后的液面
+- `surface filtering`子选项：对液面场进行 dilate → smooth → erode 预处理，减少曲率发射产生的噪点；流程与 **particlefluidsurface节点** 的 filtering 一致
+- `visualization`选项卡
+  - 勾选 `visualize emission volume`：在视窗中显示 `emit` VDB
+  - `source particles`子选项：按与 **whitewaterSolver节点** 相同的参数预生成可视化粒子，并按发射类型着色（曲率/加速度/涡度等），便于在解算前直接评估粒子数量和发射分布
+
 ## dop
 
 **solver节点**

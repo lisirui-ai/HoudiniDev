@@ -2109,22 +2109,30 @@ copy and **transform节点**
   - 第三输入端（`collisions`）：FLIP 解算的碰撞体表面和速度场
   - 第四输入端（`extra source points`）：额外的自定义发射点，点上需携带 `emission attribute` 指定的属性值
 - 四个输出端：`emit` 发射场（+ 可选 `surface`/`vel`）/ 容器透传 / 碰撞体透传 / 可视化预览粒子
+- 顶层参数
+  - `start frame`：解算开始帧；加速度发射和压力发射依赖帧间差值，设置此值可避免第一帧产生无意义的发射
+  - `voxel size`：`emit` 发射场的体素尺寸，控制白沫发射场的空间精度
 - `emission`选项卡（发射源控制，各源独立叠加）
+  - `depth` 子选项：勾选 `limit by depth` 可将发射限制在液面指定深度范围内；`maximum half-width` 用于 Narrow Band 模式，控制 SDF 激活区域以节省计算
   - `speed`：速度超过最小值的液体区域可发射白沫；速度达到最大值时必定发射；适用于快速运动区域
-  - `curvature`：基于液面 SDF 曲率的发射；有效识别破碎波的前缘；`max velocity angle` 限制仅在速度方向与表面法线夹角小于该值时才发射
-  - `acceleration`：基于 Euler 加速度的发射；识别液体汇聚区（气泡被困处），如浪头落回水面
+  - `curvature`：基于液面 SDF 曲率的发射，有效识别破碎波的前缘；`max velocity angle` 限制仅在速度方向与表面法线夹角小于该值时才发射；高分辨率液面建议配合 `volumes` 选项卡的液面滤波减少噪点
+  - `acceleration`：基于 Euler 加速度（固定空间位置处速度的时间变化率）的发射；识别液体汇聚区（气泡被困处），如浪头落回水面
   - `vorticity`：基于速度场涡度的发射；识别液体内部旋涡区域，通常发生在液面以下
   - `splash`：基于孤立飞溅粒子的发射；需在第一输入端同时提供粒子；识别快速运动的稀疏粒子（飞溅液滴）
   - `pressure`：基于压力场与液面梯度对齐程度的发射；识别浪面即将崩碎前的状态；需提供压力场、碰撞体和容器
-  - `deformation sources`：基于液面局部变形（拉伸/压缩/缩放）的发射，识别表面快速形变区域
+  - `deformation sources`：基于液面局部变形（拉伸 `stretch` / 压缩 `squish` / 整体缩放 `surface scale`）的发射，识别表面快速形变区域
   - 各发射源均支持 `range`（映射范围）和 `remap`（自定义曲线重映射）精细控制
-- `fluid fields`选项卡
-  - 勾选 `output fluid fields`：同时输出 `surface` 和 `vel` 场（默认开启）；若只需缓存 `emit` 场可关闭以节省磁盘
-  - 勾选 `modify fluid fields`：将输出的 `surface` 和 `vel` 场裁剪至容器范围内；若启用了液面滤波，输出滤波后的液面
-- `surface filtering`子选项：对液面场进行 dilate → smooth → erode 预处理，减少曲率发射产生的噪点；流程与 **particlefluidsurface节点** 的 filtering 一致
+  - `post-process` 子选项：`remap emission` 对所有发射源合并后的最终发射概率进行整体重映射
+- `volumes`选项卡（UI 中的实际标签名）
+  - `fluid fields` 子选项
+    - 勾选 `output fluid fields`：同时输出 `surface` 和 `vel` 场（默认开启）；若只需缓存 `emit` 场可关闭以节省磁盘
+    - 勾选 `modify fluid fields`：将输出的 `surface` 和 `vel` 场裁剪至容器范围内；若启用了液面滤波，输出滤波后的液面
+    - `emission size` / `emission center`：限制发射区域为指定包围盒（用于只解算液体的局部子区域）
+    - `mask name`：指定用于遮罩发射区域的体积图元名称
+  - `surface filtering` 子选项：对液面场进行 dilate → smooth → erode 预处理，减少曲率发射产生的噪点；若 `modify fluid fields` 开启，滤波后的液面会一并输出（注意过度平滑可能导致液体区域突然消失）
 - `visualization`选项卡
   - 勾选 `visualize emission volume`：在视窗中显示 `emit` VDB
-  - `source particles`子选项：按与 **whitewaterSolver节点** 相同的参数预生成可视化粒子，并按发射类型着色（曲率/加速度/涡度等），便于在解算前直接评估粒子数量和发射分布
+  - `source particles` 子选项：按与 **whitewaterSolver节点** 相同的参数（`whitewater scale`、`emission amount`）预生成可视化粒子，并按发射类型着色（`curvature color`、`acceleration color`、`vorticity color` 等），便于在解算前直接评估粒子数量和发射分布；`max point limit` 限制预览粒子总数上限
 
 ## dop
 

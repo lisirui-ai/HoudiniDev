@@ -2123,7 +2123,7 @@ copy and **transform节点**
   - `deformation sources`：基于液面局部变形（拉伸 `stretch` / 压缩 `squish` / 整体缩放 `surface scale`）的发射，识别表面快速形变区域
   - 各发射源均支持 `range`（映射范围）和 `remap`（自定义曲线重映射）精细控制
   - `post-process` 子选项：`remap emission` 对所有发射源合并后的最终发射概率进行整体重映射
-- `volumes`选项卡（UI 中的实际标签名）
+- `volumes`选项卡
   - `fluid fields` 子选项
     - 勾选 `output fluid fields`：同时输出 `surface` 和 `vel` 场（默认开启）；若只需缓存 `emit` 场可关闭以节省磁盘
     - 勾选 `modify fluid fields`：将输出的 `surface` 和 `vel` 场裁剪至容器范围内；若启用了液面滤波，输出滤波后的液面

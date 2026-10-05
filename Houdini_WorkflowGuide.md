@@ -2038,6 +2038,26 @@ copy and **transform节点**
 - `compute min/max values`：计算每个体积图元的最小/最大值并存储为图元属性，便于后续渲染或调试
 - 压缩选项（`compression`）：导入后可按场名过滤删除不需要的属性、降低浮点精度，减少写盘体积
 
+**fluidcompress节点**
+
+- 对 FLIP 流体解算的输出（粒子 + `surface` SDF 场 + `vel` 速度场）进行压缩，通常接在 **filecache节点** 之前以减少写盘体积
+- 压缩是有损的：深层粒子会被剔除，体积场在液面以外的值被清零；但 **particlefluidsurface节点** 和 **whitewaterSource节点** 等后处理节点能识别压缩标记并自动补全所需数据
+- 节点会在 detail 上写入若干压缩信息属性（如 `fluidcompress_particleband`、`fluidcompress_particlescompressed` 等），可通过 **fileSOP** 的 Info Load 模式或 `gstat` 命令行工具读取
+- `particles`选项
+  - `particle separation`：粒子间距，应与 **flipobject节点** 的同名参数保持一致
+  - 勾选 `cull bandwidth`：删除在 `surface` 场中深度超过此值（单位：粒子间距）的粒子，去除液面以下多余粒子
+  - 勾选 `keep attributes`：仅保留列表中指定的粒子属性，其余全部删除
+  - 勾选 `compress to 16-bit`：将列表中指定的粒子属性精度降为 16 位浮点；整数属性（如 `id`）不应加入此列表
+  - `storage type`：粒子的存储格式
+    - `points`：普通点几何体
+    - `packed points`：将粒子分组打包为 packed primitive，支持从磁盘按需加载（配合 **filecache节点** 的 Delay Load 模式）
+    - `vdb points`：以 VDB Points 格式存储，支持位置量化压缩（相对体素中心存储），进一步减小体积
+- `volumes`选项
+  - 将输入的 `surface` 和 `vel` 体积转换为 VDB 稀疏格式
+  - 勾选 `limit bandwidth`：将液面以外超过指定距离的 `surface` 和 `vel` 值清零，节省内存和磁盘
+  - `vel resolution ratio`：速度场分辨率缩放比例；0.5 即每轴降为原来一半，体素总量减少为原来 1/8
+  - 勾选 `write 16-bit floats`：写盘时将体积降为 16 位浮点，仅影响磁盘大小，不影响内存中的精度
+
 ## dop
 
 **solver节点**

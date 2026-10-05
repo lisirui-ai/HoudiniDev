@@ -4182,3 +4182,10 @@ gs视窗（Geometry Spreadsheet）
 - DOP 解算数据以层级结构存储：每个 DOP 对象节点（如 **flipobject节点**）下挂载若干子数据（sub-data），其中 `Geometry` 类型的子数据存储当前帧的粒子几何体（点、属性等）
 - 在 DOP 网络编辑器中选中对象节点后，其下方会显示各子数据节点；选中 `Geometry` 子数据节点，gs 视窗即可读取该帧的粒子属性（如 `P`、`v`、`pscale`、`id` 等）
 - DOP 表达式函数（如 `dopfield()`）中访问几何数据时，路径格式为 `<dopnetwork路径>/<对象名>:geometry`
+
+`polygon` 与 `polygon soup` 的区别
+
+- 两者均为多边形网格，区别在于数据结构
+- `polygon`（多边形）：每个面是独立的 primitive，支持面级别选择、编辑和 per-primitive 属性赋值（如分组、材质分配等）；内存占用较高
+- `polygon soup`（多边形汤）：所有面打包为一个 primitive，内存更紧凑、处理速度更快，但无法选择或编辑单个面，也不支持 per-primitive 属性（只有 detail 级别属性）
+- 需要后续编辑时使用 `polygon`；仅用于渲染输出时优先使用 `polygon soup`

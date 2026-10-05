@@ -2076,6 +2076,7 @@ copy and **transform节点**
   - `influence scale`：粒子相互影响的最大距离（以粒子间距为单位）；适当增大可使液面更平滑，但开销显著增加
   - `droplet scale`：粒子表面到液面的目标距离（以粒子间距为单位）；决定孤立水滴的球形半径
   - 勾选 `union compressed fluid surface`：将压缩的 `surface` VDB 合并填充液面深层区域
+  - `erosion scale`：仅在 `union compressed fluid surface` 开启时生效；对合并的压缩液面场进行腐蚀，使其与粒子层衔接更自然；若粒子层与深层场之间出现可见接缝，可适当减小此值
   - `convert to`：输出格式
     - `surface vdb`：输出原始 VDB（不转多边形），可用于后续体积操作
     - `surface polygons`：输出多边形液面（最常用）

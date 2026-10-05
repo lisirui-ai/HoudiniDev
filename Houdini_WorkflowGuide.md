@@ -2058,6 +2058,42 @@ copy and **transform节点**
   - `vel resolution ratio`：速度场分辨率缩放比例；0.5 即每轴降为原来一半，体素总量减少为原来 1/8
   - 勾选 `write 16-bit floats`：写盘时将体积降为 16 位浮点，仅影响磁盘大小，不影响内存中的精度
 
+**particlefluidsurface节点**
+
+- 将 FLIP 粒子（或 Vellum 流体粒子）重建为多边形液面网格；粒子需携带 `pscale` 属性（指定每个粒子的虚拟半径）
+- 三个输入端
+  - 第一输入端（`particles and volumes`）：粒子几何体（可为 **fluidcompress节点** 压缩后的 packed points 或 VDB Points）及可选体积
+  - 第二输入端（`collision objects and volumes`）：碰撞体几何体或 SDF 体积，用于从液面中减去碰撞区域
+  - 第三输入端（`mask volumes`）：fog 体积，用于遮罩滤波操作
+- 如输入来自 **fluidcompress节点**，节点会自动识别压缩标记，用 `surface` VDB 补全被剔除的深层粒子区域，并从 `vel` VDB 中读取速度数据
+- `surfacing`选项卡
+  - `method`：液面初始 SDF 的生成算法
+    - `average position`：基于粒子平均位置生成平滑液面，效果好但开销较高
+    - `spherical`：每个粒子生成球形体积后合并，速度快但液面粗糙，通常需要配合滤波平滑
+    - `neural point surface`：使用预训练神经网络生成液面，实验性功能；`model` 可选 `balanced`（默认）/ `smooth`（平滑）/ `liquid`（液体优化）/ `granular`（颗粒物）
+  - `particle separation`：粒子间距，应与 **flipobject节点** 的同名参数保持一致
+  - `voxel scale`：生成 VDB 的体素尺寸相对粒子间距的比例；值越小网格越精细，开销越高
+  - `influence scale`：粒子相互影响的最大距离（以粒子间距为单位）；适当增大可使液面更平滑，但开销显著增加
+  - `droplet scale`：粒子表面到液面的目标距离（以粒子间距为单位）；决定孤立水滴的球形半径
+  - 勾选 `union compressed fluid surface`：将压缩的 `surface` VDB 合并填充液面深层区域
+  - `convert to`：输出格式
+    - `surface vdb`：输出原始 VDB（不转多边形），可用于后续体积操作
+    - `surface polygons`：输出多边形液面（最常用）
+    - `surface polygon soup`：输出 polygon soup 格式
+    - `particles` / `particles and compressed fluid surface` / `compressed fluid surface`：各类预览模式，不生成最终液面
+  - `adaptivity`：多边形精度；值越高生成的面越少但精度越低，值越低网格越密
+  - `transfer attributes`：将粒子上指定属性（如 `v`、`Cd`）插值转移到生成的液面网格上；`@v` 可用于运动模糊渲染
+- `filtering`选项卡（对生成的 SDF 进行平滑处理，常用于 `spherical` 模式）
+  - `dilate`：先将液面向外膨胀指定体素数，填补粒子间空隙
+  - `smooth`：在膨胀后对液面进行平滑迭代
+  - `erode`：在平滑后将液面向内收缩，抵消膨胀量，保持体积近似不变
+  - `final smooth`：最终二次平滑；`gaussian` 可使静止液面极为平整，但会模糊飞溅细节——可配合 `mask` 只对低速区域生效
+  - `mask` 子选项：可使用速度范围（`velocity range`）、涡度范围（`vorticity range`）或第三输入端的 fog 体积来遮罩滤波区域，仅对平静区域平滑，保留飞溅细节
+- `regions`选项卡
+  - 勾选 `subtract collision volumes`：从液面中减去第二输入端的碰撞体，防止液面穿入碰撞几何体
+  - 勾选 `use bounding box`：将液面重建限制在指定包围盒内（用于局部预览或边界裁剪）；勾选 `close boundaries` 可在包围盒边界封口
+  - `flatten`子选项：将包围盒边缘区域的液面向水平面平滑过渡，便于与周围海洋曲面无缝拼接
+
 ## dop
 
 **solver节点**

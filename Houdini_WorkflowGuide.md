@@ -3025,7 +3025,7 @@ copy and **transform节点**
   - 粒子实际半径 = `particle separation` × `particle radius scale`
   - 值越大液体体积越大但表面细节越少（粒子半径越大，液面越平滑但细节被抹去）
 - `grid scale`（网格缩放）
-  - 控制平流网格的体素尺寸相对于粒子间距的比例，默认值适用于大多数情况
+  - 控制速度场（`vel`）和液面场（`surface`）的体素尺寸相对于粒子间距的比例；体素尺寸 = `particle separation × grid scale`；值越小网格越精细，解算越准确但越慢
 - `collision separation`（碰撞分辨率）
   - 碰撞相关字段的体素尺寸；可独立于整体分辨率，设为较小值可提高碰撞精度
   - 适合低分辨率原型阶段提升碰撞质量，避免穿插

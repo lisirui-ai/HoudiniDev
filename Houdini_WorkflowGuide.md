@@ -2085,6 +2085,8 @@ copy and **transform节点**
   - `isovalue`：在体积场值等于此值的等值面处生成液面；默认为 0（即"有体积"与"无体积"的分界面）；增大此值可使液面整体向外扩展
   - `adaptivity`：多边形精度；值越高生成的面越少但精度越低，值越低网格越密
   - `transfer attributes`：将粒子上指定属性（如 `v`、`Cd`）插值转移到生成的液面网格上；`@v` 可用于运动模糊渲染
+  - `attribute radius`：属性转移时的采样平滑半径（以粒子间距为单位）；值越大属性值越平滑
+  - `attribute samples`：属性转移时每个网格顶点采样的粒子数量；值越大属性（尤其是速度）越平滑，对 Geometry Velocity Blur 运动模糊渲染效果更好
   - `visualize`：在视窗中将速度或涡度以顶点颜色形式叠加显示在液面上，方便调试；可选 `velocity`（速度）或 `vorticity`（涡度）
 - `filtering`选项卡（对生成的 SDF 进行平滑处理，常用于 `spherical` 模式）
   - `dilate`：先将液面向外膨胀指定体素数，填补粒子间空隙

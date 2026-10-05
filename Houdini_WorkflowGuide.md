@@ -2131,7 +2131,7 @@ copy and **transform节点**
   - `surface filtering` 子选项：对液面场进行 dilate → smooth → erode 预处理，减少曲率发射产生的噪点；高分辨率液面时建议开启以减少曲率发射产生的噪点；过度平滑可能导致液体区域突然消失
 - `visualization`选项卡
   - 勾选 `visualize emission volume`：在视窗中显示 `emit` VDB
-  - `source particles` 子选项：按与 **whitewaterSolver节点** 相同的参数（`whitewater scale`、`emission amount`）预生成可视化粒子，并按发射类型着色（`curvature color`、`acceleration color`、`vorticity color` 等），便于在解算前直接评估粒子数量和发射分布；`max point limit` 限制预览粒子总数上限
+  - `source particles` 子选项（默认开启）：按与 **whitewaterSolver节点** 相同的参数（`whitewater scale`、`emission amount`）预生成可视化粒子，并按发射类型着色（`curvature color`、`acceleration color`、`vorticity color` 等）；预览粒子从节点的第四输出端输出，需在 SOP 中查看该输出端的几何体；便于在解算前直接评估粒子数量和发射分布；`max point limit` 限制预览粒子总数上限
 
 ## dop
 

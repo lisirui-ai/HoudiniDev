@@ -2024,6 +2024,20 @@ copy and **transform节点**
         - 此时`sim`文件自覆盖，更新当前帧以及之前k帧的数据
         - 播放条的蓝条/内存中的解算缓存只覆盖当前帧以及之前的k帧，不断更新
 
+**dopimportfield节点**
+
+- 将 DOP 流体解算中的标量场或向量场批量导入 SOP，是烟雾/Pyro/FLIP 解算结果回到 SOP 管线的标准接口
+- `dop network`：指定要导入的 DOP 网络路径
+- `dop node`：指定 DOP 节点，导入该节点创建的所有对象对应的场（覆盖 `default object` 设置）
+- `default object`：未在各导入条目中指定对象时使用的默认 DOP 对象
+- `presets`：快速预设，一键填充常用场的导入配置（如烟雾、FLIP 等）
+- `import`（导入条目列表）
+  - 每条记录对应一个场，可单独开关 `import` 勾选框控制是否导入
+  - `field`：指定要导入的场名称（如 `density`、`vel`、`temperature`、`surface`）；向量场（如 `vel`）会自动拆分为 `vel.x`、`vel.y`、`vel.z` 三个标量体积
+  - `visualization`：控制该体积在视窗中的显示方式；辅助数据场（如速度场、rest 场）通常设为不可见，避免干扰主视觉
+- `compute min/max values`：计算每个体积图元的最小/最大值并存储为图元属性，便于后续渲染或调试
+- 压缩选项（`compression`）：导入后可按场名过滤删除不需要的属性、降低浮点精度，减少写盘体积
+
 ## dop
 
 **solver节点**

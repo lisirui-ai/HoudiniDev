@@ -2083,6 +2083,7 @@ copy and **transform节点**
     - `particles` / `particles and compressed fluid surface` / `compressed fluid surface`：各类预览模式，不生成最终液面
   - `adaptivity`：多边形精度；值越高生成的面越少但精度越低，值越低网格越密
   - `transfer attributes`：将粒子上指定属性（如 `v`、`Cd`）插值转移到生成的液面网格上；`@v` 可用于运动模糊渲染
+  - `visualize`：在视窗中将速度或涡度以顶点颜色形式叠加显示在液面上，方便调试；可选 `velocity`（速度）或 `vorticity`（涡度）
 - `filtering`选项卡（对生成的 SDF 进行平滑处理，常用于 `spherical` 模式）
   - `dilate`：先将液面向外膨胀指定体素数，填补粒子间空隙
   - `smooth`：在膨胀后对液面进行平滑迭代

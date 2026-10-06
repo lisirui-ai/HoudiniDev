@@ -3198,7 +3198,7 @@ copy and **transform节点**
 - 顶层参数
   - `volume source`：指定提供 `vel` 和 `surface` 场的 SOP 节点路径（通常为 **dopimportfield节点** 或 **whitewatersource节点** 的第一输出端）
   - 勾选 `import volumes`：将液体体积场复制到白沫对象中，便于视窗可视化
-  - `whitewater scale`：相邻白沫粒子的目标间距；减小此值会以三次方比例增加粒子数量；建议匹配 **flipobject节点** 的 `particle separation × particle radius scale`
+  - `whitewater scale`：相邻白沫粒子的目标间距；减小此值会以三次方比例增加粒子数量；建议匹配 **flipobject节点** 的 `particle separation`，使白沫粒子密度与 FLIP 粒子密度量级一致
   - `voxel size`：密度体积的体素尺寸，用于发射限制、泡沫侵蚀、排斥粒子播种；应至少为 `whitewater scale` 的两倍；建议匹配 **flipobject节点** 的 `particle separation × grid scale`（即 FLIP 液面网格的体素尺寸）
   - `foam location`：泡沫层相对液面的深度位置；所有深度参数均以此为基准
   - `depth range`：各力和老化速率在泡沫层附近的插值范围

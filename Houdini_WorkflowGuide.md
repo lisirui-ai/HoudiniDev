@@ -3235,7 +3235,7 @@ copy and **transform节点**
 - `limits`选项卡
   - `collision sop`：指定静态碰撞几何体的 SDF 路径（用于泡沫沉积在固体表面，如海滩）
   - `closed boundaries`：设置封闭/开放边界；粒子碰到封闭边界反弹，超出开放边界则被删除
-  - `limit size` / `limit center`：白沫解算域的尺寸和中心
+  - `limit size` / `limit center`：白沫解算域的尺寸和中心；应与 **flipsolver节点** `volume motion` → `volume limits` 中的解算域范围`box size` / `box center`保持一致，确保白沫粒子不会逸出 FLIP 解算边界
 - `forces`选项卡
   - `gravity`：重力加速度
   - `buoyancy`：浮力基础加速度；控制气泡向上浮力

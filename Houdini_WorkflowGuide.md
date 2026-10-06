@@ -2032,7 +2032,7 @@ copy and **transform节点**
 - `presets`：快速预设，一键填充常用场的导入配置（如烟雾、FLIP 等）
 - `import`（导入条目列表）
   - 每条记录对应一个场，可单独开关 `import` 勾选框控制是否导入
-  - `field`：指定要导入的场名称（如 `density`、`vel`、`temperature`、`surface`）；向量场（如 `vel`）会自动拆分为 `vel.x`、`vel.y`、`vel.z` 三个标量体积
+  - `field`：指定要导入的场名称（如 `density`、`vel`、`temperature`、`surface`）；向量场（如 `vel`）会自动拆分为 `vel.x`、`vel.y`、`vel.z` 三个标量体积；填写 `Geometry`（大写）时不导入体积场，而是导入 DOP 对象上挂载的几何体数据（如 FLIP 粒子点云、RBD 刚体网格）
   - `visualization`：控制该体积在视窗中的显示方式；辅助数据场（如速度场、rest 场）通常设为不可见，避免干扰主视觉
 - `compute min/max values`：计算每个体积图元的最小/最大值并存储为图元属性，便于后续渲染或调试
 - 压缩选项（`compression`）：导入后可按场名过滤删除不需要的属性、降低浮点精度，减少写盘体积

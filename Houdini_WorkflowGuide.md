@@ -3246,9 +3246,31 @@ copy and **transform节点**
   - `base velocity multiplier`：白沫粒子自身速度的基准缩放系数
   - `multiplier by depth`：速度缩放系数随深度的倍增曲线
 - `foam`选项卡（泡沫行为控制）
-  - `clumping`子选项：基于密度约束使泡沫粒子聚拢成团；`constraint stiffness` 控制约束强度；`neighborhood size` 设置目标邻居数
-  - `erosion`子选项：在稀疏区域侵蚀泡沫，在密集区域保留；`erosion strength` 控制侵蚀速度，`preservation strength` 设置受保护的密度阈值
-  - `repellants`子选项：创建排斥粒子推开白沫，形成蜂窝状泡沫结构；`feature size range` 控制排斥粒子大小，`noise range` 控制形状随机性
+  - `clumping` 部分：基于密度约束使泡沫粒子聚拢成团
+    - 勾选 `enable density control`：启用密度约束
+    - `depth range`：受密度约束影响的深度范围（相对于 `foam location`）
+    - `constraint stiffness`：约束刚度，值越大粒子越紧密聚拢
+    - 勾选 `variable stiffness`：按深度变化约束刚度（配合 `stiffness by depth` 曲线）
+  - `erosion` 部分：在稀疏区域侵蚀泡沫、在密集区域保留
+    - 勾选 `enable erosion`：启用侵蚀
+    - `depth range`：受侵蚀影响的深度范围
+    - `erosion strength`：稀疏区域的侵蚀速率
+    - `preservation strength`：密集区域的保留强度阈值
+  - `repellants` 部分：创建排斥粒子推开白沫，形成蜂窝状泡沫结构
+    - 勾选 `enable repellants`：启用排斥粒子
+    - `reseed frames`：排斥粒子重新播种的帧间隔
+    - `feature size range`：排斥粒子半径范围，控制蜂窝单元大小
+    - `strength range`：排斥力强度范围
+    - `noise range`：排斥粒子形状随机性范围（0 为圆形，1 为最大噪波）
+    - `pulse frequency range`：形状随时间演变的速率范围，值越大形状变化越快
+    - `life range`（可选，默认关闭）：排斥粒子存活时长范围
+    - `density threshold`（可选，默认关闭）：仅在白沫密度超过阈值的区域播种排斥粒子
+  - `adhesion` 部分：将泡沫粒子吸附在液面附近，防止与液面脱离
+    - 勾选 `enable depth control`：启用深度吸附控制
+    - 勾选 `upper surface only`：仅对液体上表面的粒子启用吸附（依据重力方向判断），避免底部或侧面泡沫异常吸附
+    - `control range`：受深度吸附影响的液面距离范围
+    - `off velocity angle`：当粒子速度方向与液面法线夹角小于此值时，禁用吸附（防止沿表面运动的粒子被锁死）
+    - `stiffness by depth`：吸附刚度随深度的变化曲线；值越低泡沫层越厚
 
 ## 时间
 

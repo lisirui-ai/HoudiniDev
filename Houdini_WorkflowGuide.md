@@ -3237,7 +3237,7 @@ copy and **transform节点**
   - `closed boundaries`：设置封闭/开放边界；粒子碰到封闭边界反弹，超出开放边界则被删除
   - `limit size` / `limit center`：白沫解算域的尺寸和中心；应与 **flipsolver节点** `volume motion` → `volume limits` 中的解算域范围`box size` / `box center`保持一致，确保白沫粒子不会逸出 FLIP 解算边界
 - `forces`选项卡
-  - 各"by depth"曲线（`buoyancy by depth`、`advection by depth`、`multiplier by depth`、`repulsion by depth`）的横轴在 UI 中显示为 0～1 的归一化范围：0（左端）对应 SDF 深度 `foam location − depth range`（完全 bubble 区），0.5（中心）对应 `foam location`（泡沫层中心），1（右端）对应 `foam location + depth range`（完全 spray 区）；曲线纵轴为对应基础值的倍增系数
+  - 各"by depth"曲线（`buoyancy by depth`、`advection by depth`、`multiplier by depth`、`repulsion by depth`）：横轴范围为 0～1，中点（0.5）对应 `foam location`，左端（0）对应 `foam location − depth range`（完全 bubble 区），右端（1）对应 `foam location + depth range`（完全 spray 区）；纵轴为对应基础值的倍增系数
   - `gravity`：重力加速度
   - `buoyancy`：浮力基础加速度；控制气泡向上浮力
   - `buoyancy by depth`：浮力随深度的倍增曲线；纵轴为倍增系数，横轴为深度

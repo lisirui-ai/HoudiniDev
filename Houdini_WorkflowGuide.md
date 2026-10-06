@@ -3223,6 +3223,15 @@ copy and **transform节点**
   - `maximum initial speed`：新粒子初始速度上限
   - `lifespan`：白沫粒子的平均存活时长（秒）
   - `bubbles / foam / spray aging rate`：三种形态各自的老化速率，可独立延长或缩短对应形态的寿命
+  - `velocity noise` 部分：为新粒子的初始速度叠加噪波扰动
+    - 勾选 `add noise`：启用速度噪波
+    - `noise type`：噪波类型（默认 Sparse Convolution Noise）
+    - `frequency`：噪波空间频率，值越大噪波越细碎
+    - `offset`：噪波相位偏移
+    - `amplitude`：噪波幅度，控制速度扰动的强度
+    - `roughness`：噪波粗糙度，影响各频率层的衰减
+    - `attenuation`：衰减系数
+    - `turbulence`：叠加的噪波倍频层数，值越大细节越丰富
 - `limits`选项卡
   - `collision sop`：指定静态碰撞几何体的 SDF 路径（用于泡沫沉积在固体表面，如海滩）
   - `closed boundaries`：设置封闭/开放边界；粒子碰到封闭边界反弹，超出开放边界则被删除

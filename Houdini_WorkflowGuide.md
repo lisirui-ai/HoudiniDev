@@ -2110,7 +2110,7 @@ copy and **transform节点**
 - 四个输出端：`emit` 发射场（+ 可选 `surface`/`vel`）/ 容器透传 / 碰撞体透传 / 可视化预览粒子
 - 顶层参数
   - `start frame`：解算开始帧；加速度发射和压力发射依赖帧间差值，设置此值可避免第一帧产生无意义的发射
-  - `voxel size`：`emit` 发射场的体素尺寸；通常手动填写表达式与 **flipobject节点** 的粒子间距对齐，例如 `ch("…/particlesep") * ch("…/gridscale")`
+  - `voxel size`：`emit` 发射场的体素尺寸；建议与 **flipobject节点** 的液面网格体素尺寸对齐（即 `particle separation × grid scale`），使发射区域边界精度与液面一致，避免因分辨率差异导致发射位置偏移；通常手动填写表达式引用 **flipobject节点** 的参数，例如 `ch("…/particlesep") * ch("…/gridscale")`
 - `emission`选项卡（内含 `Masks`、`Sources`、`Deformation Sources`、`Extra Sources`、`Post-Process` 子标签）
   - `masks → depth` 子选项：勾选 `limit by depth` 可将发射限制在液面指定深度范围内；`maximum half-width` 用于 Narrow Band 模式，控制 SDF 激活区域以节省计算
   - `sources → speed` 子选项：`speed range` 设置最小值和最大值——速度低于最小值不发射；速度在最小值到最大值之间线性映射到 (0, 1) 的发射概率；速度达到最大值时必定发射；支持 `remap` 曲线覆盖默认线性映射
@@ -3023,6 +3023,7 @@ copy and **transform节点**
   - 值越大液体体积越大但表面细节越少（粒子半径越大，液面越平滑但细节被抹去）
 - `grid scale`（网格缩放）
   - 控制速度场（`vel`）和液面场（`surface`）的体素尺寸相对于粒子间距的比例；体素尺寸 = `particle separation × grid scale`；值越小网格越精细，解算越准确但越慢
+  - 此乘积也是 **whitewatersource节点** 和 **whitewaterSolver节点** 中 `voxel size` 的推荐对齐目标，保持三者体素尺寸一致可确保发射场与液面网格精度匹配
 - `collision separation`（碰撞分辨率）
   - 碰撞相关字段的体素尺寸；可独立于整体分辨率，设为较小值可提高碰撞精度
   - 适合低分辨率原型阶段提升碰撞质量，避免穿插

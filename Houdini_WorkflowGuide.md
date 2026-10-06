@@ -3199,7 +3199,7 @@ copy and **transform节点**
   - 第三输入端（`extra sources`）：注入额外白沫粒子（内部发射完成后，新粒子进入 `justborn` 组）
   - 第四输入端（`post-solve`）：解算结束后执行的后处理解算器
 - 顶层参数
-  - `volume source`：指定提供 `vel` 和 `surface` 场的 SOP 节点路径（通常为 **dopimportfield节点** 或 **whitewatersource节点** 的第一输出端）
+  - `volume source`：指定提供 `vel`（速度场）和 `surface`（液面 SDF）的 SOP 节点路径，作为白沫粒子受力与深度判断的液面参考；通常为 **dopimportfield节点** 或 **whitewatersource节点** 的第一输出端
   - 勾选 `import volumes`：将液体体积场复制到白沫对象中，便于视窗可视化
   - `whitewater scale`：相邻白沫粒子的目标间距；减小此值会以三次方比例增加粒子数量；建议匹配 **flipobject节点** 的 `particle separation`，使白沫粒子密度与 FLIP 粒子密度量级一致
   - `voxel size`：密度体积的体素尺寸，用于发射限制、泡沫侵蚀、排斥粒子播种；应至少为 `whitewater scale` 的两倍；建议匹配 **flipobject节点** 的 `particle separation × grid scale`（即 FLIP 液面网格的体素尺寸）
@@ -3208,7 +3208,7 @@ copy and **transform节点**
   - 勾选 `add state attributes`：为粒子添加 `bubble`（气泡）、`foam`（泡沫）、`spray`（飞沫）属性（值域 0~1），表示该粒子各形态的强度
   - 勾选 `add relative density attribute`：为粒子计算并添加相对密度属性，反映周围粒子的稀疏程度
 - `emission`选项卡
-  - `emission source`：指定提供 `emit` VDB 的 SOP 节点路径（通常为 **whitewatersource节点** 的第一输出端）
+  - `emission source`：指定提供 `emit` VDB 的 SOP 节点路径，作为白沫粒子的发射源区域；通常为 **whitewatersource节点** 的第一输出端
   - 勾选 `limit emission`：在白沫已密集处降低发射速率，防止过度堆积
   - `emission amount`：发射量的整体倍增系数
   - 勾选 `project new points to foam location`：将新生粒子投影到泡沫层位置，避免粒子在液面以外生成

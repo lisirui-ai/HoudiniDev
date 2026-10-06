@@ -1650,17 +1650,16 @@ copy and **transform节点**
 
 **volumevisualization节点**
 
-- 显示体积的属性
-  - 显示不可见的`vdb`
-
-- `minimum`和`maximum`设置为体积`density`的最小值和最大值
-  - 一般不变
-
-- `diffusefield`指定显示的属性
-- **name节点**重命名`density`属性场后无法显示
-  - `smoke`选项
-    - `densityfield`处指定**name节点**重命名后的`density`属性场的名称
-    - `mode`处设置为`noramp`
+- 将体积属性场的值映射为视窗中的可见浓度（smoke 模式）或自发光亮度（emission 模式）来显示；常用于将非 density 名称的自定义体积场以直观浓度形式呈现
+- `visualization mode`：视窗渲染模式，覆盖体积图元自带的显示设置
+- `minimum` / `maximum`：将 `density field` 的值从 [minimum, maximum] 线性重映射到 [0, 1] 后作为浓度输入；其他未单独设置范围的场也使用此默认范围
+- `density scale`：浓度场的整体缩放系数，控制整体不透明度
+- `smoke`选项卡
+  - `density field`：指定作为光学厚度（不透明度）的体积场名称；值越大越不透明
+  - `diffuse field`：指定作为烟雾颜色的体积场名称；可用单通道（灰度）或三通道（RGB）体积
+- `emission`选项卡：自发光（火焰）分量，叠加在最终图像上，不遮挡背景几何体
+  - `emission field`：指定驱动自发光强度的体积场名称
+  - `emission color field`：指定自发光颜色的体积场名称；支持 Physical Blackbody 模式按温度映射颜色
 
 
 **voronoifraction节点**

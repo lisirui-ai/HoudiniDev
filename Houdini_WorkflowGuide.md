@@ -3174,6 +3174,61 @@ copy and **transform节点**
     - 勾选 `solve pressure with adaptivity`：对液面深处的压力使用自适应粗化近似，大幅减少深水箱的压力解算时间；**注意**：与 `enforce air incompressibility` 不兼容
     - 勾选 `use opencl`：使用 GPU（OpenCL）求解粘度和压力线性系统；对高分辨率含粘度模拟提升明显；启用时应关闭 `solve pressure with adaptivity`
 
+**whitewaterobject节点**
+
+- 在 DOP 解算中创建白沫对象，并附加 **whitewaterSolver节点** 运行所需的子数据；是白沫解算的数据容器
+- `creation`选项卡：创建帧、对象名称、是否在创建帧解算、是否允许缓存
+- `physical`选项卡
+  - `bounce`：弹性系数；1.0 为完全弹性碰撞，0.0 为完全非弹性碰撞
+  - `bounce forward`：切向弹性系数；1.0 时切向速度仅受摩擦影响，0.0 时切向速度被匹配（完全粘滞）
+  - `friction`：摩擦系数；0 为无摩擦；控制碰撞时切向速度的衰减程度
+- `guides`子标签（视窗引导线可视化）
+  - `particles` 部分：勾选 `color particles by depth` 按深度着色粒子，颜色由 `visualization range` 和 `color ramp` 决定，便于区分泡沫/喷雾/气泡层
+  - `repellants` 部分：控制排斥粒子的视窗可视化（颜色、大小、属性着色模式），用于调试泡沫蜂窝结构
+  - `fields` 部分：控制 `surface` 和 `velocity` 场的视窗显示（需在 **whitewaterSolver节点** 开启 `import volumes` 才生效）
+
+**whitewaterSolver节点**
+
+- 根据 FLIP 液体的速度场（`vel`）、液面 SDF（`surface`）和发射场（`emit`）驱动白沫粒子的运动，模拟泡沫、飞沫、气泡三种形态
+- 四个输入端
+  - 第一输入端（`objects to solve`）：连接 **whitewaterobject节点** 输出
+  - 第二输入端（`particle forces`）：注入额外粒子力（各力分量合并前）
+  - 第三输入端（`extra sources`）：注入额外白沫粒子（内部发射完成后，新粒子进入 `justborn` 组）
+  - 第四输入端（`post-solve`）：解算结束后执行的后处理解算器
+- 顶层参数
+  - `volume source`：指定提供 `vel` 和 `surface` 场的 SOP 节点路径（通常为 **dopimportfield节点** 或 **whitewatersource节点** 的第一输出端）
+  - 勾选 `import volumes`：将液体体积场复制到白沫对象中，便于视窗可视化
+  - `whitewater scale`：相邻白沫粒子的目标间距；减小此值会以三次方比例增加粒子数量
+  - `voxel size`：密度体积的体素尺寸，用于发射限制、泡沫侵蚀、排斥粒子播种；应至少为 `whitewater scale` 的两倍
+  - `foam location`：泡沫层相对液面的深度位置；所有深度参数均以此为基准
+  - `depth range`：各力和老化速率在泡沫层附近的插值范围
+  - 勾选 `add state attributes`：为粒子添加 `bubble`（气泡）、`foam`（泡沫）、`spray`（飞沫）属性（值域 0~1），表示该粒子各形态的强度
+  - 勾选 `add relative density attribute`：为粒子计算并添加相对密度属性，反映周围粒子的稀疏程度
+- `emission`选项卡
+  - `emission source`：指定提供 `emit` VDB 的 SOP 节点路径（通常为 **whitewatersource节点** 的第一输出端）
+  - 勾选 `limit emission`：在白沫已密集处降低发射速率，防止过度堆积
+  - `emission amount`：发射量的整体倍增系数
+  - 勾选 `project new points to foam location`：将新生粒子投影到泡沫层位置，避免粒子在液面以外生成
+  - `velocity offset`：新粒子沿速度方向的偏移距离（世界单位），控制粒子生成位置的偏移
+  - `velocity multiplier`：新粒子继承发射源速度时的缩放系数
+  - `maximum initial speed`：新粒子初始速度上限
+  - `lifespan`：白沫粒子的平均存活时长（秒）
+  - `bubbles / foam / spray aging rate`：三种形态各自的老化速率，可独立延长或缩短对应形态的寿命
+- `limits`选项卡
+  - `collision sop`：指定静态碰撞几何体的 SDF 路径（用于泡沫沉积在固体表面，如海滩）
+  - `closed boundaries`：设置封闭/开放边界；粒子碰到封闭边界反弹，超出开放边界则被删除
+  - `limit size` / `limit center`：白沫解算域的尺寸和中心
+- `forces`选项卡
+  - `gravity`：重力加速度
+  - `buoyancy`：浮力基础加速度；控制气泡向上浮力
+  - `buoyancy by depth`：浮力随深度的倍增曲线
+  - `base advection strength`：液体速度场对白沫粒子的拖拽强度
+  - `advection by depth`：拖拽强度随深度的倍增曲线
+- `foam`选项卡（泡沫行为控制）
+  - `clumping`子选项：基于密度约束使泡沫粒子聚拢成团；`constraint stiffness` 控制约束强度；`neighborhood size` 设置目标邻居数
+  - `erosion`子选项：在稀疏区域侵蚀泡沫，在密集区域保留；`erosion strength` 控制侵蚀速度，`preservation strength` 设置受保护的密度阈值
+  - `repellants`子选项：创建排斥粒子推开白沫，形成蜂窝状泡沫结构；`feature size range` 控制排斥粒子大小，`noise range` 控制形状随机性
+
 ## 时间
 
 **timeshift节点**

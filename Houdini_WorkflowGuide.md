@@ -3770,14 +3770,21 @@ importpoint/primitive/vertex/**detailattribute节点**
   - SDF 运算：`SDF Union`（并集）、`SDF Intersection`（交集）、`SDF Difference`（差集，从 A 中减去 B 的形状）
   - 活跃状态运算：`Activity Union`、`Activity Intersection`、`Activity Difference`（仅改变体素活跃状态，不改变值）
   - 单目运算：`Use A`、`Use B`、`Invert A`（= `0 - A`）
-- `flatten all B into A`：将 B 组中所有 VDB 依次与 A 中唯一的 VDB 合并，可将多个体积合并为一个
-- `resample`：当 A 与 B 的体素尺寸或变换不一致时，自动重采样使其匹配（无需手动对齐体素大小）
+- `collation`：控制 A、B 组体积的配对方式
+  - `Combine A/B Pairs`（默认）：A、B 按顺序逐对运算
+  - `Flatten All B into A`：将 B 组中所有 VDB 依次与 A 中唯一的 VDB 合并，可将多个体积合并为一个
 - `A multiplier` / `B multiplier`：运算前对 A、B 各自的值进行缩放
+- `resample`：当 A 与 B 的体素尺寸或变换不一致时的处理方式（`None` / `A to Match B` / `B to Match A` / 高分辨率匹配低分辨率）
+- `interpolation`：重采样时使用的插值方式（`Linear` / `Quadratic`）
+- `deactivate tolerance`：将值等于背景值的活跃体素标记为非活跃，减少存储开销
+- `prune degenerate tiles`：在 SDF 并集/交集/差集运算后检测并删除两个原始表面完全重合处产生的退化 ghost band
+- `prune tolerance`：检测并折叠值在此容差内的常量区域，同时将等于背景值的区域标记为非活跃
+- `signed-flood-fill output SDFs`：对非活跃背景体素检测其是否在 SDF 内部或外部，并修正正负号
 
 **vdbanalysis节点**
 
 - 对 VDB 体积计算解析属性（梯度、曲率、散度等），输出新的 VDB 体积
-- 运算结果可选择替换原体积（`keep incoming names`）或生成新名称的体积
+- `output name`：控制输出体积的命名方式；选 `Keep Incoming VDB Names` 则结果替换原体积（同名覆盖），选 `Custom Name` 则在 `custom name` 字段中自定义名称
 - 支持第二输入的 `mask VDB`，限制运算只在 mask 活跃区域内执行
 - 主要运算类型（括号内为输入→输出数据类型）：
 

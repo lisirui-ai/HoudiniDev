@@ -3186,7 +3186,7 @@ copy and **transform节点**
   - `bounce forward`：切向弹性系数；1.0 时切向速度仅受摩擦影响，0.0 时切向速度被匹配（完全粘滞）
   - `friction`：摩擦系数；0 为无摩擦；控制碰撞时切向速度的衰减程度
 - `guides`子标签（视窗引导线可视化）
-  - `particles` 部分：勾选 `color particles by depth` 按深度着色粒子，颜色由 `visualization range` 和 `color ramp` 决定，便于区分泡沫/喷雾/气泡层
+  - `particles` 部分：勾选 `color particles by depth` 按深度着色粒子，颜色由 `visualization range` 和 `color ramp` 决定，便于区分气泡/泡沫/飞沫层
   - `repellants` 部分：控制排斥粒子的视窗可视化（颜色、大小、属性着色模式），用于调试泡沫蜂窝结构
   - `fields` 部分：控制 `surface` 和 `velocity` 场的视窗显示（需在 **whitewaterSolver节点** 开启 `import volumes` 才生效）
 

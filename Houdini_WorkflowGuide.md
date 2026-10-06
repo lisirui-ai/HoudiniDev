@@ -3237,11 +3237,14 @@ copy and **transform节点**
   - `closed boundaries`：设置封闭/开放边界；粒子碰到封闭边界反弹，超出开放边界则被删除
   - `limit size` / `limit center`：白沫解算域的尺寸和中心；应与 **flipsolver节点** `volume motion` → `volume limits` 中的解算域范围`box size` / `box center`保持一致，确保白沫粒子不会逸出 FLIP 解算边界
 - `forces`选项卡
+  - 各"by depth"曲线（`buoyancy by depth`、`advection by depth`、`multiplier by depth`、`repulsion by depth`）的横轴在 UI 中显示为 0～1 的归一化范围：0（左端）对应 SDF 深度 `foam location − depth range`（完全 bubble 区），0.5（中心）对应 `foam location`（泡沫层中心），1（右端）对应 `foam location + depth range`（完全 spray 区）；曲线纵轴为对应基础值的倍增系数
   - `gravity`：重力加速度
   - `buoyancy`：浮力基础加速度；控制气泡向上浮力
-  - `buoyancy by depth`：浮力随深度的倍增曲线
-  - `base advection strength`：液体速度场对白沫粒子的拖拽强度
-  - `advection by depth`：拖拽强度随深度的倍增曲线
+  - `buoyancy by depth`：浮力随深度的倍增曲线；纵轴为倍增系数，横轴为深度
+  - `base advection strength`：液体速度场对白沫粒子的拖拽强度基准值
+  - `advection by depth`：拖拽强度随深度的倍增曲线；液面以下粒子（bubble）通常拖拽较强，液面以上（spray）较弱
+  - `base velocity multiplier`：白沫粒子自身速度的基准缩放系数
+  - `multiplier by depth`：速度缩放系数随深度的倍增曲线
 - `foam`选项卡（泡沫行为控制）
   - `clumping`子选项：基于密度约束使泡沫粒子聚拢成团；`constraint stiffness` 控制约束强度；`neighborhood size` 设置目标邻居数
   - `erosion`子选项：在稀疏区域侵蚀泡沫，在密集区域保留；`erosion strength` 控制侵蚀速度，`preservation strength` 设置受保护的密度阈值

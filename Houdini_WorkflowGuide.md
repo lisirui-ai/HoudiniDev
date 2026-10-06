@@ -3769,7 +3769,7 @@ importpoint/primitive/vertex/**detailattribute节点**
   - 雾体积运算：`A + (1 - A) * B`（软并集，避免 Maximum 产生的暗边界）、`(1 - A) * B`（软差集，用于从体积中裁剪区域）
   - SDF 运算：`SDF Union`（并集）、`SDF Intersection`（交集）、`SDF Difference`（差集，从 A 中减去 B 的形状）
   - 活跃状态运算：`Activity Union`、`Activity Intersection`、`Activity Difference`（仅改变体素活跃状态，不改变值）
-  - 单目运算：`Use A`、`Use B`、`Invert A`（= `0 - A`）
+  - 单目运算：`Copy A`、`Copy B`、`Invert A`（= `0 - A`）
 - `collation`：控制 A、B 组体积的配对方式
   - `Combine A/B Pairs`（默认）：A、B 按顺序逐对运算
   - `Flatten All B into A`：将 B 组中所有 VDB 依次与 A 中唯一的 VDB 合并，可将多个体积合并为一个
@@ -3786,18 +3786,18 @@ importpoint/primitive/vertex/**detailattribute节点**
 - 对 VDB 体积计算解析属性（梯度、曲率、散度等），输出新的 VDB 体积
 - `output name`：控制输出体积的命名方式；选 `Keep Incoming VDB Names` 则结果替换原体积（同名覆盖），选 `Custom Name` 则在 `custom name` 字段中自定义名称
 - 支持第二输入的 `mask VDB`，限制运算只在 mask 活跃区域内执行
-- 主要运算类型（括号内为输入→输出数据类型）：
+- 主要运算类型（节点不修改原体积，而是基于原体积计算并输出一个新 VDB；例如对标量场 `density` 执行 `gradient` 会新生成一个向量场，原 `density` 不变）：
 
-| 运算符 | 输入→输出 | 说明 |
-|---|---|---|
-| `gradient` | 标量→向量 | 标量场的梯度场，方向指向场值增大最快的方向 |
-| `curvature` | 标量→标量 | 标量场的平均曲率，常用于液面曲率发射白水 |
-| `laplacian` | 标量→标量 | 标量场的拉普拉斯算子，常用于扩散/平滑分析 |
-| `closest point` | 标量（SDF）→向量 | 每个体素中最近表面点的位置，可配合 **vdbadvectpoints节点** 将点吸附到液面 |
-| `divergence` | 向量→标量 | 向量场的散度，表示该点的流量净流出量 |
-| `curl` | 向量→向量 | 向量场的旋度，表示流场的旋转分量 |
-| `magnitude` | 向量→标量 | 向量场的长度（模），可将速度场转为速度大小场 |
-| `normalize` | 向量→向量 | 向量场归一化，每个体素向量除以自身长度 |
+  | 运算符 | 输入类型→输出类型 | 说明 |
+  |---|---|---|
+  | `gradient` | 标量→向量 | 标量场的梯度场，方向指向场值增大最快的方向 |
+  | `curvature` | 标量→标量 | 标量场的平均曲率，常用于液面曲率发射白水 |
+  | `laplacian` | 标量→标量 | 标量场的拉普拉斯算子，常用于扩散/平滑分析 |
+  | `closest point` | 标量（SDF）→向量 | 每个体素中最近表面点的位置 |
+  | `divergence` | 向量→标量 | 向量场的散度，表示该点的流量净流出量 |
+  | `curl` | 向量→向量 | 向量场的旋度，表示流场的旋转分量 |
+  | `magnitude` | 向量→标量 | 向量场的长度（模），可将速度场转为速度大小场 |
+  | `normalize` | 向量→向量 | 向量场归一化，每个体素向量除以自身长度 |
 
 **convertvdb节点**
 

@@ -3207,11 +3207,11 @@ copy and **transform节点**
   - `depth range`：各力和老化速率在泡沫层附近的插值范围
   - 勾选 `add state attributes`：为粒子添加 `bubble`（气泡）、`foam`（泡沫）、`spray`（飞沫）属性（值域 0~1），表示该粒子各形态的强度；三种状态由粒子在 `surface` SDF 中的深度决定，以 `foam location` 为中心、`depth range` 为过渡带连续插值，粒子在生命周期内可自由切换
 
-| 状态 | 深度条件 | 物理行为 |
-|---|---|---|
-| `bubble`（气泡） | 深度 < `foam location − depth range`（液面以下） | 受浮力驱动向上运动，弱速度场跟随 |
-| `foam`（泡沫） | 位于过渡带内（液面附近） | 强速度场跟随，参与聚集、侵蚀、排斥等行为 |
-| `spray`（飞沫） | 深度 > `foam location + depth range`（液面以上） | 主要受重力弹道运动，弱速度场跟随 |
+    | 状态 | 深度条件 | 物理行为 |
+    |---|---|---|
+    | `bubble`（气泡） | 深度 < `foam location − depth range`（液面以下） | 受浮力驱动向上运动，弱速度场跟随 |
+    | `foam`（泡沫） | `foam location − depth range` ≤ 深度 ≤ `foam location + depth range` | 强速度场跟随，参与聚集、侵蚀、排斥等行为 |
+    | `spray`（飞沫） | 深度 > `foam location + depth range`（液面以上） | 主要受重力弹道运动，弱速度场跟随 |
   - 勾选 `add relative density attribute`：为粒子计算并添加相对密度属性，反映周围粒子的稀疏程度
 - `emission`选项卡
   - `emission source`：指定提供 `emit` VDB 的 SOP 节点路径，作为白沫粒子的发射源区域；通常为 **whitewatersource节点** 的第一输出端

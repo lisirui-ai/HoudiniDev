@@ -3786,7 +3786,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 - 对 VDB 体积计算解析属性（梯度、曲率、散度等），输出新的 VDB 体积
 - `output name`：控制输出体积的命名方式；选 `Keep Incoming VDB Names` 则结果替换原体积（同名覆盖），选 `Custom Name` 则在 `custom name` 字段中自定义名称
 - 支持第二输入的 `mask VDB`，限制运算只在 mask 活跃区域内执行
-- 主要运算类型（节点不修改原体积，而是基于原体积计算并输出一个新 VDB；例如对标量场 `density` 执行 `gradient` 会新生成一个向量场，原 `density` 不变）：
+- 主要运算类型（节点**不修改原体积**，而是基于原体积计算并输出一个新 VDB；例如对标量场 `density` 执行 `gradient`，会新生成一个向量场，其中每个体素的值是 `density` 在该点的梯度向量——即 `density` 值增大最快的方向及变化率，原 `density` 不变）：
 
   | 运算符 | 输入类型→输出类型 | 说明 |
   |---|---|---|

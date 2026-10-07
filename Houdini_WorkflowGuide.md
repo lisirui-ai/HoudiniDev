@@ -3972,6 +3972,90 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `mask volume`：用于遮罩散射发光的 vdb 名称，其属性值将与 `mask center` / `mask width` 定义的范围比较，决定各体素的散射发光强度，一般填`density`
     - `scatter volume`：节点生成的散射体积的名称，供 Pyro Shader 使用
 
+## material palette
+
+**basic liquid**
+
+- `Surface` 选项卡下分为 `Diffuse`、`Subsurface`、`Reflect`、`Refract`、`Emission`、`Opacity`、`Settings` 七个子选项卡
+  - **Diffuse**
+    - `enable diffuse`：启用漫反射；液体通常漫反射很弱，默认勾选但 `diffuse intensity` = 0.1 已压低
+    - `diffuse intensity`：漫反射强度；默认 0.1，水几乎不散射，过高会使水看起来不透明
+    - `vorticity to diffuse intensity`：根据粒子涡量（旋转强度）调制漫反射强度，可让湍流区域局部变亮；默认关闭
+      - `minimum / maximum vorticity`：涡量映射到漫反射强度的输入范围（0 / 10）
+      - `vorticity to diffuse ramp`：涡量值到漫反射强度的映射曲线
+    - `diffuse roughness`：漫反射粗糙度；0 = 完全朗伯体，增大使高光更宽散
+    - `diffuse minimum`：漫反射的最低亮度截止值
+    - `use base color`：启用基础颜色；默认勾选，配合 `base color`（默认蓝色 0.23, 0.36, 1）为水体着色
+    - `use point color`：叠加粒子 `Cd` 属性作为颜色，可在模拟中通过 `Cd` 驱动局部颜色变化；默认勾选
+    - `use color map`：使用贴图覆盖基础颜色；默认关闭
+      - `base color map`：颜色贴图路径
+      - `tint intensity`：贴图对基础颜色的叠加强度
+      - `color map wrap / filter / width`：贴图平铺、过滤和宽度设置
+  - **Subsurface**
+    - `enable subsurface scattering`：启用次表面散射（SSS）；水体通常不需要 SSS，默认关闭
+    - `subsurface intensity`：SSS 强度（0.5）
+    - `subsurface color`：SSS 散射颜色（默认白色）
+    - `subsurface minimum`：SSS 最低亮度截止
+    - `scattering phase`：散射相位；0 = 各向同性，正值偏前向散射，负值偏后向散射
+    - 子选项卡：`SSS Map`（SSS 贴图）、`Scattering`（散射参数）、`Attenuation`（体积衰减）、`Point Cloud`（点云采样）
+  - **Reflect**：分为 `Base`（基础反射层）和 `Coat`（涂层反射层）两个子选项卡，各自下含 `Reflect Lights`、`Reflect Objects`、`Reflection Mask Map` 三个子选项卡
+    - `Base` 子选项卡
+      - `enable base reflection layer`：启用基础高光层；默认勾选
+      - `Reflect Lights` 子选项卡
+        - `reflect lights`：对灯光产生高光；默认勾选
+        - `specular model`：高光模型（Phong）
+        - `specular intensity`：高光强度（默认 1）
+        - `specular color`：高光颜色（默认白色）
+        - `specular angle`：高光锐度，值越小高光越锐利（默认 1）
+        - `specular anisotropy`：高光各向异性（0 = 各向同性）
+        - `specular minimum`：高光最低亮度截止
+      - `Reflect Objects` 子选项卡：控制对场景中其他物体的反射
+      - `Reflection Mask Map` 子选项卡：用贴图控制反射强度遮罩
+    - `Coat` 子选项卡（涂层，模拟水面薄膜）
+      - `enable coat reflection layer`：默认关闭；开启后在基础反射层上叠加第二层涂层高光
+      - `Reflect Lights` 子选项卡：`specular intensity` = 0.1（涂层高光弱于基础层），`specular angle` = 10（更宽散）
+      - `Reflect Objects` 子选项卡：`reflection intensity` = 0.1，可独立控制涂层对物体的反射强度
+      - `Reflection Mask Map` 子选项卡：涂层反射遮罩贴图
+  - **Refract**
+    - `enable refractions`：启用折射；默认勾选，折射是水体透明感的核心
+    - `refraction model`：折射模型（Phong）
+    - `refraction intensity`：折射强度（默认 1）
+    - `refraction color`：折射颜色调制（默认白色，不偏色）
+    - `refraction angle`：折射扩散角度；0 = 完全清澈，增大模拟磨砂/浑浊水面
+    - `refraction anisotropy`：折射各向异性（0 = 各向同性）
+    - `refract lights`：折射光线穿透后对灯光贡献；默认勾选
+    - `refract objects`：折射光线穿透后对场景物体产生透射；默认勾选
+    - `thin film refraction`：薄膜折射（假设表面极薄，不计算厚度）；默认关闭
+    - `enable attenuation`：启用体积衰减（Beer-Lambert 定律），模拟深水颜色随深度变深；默认关闭
+      - `attenuation density`：衰减密度（0.5）
+      - `attenuation color`：衰减颜色（默认白色，配合有色衰减可做出水下色调）
+  - **Emission**
+    - `enable emission`：自发光；默认关闭
+    - `emission illuminates objects`：自发光照亮周围物体；默认勾选（开启自发光时才生效）
+    - `emission intensity`：自发光强度（1）
+    - `use emission color`：使用自发光颜色（默认白色）；勾选后 `emission color` 生效
+    - `use emission map`：使用贴图控制自发光
+  - **Opacity**
+    - `opacity scale`：整体不透明度（1 = 完全不透明）；水体通常保持 1，透明感由折射实现而非降低不透明度
+    - `opacity color`：不透明度颜色调制（白色 = 不偏色）
+    - `use opacity map`：使用贴图控制不透明度
+    - `enable opacity falloff`：视角相关不透明度衰减；默认关闭
+      - `parallel opacity`：正视角（法线平行视线）的不透明度（0）
+      - `perp opacity`：侧视角（法线垂直视线）的不透明度（1）
+      - `opacity rolloff`：衰减曲线指数
+    - `enable faux caustics`：模拟假焦散——通过调制阴影强度在水面阴影中模拟焦散光斑效果；默认勾选
+      - `min shadow intensity`：焦散高光区阴影最低强度（0）
+      - `max shadow intensity`：焦散暗区阴影最高强度（0.5）
+  - **Settings**
+    - `ensure faces point forward`：确保所有法线朝向相机一侧，防止内外翻转导致折射异常；默认勾选
+    - `conserve energy`：能量守恒，漫反射 + 高光总量不超过入射光；默认勾选
+    - `inside IOR`：液体内部折射率（默认 1.33，即标准水折射率）
+    - `outside IOR`：液体外部折射率（默认 1，即空气）
+    - `fresnel blending`：启用菲涅耳混合，使正视角折射强、侧视角反射强，更符合物理；默认勾选
+      - `fresnel style`：菲涅耳计算方式（`Physically Based` = 基于 Schlick 近似）
+    - `normal map export`：法线贴图导出设置（Source = Shader Normals，Space = Tangent，Range = 0 to 1）
+
+
 # 其他
 
 可视化

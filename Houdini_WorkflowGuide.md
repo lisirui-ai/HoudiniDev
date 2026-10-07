@@ -3094,7 +3094,9 @@ copy and **transform节点**
   - `reseeding` 子选项
     - 勾选 `reseed particles`：解算中自动补充/删除粒子，维持粒子均匀分布，改善液面质量
     - `particles per voxel`：每个体素的目标粒子数；理论值 ≈ `grid scale³`（默认 `grid scale` = 2.0 时理论值为 8），但实际 FLIP 粒子分布不均匀——碰撞体附近、飞溅区域的粒子会聚集到部分体素、同时让相邻体素匮乏，导致液面出现空洞；建议在复杂碰撞/飞溅场景中设为 `grid scale`³ × 1.5～2（如 grid scale = 2.0 时设 12～16）作为密度安全余量，代价是粒子总数增加、计算量上升
-    - `surface oversampling`：液面附近目标粒子数的倍增系数（值越大液面越细腻）
+    - `surface oversampling`：液面附近体素的目标粒子数倍增系数，仅作用于液面区域而非整个液体内部；调大可针对性地减少液面空洞（液面薄片区和飞溅边缘是空洞的高发区）；但值过大会加剧粒子印记（液面出现规则圆坑），需与 **particlefluidsurface节点** 的 `smooth` 配合使用
+    - `oversampling bandwidth`：`surface oversampling` 生效的液面深度范围（以 `particle separation` 为单位）；值越大，过采样影响的液面厚度越宽；默认为 1，即只在液面 1 个粒子间距范围内应用过采样
+    - 勾选 `oversample at boundaries`：在解算域边界处同样应用液面过采样，防止边界区域粒子稀疏导致液面边缘出现空洞
     - `birth threshold`：当某体素粒子数 < `particles per voxel × birth threshold` 时补充粒子（如目标数 8、阈值 0.5 → 粒子数 < 4 时补充）；范围 0～1，不可超过 1，设为 1.0 时只要粒子数低于目标值就立刻补充（最激进）
     - `death threshold`：当某体素粒子数 > `particles per voxel × death threshold` 时删除粒子（如目标数 8、阈值 1.5 → 粒子数 > 12 时删除）；可超过 1（默认即 1.5），建议控制在 1.5～3.0，值过大则几乎不触发删除，粒子数无上限积累
     - 两者形成迟滞区间（补充下限～删除上限之间不操作），防止每帧反复增删引起粒子数振荡，间接使液面更稳定；若液面空洞较多，可提高 `birth threshold`（如 0.5 → 0.8，使 reseeding 更早触发补充）并提高 `death threshold`（如 1.5 → 2.0，允许更多粒子存在才删除），整体粒子密度提升，空洞减少，代价是粒子总数略增

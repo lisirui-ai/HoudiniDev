@@ -3983,7 +3983,7 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `vorticity to diffuse intensity`：根据粒子涡量（旋转强度）调制漫反射强度，可让湍流区域局部变亮；默认关闭
       - `minimum / maximum vorticity`：涡量映射到漫反射强度的输入范围（0 / 10）
       - `vorticity to diffuse ramp`：涡量值到漫反射强度的映射曲线
-    - `diffuse roughness`：漫反射粗糙度；0 = 完全朗伯体，增大使高光更宽散
+    - `diffuse roughness`：漫反射粗糙度；0 = 正对光源最亮、边缘逐渐变暗（光滑石膏感）；增大后边缘变亮、整体亮度趋于均匀（磨砂/粉末质感）；水的漫反射极弱，此参数对水的外观几乎无影响，保持 0 即可
     - `diffuse minimum`：漫反射的最低亮度截止值
     - `use base color`：启用基础颜色；默认勾选，配合 `base color`（默认蓝色 0.23, 0.36, 1）为水体着色
     - `use point color`：叠加粒子 `Cd` 属性作为颜色，可在模拟中通过 `Cd` 驱动局部颜色变化；默认勾选
@@ -3991,13 +3991,6 @@ importpoint/primitive/vertex/**detailattribute节点**
       - `base color map`：颜色贴图路径
       - `tint intensity`：贴图对基础颜色的叠加强度
       - `color map wrap / filter / width`：贴图平铺、过滤和宽度设置
-  - Subsurface
-    - `enable subsurface scattering`：启用次表面散射（SSS）；水体通常不需要 SSS，默认关闭
-    - `subsurface intensity`：SSS 强度（0.5）
-    - `subsurface color`：SSS 散射颜色（默认白色）
-    - `subsurface minimum`：SSS 最低亮度截止
-    - `scattering phase`：散射相位；0 = 各向同性，正值偏前向散射，负值偏后向散射
-    - 子选项卡：`SSS Map`（SSS 贴图）、`Scattering`（散射参数）、`Attenuation`（体积衰减）、`Point Cloud`（点云采样）
   - Reflect：分为 `Base`（基础反射层）和 `Coat`（涂层反射层）两个子选项卡，各自下含 `Reflect Lights`、`Reflect Objects`、`Reflection Mask Map` 三个子选项卡
     - `Base` 子选项卡
       - `enable base reflection layer`：启用基础高光层；默认勾选

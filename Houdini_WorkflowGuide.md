@@ -3675,7 +3675,7 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `indirect_specular`：间接高光/镜面反射——其他物体或环境在当前表面产生的反射（如金属表面映出周围场景）
     - `indirect_coat`：清漆层对环境和其他物体的间接反射
     - `indirect_sss`：次表面散射中来自间接光（反弹光）的贡献
-  - 渲染完成后，在 Render View 视窗左上角的通道下拉框（默认显示 `C`，即合成图）中可切换查看各输出通道（如 `direct_diffuse`、`N`、`P` 等）
+  - 渲染完成后，在 Render View 视窗左上角的通道下拉框（默认显示 `C`，即合成图）中可切换查看已勾选启用的各输出通道（如 `direct_diffuse`、`N`、`P` 等）
   - `extra image planes`列表（点 `+` 添加）：用于输出自定义属性通道，如将几何体上的某个点属性单独输出为图像通道；上方的预设勾选项（direct lighting、shading normal 等）与此列表互相独立，无需在此添加即可生效；普通使用时保持为 0 即可
 - 运动模糊
   - `rendering`选项中勾选`allowmotionblur`

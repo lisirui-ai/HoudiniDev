@@ -3661,8 +3661,6 @@ importpoint/primitive/vertex/**detailattribute节点**
   - 勾选 `indirect lighting (per-component)`：将间接光照（GI、反弹光）同样按分量分别输出，与直接光通道配合可在后期重新混合光照
   - 渲染完成后，在 Render View 视窗左上角的通道下拉框（默认显示 `C`，即合成图）中可切换查看各输出通道（如 `direct_diffuse`、`N`、`P` 等）
   - `extra image planes`列表（点 `+` 添加）：用于输出自定义属性通道，如将几何体上的某个点属性单独输出为图像通道；上方的预设勾选项（direct lighting、shading normal 等）与此列表互相独立，无需在此添加即可生效；普通使用时保持为 0 即可
-  - 保证随着相机的移动，能正确显示运动
-    - **geometry节点**的`render`选项的`coving`处设置为`disable coving`
 - 运动模糊
   - `rendering`选项中勾选`allowmotionblur`
     - 只有勾选，才会开启运动模糊效果
@@ -3678,6 +3676,8 @@ importpoint/primitive/vertex/**detailattribute节点**
   - 相机的`shuttertime`快门时间
   - `geotimesamples`控制`op`:/下的**geometry节点**下的`sop`对象的运动模糊的采样次数
   - `xformtimesamples`控制`op`:/下的**geometry节点**的运动模糊的采样次数
+- 其他
+  - 保证随着相机的移动，能正确显示运动：**geometry节点**的`render`选项的`coving`处设置为`disable coving`
 
 **camera节点**
 

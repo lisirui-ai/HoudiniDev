@@ -3651,7 +3651,7 @@ importpoint/primitive/vertex/**detailattribute节点**
       - 一般设置为8，16
     - `sampling`中的`volume step rate`越低，渲染质量越高
 - 输出图片带有的通道
-  - 在`extra` image `planes`中勾选`shading` `depth`、`shading` `position`、`shading normal`
+  - 在`extra image planes`中勾选`shading` `depth`、`shading` `position`、`shading normal`
     - `shading depth`是相机坐标下的`@P.z`
     - `shading position`是相机坐标下的`@P`
     - `shading normal`是相机坐标系下的`@N`

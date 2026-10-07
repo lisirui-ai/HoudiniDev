@@ -4403,9 +4403,17 @@ Scene View 中的材质显示
 
 flip渲染
 
-- 渲染前必须保证液面网格无空洞、有体积感——水的真实感依赖完整的折射/反射，一旦液面存在穿孔，折射光线会穿透空洞露出后方背景（通常是黑色），立刻破坏水的体积感，看起来不像水而像破碎的半透明薄膜
-- 检查方式：在 Scene View 视窗中查看 **particlefluidsurface节点** 生成的 mesh，逐帧检查液面是否存在空洞或薄片；确认 mesh 完整无洞后再进行正式渲染
-- 常见修复手段：
-  - 提高 **flipsolver节点** `reseeding` 的 `particles per voxel`（建议 `grid scale³ × 1.5～2`）以及相关设置
-  - 在 **particlefluidsurface节点** 增大 `dilate` 向外扩张填补空洞
-  - 减小 **flipobject节点** 的 `particle separation`（增加粒子密度，根本解决）
+- 液面空洞
+  - 渲染前必须保证液面网格无空洞、有体积感——水的真实感依赖完整的折射/反射，一旦液面存在穿孔，折射光线会穿透空洞露出后方背景（通常是黑色），立刻破坏水的体积感，看起来不像水而像破碎的半透明薄膜
+  - 检查方式：在 Scene View 视窗中查看 **particlefluidsurface节点** 生成的 mesh，逐帧检查液面是否存在空洞或薄片；确认 mesh 完整无洞后再进行正式渲染
+  - 常见修复手段：
+    - 提高 **flipsolver节点** `reseeding` 的 `particles per voxel`（建议 `grid scale³ × 1.5～2`）以及相关设置
+    - 在 **particlefluidsurface节点** 增大 `dilate` 向外扩张填补空洞
+    - 减小 **flipobject节点** 的 `particle separation`（增加粒子密度，根本解决）
+- 粒子印记（液面圆坑）
+  - 现象：液面出现均匀分布的圆形凹坑，坑的大小与粒子半径近似相同；本质是粒子之间重叠不足，SDF 能"看见"单个粒子的轮廓边界，重建出的等值面凹陷于粒子间隙处
+  - 检查方式：在 Scene View 中放大液面，观察是否有规律排列的小圆坑；圆坑越均匀说明越接近粒子尺寸，越随机则越可能是其他原因（如泡沫/碰撞体等）
+  - 常见修复手段：
+    - 适当增大 **flipobject节点** 的 `particle radius scale`（默认 1.2，可尝试调至 1.4～1.6）：粒子半径更大 → 相邻粒子重叠更充分 → SDF 无法"看到"粒子间的间隙 → 圆坑消失；注意同步检查 `grid scale` 是否仍为 `particle radius scale` 的 1.5～2 倍，以及 **flipsolver节点** `reseeding` 的 `particles per voxel` 是否满足 `grid scale³ × 1.5～2`
+    - 在 **particlefluidsurface节点** 增大 `particle radius scale`：直接扩大重建时每个粒子的影响半径，效果立竿见影但不改变模拟本身
+    - 在 **particlefluidsurface节点** 适当增大 `smooth`：对 SDF 做平滑，可消除圆坑，但会使液滴（droplets）减少、细节变软

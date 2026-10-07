@@ -3657,8 +3657,24 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `shading depth`是相机坐标下的`@P.z`
     - `shading position`是相机坐标下的`@P`
     - `shading normal`是相机坐标系下的`@N`
-  - 勾选 `direct lighting (per-component)`：将直接光照按漫反射（diffuse）、高光（specular）等分量分别输出为独立通道，便于后期合成时对各分量单独调整
-  - 勾选 `indirect lighting (per-component)`：将间接光照（GI、反弹光）同样按分量分别输出，与直接光通道配合可在后期重新混合光照
+  - 勾选 `direct lighting (per-component)`：将直接光照按分量分别输出为独立通道，便于后期合成时对各分量单独调整
+    - `direct_diffuse`：直接漫反射——光源直接照射到表面后均匀散射的分量，决定物体的基础固有色和明暗
+    - `direct_reflect`：直接镜面/高光反射——光源在表面产生的高光亮斑，受粗糙度影响（越光滑越集中）
+    - `direct_coat`：清漆层（coat）的直接高光反射，用于金属漆、车漆等多层材质
+    - `direct_refract`：直接折射——光源透过透明/半透明表面的折射分量，用于玻璃、水面等
+    - `direct_volume`：直接体积光照——光源照射到体积（烟雾、云等）内部的散射分量
+    - `direct_sss`：次表面散射（SSS）的直接光贡献，用于皮肤、蜡、玉石等半透明材质
+  - 勾选 `indirect lighting (per-component)`：将间接光照按分量分别输出，与直接光通道配合可在后期重新混合光照
+    - `indirect_diffuse`：间接漫反射——光线经其他表面反弹后的漫反射（全局光照 GI），决定阴影区域的颜色渗透
+    - `indirect_reflect`：间接镜面/高光反射——来自环境或其他物体表面的间接反射，即物体上映出的环境和其他物体的倒影
+    - `indirect_coat`：清漆层的间接反射，来自环境或反弹光的清漆高光
+    - `indirect_refract`：间接折射——透明/半透明表面的间接折射分量
+    - `indirect_volume`：间接体积光照——体积内部的间接散射分量
+    - `indirect_sss`：次表面散射的间接光贡献，来自间接光在半透明材质内部的散射
+    - `indirect_diffuse`：间接漫反射——其他表面反弹后照射到当前表面的漫反射光（全局光照 GI），决定物体暗部的环境色
+    - `indirect_specular`：间接高光/镜面反射——其他物体或环境在当前表面产生的反射（如金属表面映出周围场景）
+    - `indirect_coat`：清漆层对环境和其他物体的间接反射
+    - `indirect_sss`：次表面散射中来自间接光（反弹光）的贡献
   - 渲染完成后，在 Render View 视窗左上角的通道下拉框（默认显示 `C`，即合成图）中可切换查看各输出通道（如 `direct_diffuse`、`N`、`P` 等）
   - `extra image planes`列表（点 `+` 添加）：用于输出自定义属性通道，如将几何体上的某个点属性单独输出为图像通道；上方的预设勾选项（direct lighting、shading normal 等）与此列表互相独立，无需在此添加即可生效；普通使用时保持为 0 即可
 - 运动模糊

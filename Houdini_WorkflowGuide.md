@@ -1993,7 +1993,7 @@ copy and **transform节点**
 - `voxel size`：生成 VDB 的体素尺寸，决定 SDF 精度；在 FLIP 解算中 SDF 只用于定义发射区域边界（**volumesource节点**据此判断哪里可以发射），不需要达到粒子精度，通常设为`particle separation`的 2～4 倍即可，过细反而浪费计算
   - 注意：此处精度影响的是发射源形状的近似精度（粒子从哪里出生），而非运动中的液面精度——粒子一旦进入解算，液面形态完全由粒子密度（`particle separation`）决定，SDF 不再参与；`voxel size` 过大只会导致发射源几何体的边界被磨平/圆滑，不影响模拟进行后的液面质量
   - 液面精度由以下几处控制：① **flipobject节点**的`particle separation`——值越小粒子越密，液体细节越丰富；② **flipobject节点**的`particle radius scale`——粒子半径越大液面越平滑但细节越少；③ 渲染前用**particlefluidsurface节点**重建液面网格时的`voxelsize`——值越小重建曲面越细腻
-- `shell thickness`：勾选后将输入几何体视为薄壳（只在表面生成体积，而非填充实体）；在 FLIP 持续发射场景中，**volumesource节点**的`kill inside dop`会将当帧新发射的、落在现有 FLIP 液面 SDF 内部的粒子全部删除，因此内部粒子无论如何都会被删掉，只有表面附近（液面 SDF 外侧）的粒子才真正进入解算；用薄壳只在表面生成粒子，可避免生成大量必然被删除的内部粒子，提升效率
+- `shell thickness`：勾选后将输入几何体视为薄壳（只在表面生成体积，而非填充实体）；在 FLIP 持续发射场景中，**volumesource节点**的`kill inside dop`会将当帧新发射的、落在现有 FLIP 液面 SDF 内部的粒子全部删除，因此内部粒子无论如何都会被删掉，只有表面附近（液面 SDF 外侧）的粒子才真正进入解算；用薄壳只在表面生成粒子，可避免生成大量必然被删除的内部粒子，提升效率；注意此参数仅影响发射阶段的粒子生成位置，对已进入解算的粒子没有影响，不会导致液面空洞
 - `output fog`：勾选后输出 fog VDB 而非 SDF，用于烟雾类解算
 - `create particles`：在几何体内部生成粒子点云，与**volumesource节点**的`source particles`配合使用
   - `particle group`：粒子放入的组名
@@ -2854,7 +2854,7 @@ copy and **transform节点**
     - `group`：仅导入指定组内的点
     - `stream name`：将发射的粒子放入指定组，便于后续区分不同发射源的粒子
     - `kill inside sop`：将进入指定 SOP SDF 区域内的粒子删除（可用于设置消亡区域）
-    - `kill inside dop`：将进入指定 DOP SDF 区域内的粒子删除
+    - `kill inside dop`：将进入指定 DOP SDF 区域内的粒子删除；仅作用于新发射的粒子（防止与现有液体重叠），不影响已在解算中的粒子，不会导致液面空洞
     - 勾选 `life expectancy`：为新粒子设置 `life` 属性，控制粒子的存活时长（秒）；在 FLIP 解算中生效需同时在 **flipsolver节点** `particle motion → behavior` 下开启 `age particles`（粒子计龄）和 `reap particles`（寿命耗尽时删除粒子）
     - `life variance`：粒子实际寿命在 `life expectancy` 基础上随机浮动的范围（秒）；设为 0 则所有粒子寿命完全相同
     - 点云属性继承：`source particles` 导入点时，SOP 点上的全部属性均自动带入解算几何体，无需额外映射；`@v`（初始速度）、`@pscale`（粒子半径）、`@Cd`（颜色）、自定义属性等均会一并注入新粒子；体积场则不会自动继承，需在 `volumes → operations` 中逐项显式配置 `Source Volume → Target Field` 映射
@@ -3093,7 +3093,7 @@ copy and **transform节点**
   - 以下子选项启用后会在粒子上生成对应属性，可在 SOP 中读取用于着色或后处理：`droplet`（水滴判断）、`vorticity`（涡度）、`rest` / `rest2`（静止坐标，用于贴图）、`id`（粒子唯一标识）
   - `reseeding` 子选项
     - 勾选 `reseed particles`：解算中自动补充/删除粒子，维持粒子均匀分布，改善液面质量
-    - `particles per voxel`：每个体素的目标粒子数
+    - `particles per voxel`：每个体素的目标粒子数；理论值 ≈ `grid scale³`（默认 `grid scale` = 2.0 时理论值为 8），但实际 FLIP 粒子分布不均匀——碰撞体附近、飞溅区域的粒子会聚集到部分体素、同时让相邻体素匮乏，导致液面出现空洞；建议在复杂碰撞/飞溅场景中设为 `grid scale`³ × 1.5～2（如 grid scale = 2.0 时设 12～16）作为密度安全余量，代价是粒子总数增加、计算量上升
     - `surface oversampling`：液面附近目标粒子数的倍增系数（值越大液面越细腻）
     - `birth threshold`：当前粒子数低于目标数的此比例时补充粒子
     - `death threshold`：当前粒子数超过目标数的此比例时删除粒子
@@ -4392,3 +4392,12 @@ Scene View 中的材质显示
 
 - Scene View 视窗切换到 **Smooth Shaded** 模式后，使用 OpenGL 实时显示材质的基础颜色、贴图、粗糙度等属性的近似预览；OpenGL 渲染节点可将此效果直接输出为图片，速度快但不含 GI、次表面散射等路径追踪效果
 - Karma / Mantra 的完整路径追踪材质效果（反弹光、焦散、体积等）无法在 Scene View 实时显示
+
+flip渲染
+
+- 渲染前必须保证液面网格无空洞、有体积感——水的真实感依赖完整的折射/反射，一旦液面存在穿孔，折射光线会穿透空洞露出后方背景（通常是黑色），立刻破坏水的体积感，看起来不像水而像破碎的半透明薄膜
+- 检查方式：在 Scene View 视窗中查看 **particlefluidsurface节点** 生成的 mesh，逐帧检查液面是否存在空洞或薄片；确认 mesh 完整无洞后再进行正式渲染
+- 常见修复手段：
+  - 提高 **flipsolver节点** `reseeding` 的 `particles per voxel`（建议 `grid scale³ × 1.5～2`）
+  - 在 **particlefluidsurface节点** 增大 `dilate` 向外扩张填补空洞
+  - 减小 **flipobject节点** 的 `particle separation`（增加粒子密度，根本解决）

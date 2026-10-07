@@ -3620,11 +3620,11 @@ importpoint/primitive/vertex/**detailattribute节点**
 
 - 分层渲染
   - 一个**mantra节点**负责渲染一个层
-  - 渲染被`forced` `matte`遮挡的`force` objects
+  - 渲染被`forced matte`遮挡的`force objects`
     - 两个视觉上有遮挡关系的渲染对象，必须有且只有一个**mantra节点**中的`forcedmatte`和`forceobjects`指定了它们的遮挡关系
-  - forceobjects
+  - `forceobjects`
     - 只能选择外层的`geometry`
-  - forcedmatte
+  - `forcedmatte`
     - 被动遮挡，不仅产生遮挡，还产生光影关系
     - 只能选择外层的`geometry`
     - 不会被渲染显示

@@ -3642,22 +3642,22 @@ importpoint/primitive/vertex/**detailattribute节点**
       - 刚体在`forcedmatte`
   
 - 渲染质量
-  - `sampling`中的`pixel` `samples`以3为单位往上加，像素越高，渲染质量越高
+  - `sampling`中的`pixel samples`以3为单位往上加，像素越高，渲染质量越高
     - 减少噪点
-  - `sampling`中的`max` ray `samples`越高，渲染质量越高，噪点越少
-  - `sampling`中的`noise` `level`越低，渲染质量越高
+  - `sampling`中的`max ray samples`越高，渲染质量越高，噪点越少
+  - `sampling`中的`noise level`越低，渲染质量越高
   - 体积类、透明材质
-    - `sampling`中的`stochastic` `samples`越高，渲染质量越高
+    - `sampling`中的`stochastic samples`越高，渲染质量越高
       - 一般设置为8，16
-    - `sampling`中的`volume` step `rate`越低，渲染质量越高
+    - `sampling`中的`volume step rate`越低，渲染质量越高
 - 输出图片带有的通道
-  - 在`extra` image `planes`中勾选`shading` `depth`、`shading` `position`、`shading` normal
-    - shading `depth`是相机坐标下的`@P`.z
-    - shading `position`是相机坐标下的`@P`
-    - shading `normal`是相机坐标系下的`@N`
-  - 添加`extra` image `planes`通道，将勾选的属性输出
+  - 在`extra` image `planes`中勾选`shading` `depth`、`shading` `position`、`shading normal`
+    - `shading depth`是相机坐标下的`@P.z`
+    - `shading position`是相机坐标下的`@P`
+    - `shading normal`是相机坐标系下的`@N`
+  - 添加`extra image planes`通道，将勾选的属性输出
   - 保证随着相机的移动，能正确显示运动
-    - **geometry节点**的`render`选项的`coving`处设置为`disable` coving
+    - **geometry节点**的`render`选项的`coving`处设置为`disable coving`
 - 运动模糊
   - `rendering`选项中勾选`allowmotionblur`
     - 只有勾选，才会开启运动模糊效果

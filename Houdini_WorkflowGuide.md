@@ -3977,7 +3977,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 **basic liquid**
 
 - `Surface` 选项卡下分为 `Diffuse`、`Subsurface`、`Reflect`、`Refract`、`Emission`、`Opacity`、`Settings` 七个子选项卡
-  - **Diffuse**
+  - Diffuse
     - `enable diffuse`：启用漫反射；液体通常漫反射很弱，默认勾选但 `diffuse intensity` = 0.1 已压低
     - `diffuse intensity`：漫反射强度；默认 0.1，水几乎不散射，过高会使水看起来不透明
     - `vorticity to diffuse intensity`：根据粒子涡量（旋转强度）调制漫反射强度，可让湍流区域局部变亮；默认关闭
@@ -3991,14 +3991,14 @@ importpoint/primitive/vertex/**detailattribute节点**
       - `base color map`：颜色贴图路径
       - `tint intensity`：贴图对基础颜色的叠加强度
       - `color map wrap / filter / width`：贴图平铺、过滤和宽度设置
-  - **Subsurface**
+  - Subsurface
     - `enable subsurface scattering`：启用次表面散射（SSS）；水体通常不需要 SSS，默认关闭
     - `subsurface intensity`：SSS 强度（0.5）
     - `subsurface color`：SSS 散射颜色（默认白色）
     - `subsurface minimum`：SSS 最低亮度截止
     - `scattering phase`：散射相位；0 = 各向同性，正值偏前向散射，负值偏后向散射
     - 子选项卡：`SSS Map`（SSS 贴图）、`Scattering`（散射参数）、`Attenuation`（体积衰减）、`Point Cloud`（点云采样）
-  - **Reflect**：分为 `Base`（基础反射层）和 `Coat`（涂层反射层）两个子选项卡，各自下含 `Reflect Lights`、`Reflect Objects`、`Reflection Mask Map` 三个子选项卡
+  - Reflect：分为 `Base`（基础反射层）和 `Coat`（涂层反射层）两个子选项卡，各自下含 `Reflect Lights`、`Reflect Objects`、`Reflection Mask Map` 三个子选项卡
     - `Base` 子选项卡
       - `enable base reflection layer`：启用基础高光层；默认勾选
       - `Reflect Lights` 子选项卡
@@ -4016,7 +4016,7 @@ importpoint/primitive/vertex/**detailattribute节点**
       - `Reflect Lights` 子选项卡：`specular intensity` = 0.1（涂层高光弱于基础层），`specular angle` = 10（更宽散）
       - `Reflect Objects` 子选项卡：`reflection intensity` = 0.1，可独立控制涂层对物体的反射强度
       - `Reflection Mask Map` 子选项卡：涂层反射遮罩贴图
-  - **Refract**
+  - Refract
     - `enable refractions`：启用折射；默认勾选，折射是水体透明感的核心
     - `refraction model`：折射模型（Phong）
     - `refraction intensity`：折射强度（默认 1）
@@ -4029,13 +4029,13 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `enable attenuation`：启用体积衰减（Beer-Lambert 定律），模拟深水颜色随深度变深；默认关闭
       - `attenuation density`：衰减密度（0.5）
       - `attenuation color`：衰减颜色（默认白色，配合有色衰减可做出水下色调）
-  - **Emission**
+  - Emission
     - `enable emission`：自发光；默认关闭
     - `emission illuminates objects`：自发光照亮周围物体；默认勾选（开启自发光时才生效）
     - `emission intensity`：自发光强度（1）
     - `use emission color`：使用自发光颜色（默认白色）；勾选后 `emission color` 生效
     - `use emission map`：使用贴图控制自发光
-  - **Opacity**
+  - Opacity
     - `opacity scale`：整体不透明度（1 = 完全不透明）；水体通常保持 1，透明感由折射实现而非降低不透明度
     - `opacity color`：不透明度颜色调制（白色 = 不偏色）
     - `use opacity map`：使用贴图控制不透明度
@@ -4046,7 +4046,7 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `enable faux caustics`：模拟假焦散——通过调制阴影强度在水面阴影中模拟焦散光斑效果；默认勾选
       - `min shadow intensity`：焦散高光区阴影最低强度（0）
       - `max shadow intensity`：焦散暗区阴影最高强度（0.5）
-  - **Settings**
+  - Settings
     - `ensure faces point forward`：确保所有法线朝向相机一侧，防止内外翻转导致折射异常；默认勾选
     - `conserve energy`：能量守恒，漫反射 + 高光总量不超过入射光；默认勾选
     - `inside IOR`：液体内部折射率（默认 1.33，即标准水折射率）

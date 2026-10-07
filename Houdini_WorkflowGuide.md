@@ -3659,6 +3659,7 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `shading normal`是相机坐标系下的`@N`
   - 勾选 `direct lighting (per-component)`：将直接光照按漫反射（diffuse）、高光（specular）等分量分别输出为独立通道，便于后期合成时对各分量单独调整
   - 勾选 `indirect lighting (per-component)`：将间接光照（GI、反弹光）同样按分量分别输出，与直接光通道配合可在后期重新混合光照
+  - 渲染完成后，在 Render View 视窗左上角的通道下拉框（默认显示 `C`，即合成图）中可切换查看各输出通道（如 `direct_diffuse`、`N`、`P` 等）
   - 添加`extra image planes`通道，将勾选的属性输出
   - 保证随着相机的移动，能正确显示运动
     - **geometry节点**的`render`选项的`coving`处设置为`disable coving`

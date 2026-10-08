@@ -3986,7 +3986,7 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `diffuse roughness`：漫反射粗糙度；0 = 正对光源最亮、边缘逐渐变暗（光滑石膏感）；增大后边缘变亮、整体亮度趋于均匀（磨砂/粉末质感）；水的漫反射极弱，此参数对水的外观几乎无影响，保持 0 即可
     - `diffuse minimum`：漫反射的最低亮度截止值
     - `use base color`：启用基础颜色；默认勾选，配合 `base color`（默认蓝色 0.23, 0.36, 1）为水体着色
-    - `use point color`：叠加粒子 `Cd` 属性作为颜色，可在模拟中通过 `Cd` 驱动局部颜色变化；默认勾选
+    - `use point color`：将粒子 `Cd` 属性与 `base color` 逐分量相乘作为最终漫反射颜色，可在模拟中通过 `Cd` 驱动局部颜色变化（如 `base color`=(1,1,1) 时保留 `Cd` 原色）；默认勾选
     - `use color map`：使用贴图覆盖基础颜色；默认关闭
       - `base color map`：颜色贴图路径
       - `tint intensity`：贴图对基础颜色的叠加强度

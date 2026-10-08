@@ -4047,6 +4047,39 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `fresnel blending`：启用菲涅耳混合，使正视角折射强、侧视角反射强，更符合物理；默认勾选
       - `fresnel style`：菲涅耳计算方式（`Physically Based` = 基于 Schlick 近似）
     - `normal map export`：法线贴图导出设置（Source = Shader Normals，Space = Tangent，Range = 0 to 1）
+- `Displacement` 选项卡：控制液面几何置换，分为 `Vorticity Waves`、`Displacement Map`、`Bump | Normal Map` 三个子选项卡
+  - Vorticity Waves：根据粒子涡量（旋转强度）在液面添加程序化波纹，模拟湍流区域的细碎水波
+    - `vorticity waves`：启用涡量波纹；默认关闭
+    - `wave scale`：波纹的空间尺度（默认 0.1）
+    - `wave height`：波纹的振幅高度（默认 0.1）
+    - `minimum / maximum vorticity`：涡量映射到波纹强度的输入范围（默认 10 / 30）；涡量低于最小值时无波纹，高于最大值时达到最大波高
+    - `wave height ramp`：涡量值到波纹高度的映射曲线
+  - Displacement Map：通过贴图或程序噪波对液面进行几何置换（真正改变网格顶点位置）
+    - `displace direction`：置换方向（默认 `Up & Down: Gray = No Displace`，灰色 = 无置换，白色向外，黑色向内）
+    - `displacement scale`：置换强度缩放（默认 0.05）
+    - `displacement bound`：置换边界裕量；需设置为置换最大幅度，Mantra 用此值扩展包围盒以避免置换后几何体被裁剪（默认 0.05）
+    - `true displacements`：启用真实几何置换（在渲染时细分并移动顶点）；默认勾选；关闭则退化为 bump 效果（仅影响法线，不改变几何）
+    - `enable displacement map`：启用贴图驱动置换；默认关闭
+      - `displacement map`：置换贴图路径
+      - `disp channel`：从贴图中提取置换值的通道（默认 Luminance 亮度）
+      - `disp map wrap / filter / width`：贴图平铺、过滤和宽度设置
+    - `enable noise`：启用程序噪波置换；默认关闭
+      - `noise type`：噪波类型（默认 Sparse Convolution Noise）
+      - `frequency`：噪波频率，值越大细节越密（默认 10, 10, 10）
+      - `offset`：噪波空间偏移（默认 0, 0, 0）
+      - `amplitude`：噪波幅度（默认 1）
+      - `roughness`：噪波粗糙度，控制高频细节比例（默认 0.5）
+      - `attenuation`：噪波衰减（默认 1）
+      - `turbulence`：噪波迭代层数，值越大细节越丰富（默认 5）
+  - Bump | Normal Map：通过贴图扰动法线模拟表面细节，不改变几何（比置换开销小）
+    - `map type`：贴图类型（默认 None）
+    - `use bump map`：启用 bump 贴图（灰度图，通过亮度差计算法线偏移）；默认关闭
+      - `bump scale`：bump 强度（默认 0.1）
+      - `bump map`：bump 贴图路径
+      - `bump map wrap / filter / width`：贴图平铺、过滤和宽度设置
+    - `use normal map`：启用法线贴图（RGB 图，直接编码法线方向）；默认关闭
+      - `normal map`：法线贴图路径
+      - `normal map wrap / filter / width`：贴图平铺、过滤和宽度设置
 
 
 

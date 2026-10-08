@@ -4084,11 +4084,19 @@ importpoint/primitive/vertex/**detailattribute节点**
 **basicwhitewater**
 
 - 本质是体积材质——通过渲染 VDB 体积来模拟泡沫/飞沫/气泡的白水质感，而非对粒子点云直接着色
-- 使用流程：**whitewatersolver节点** 输出的是粒子点云，需在 SOP 中先用 **volumerasterizeattributes节点** 将粒子点云栅格化为 `density` VDB，再用 **vdbanalysis节点** 对 `density` 求梯度生成 `density_gradient` VDB，最后将 `basicwhitewater` 材质赋予含有这两个 VDB 的 geometry 节点
+- 使用流程：**whitewatersolver节点** 输出的是粒子点云，需在 SOP 中先用 **volumerasterizeattributes节点** 将粒子点云栅格化为 `density` VDB，再用 **vdbanalysis节点** 对 `density` 求梯度生成 `density_gradient` VDB，最后将 `basicwhitewater` 材质赋予含有这两个 VDB 的 geometry 节点；**volumerasterizeattributes节点** 的体素尺寸应对齐白水粒子的 `pscale`（粒子实际半径），体素越小渲染结果越像泡沫/飞沫（细节丰富、边界清晰），体素越大则越像扩散的烟雾（边界模糊、细节丢失）
 - 该材质内部实现固定读取两个特定名称的 VDB 字段，VDB 名称不可更改：
   - `density`（fog/smoke 类型）：白水的体积密度场，控制白水的不透明度和厚度；由粒子点云转换而来
   - `density_gradient`（向量场）：`density` 场的梯度，用作体积内部的伪法线，使白水在光照下产生方向感和立体感（梯度指向密度增大最快的方向，即白水团块的"表面朝外"方向）；需在 SOP 中用 **vdbanalysis节点** 对 `density` 求 `gradient` 运算后生成，并确保输出名称为 `density_gradient`
 - 若两个 VDB 名称与材质内部硬编码的名称不一致，对应效果将失效（密度场缺失则无体积，梯度场缺失则体积无方向感光照，看起来像均匀发光的云团）
+- 主要参数（UI）：
+  - `density scale`：密度倍增，控制白水的整体不透明度和厚度（默认 3，值越大白水越厚实）
+  - `shadow scale`：阴影密度倍增，独立控制白水投射阴影的浓度，与 `density scale` 解耦（默认 0.5）
+  - `scattering phase`：散射方向；0 = 各向同性，正值 = 前向散射（逆光时白水边缘发亮），负值 = 后向散射（默认 0）
+  - `color`：白水的散射颜色（默认白色）
+  - `reflect intensity`：反射强度（默认 1）
+  - `reflect roughness`：反射粗糙度；值越小反射越锐利，值越大反射越模糊扩散（默认 0.35）
+  - `reflect color`：反射颜色（默认白色）
 
 
 # 其他
@@ -4205,6 +4213,10 @@ importpoint/primitive/vertex/**detailattribute节点**
 
 
     - 建议`@pscale`>`voxelsize`*0.75，否则体积单元小于一个体素，渲染时细节会丢失；但不满足此条件仍可解算，并非强制要求
+    - `pscale` 与 `voxelsize` 的比值对渲染精度的影响：
+      - `pscale` >> `voxelsize`（粒子覆盖多个体素）：密度场平滑，细节少，渲染结果像大团均匀烟雾
+      - `pscale` ≈ `voxelsize`（粒子约对应 1 个体素）：密度场细节适中，是白水/泡沫等颗粒感效果的推荐比值
+      - `pscale` < `voxelsize`（粒子小于一个体素，亚体素级别）：粒子的密度贡献被平均到同一体素中，单个粒子无法被独立捕捉 → 密度场模糊、颗粒感消失，渲染结果细节丢失；对于白水渲染，这会使泡沫/飞沫看起来像稀薄烟雾而非颗粒状白水
 
 `distance`体积雾
 

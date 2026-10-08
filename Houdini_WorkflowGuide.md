@@ -4048,6 +4048,36 @@ importpoint/primitive/vertex/**detailattribute节点**
       - `fresnel style`：菲涅耳计算方式（`Physically Based` = 基于 Schlick 近似）
     - `normal map export`：法线贴图导出设置（Source = Shader Normals，Space = Tangent，Range = 0 to 1）
 
+**uniformvolume**
+
+- 通用体积材质，用于烟雾、云、火焰等 VDB 体积的渲染；分为 `Smoke` 和 `Displacement` 两个选项卡
+  - **Smoke**
+    - `smoke color`：体积散射颜色（默认白色）；控制体积在光照下呈现的颜色
+    - `use point color`：叠加体素 `Cd` 属性作为颜色；默认勾选，可通过 VDB 中的 `Cd` 字段驱动局部颜色
+    - `cloud density`：体积密度倍增；值越大体积越厚实不透明，值越小越稀薄透明（默认 1）
+    - `shadow density multiplier`：阴影密度倍增；独立控制体积投射阴影的浓度，与 `cloud density` 解耦，可单独加深阴影而不改变体积外观（默认 1）
+    - `scattering phase`：散射相位；0 = 各向同性散射（均匀发光），正值 = 前向散射（逆光时边缘发亮，如云的银边效果），负值 = 后向散射（默认 0）
+    - `volume samples`：体积采样次数；值越高渲染越细腻但越慢（默认 1）
+  - **Displacement**
+    - `enable displacement map`：启用贴图驱动的体积置换；默认关闭
+    - `enable noise`：启用程序噪波置换；默认关闭
+    - `displacement map`：置换贴图路径
+    - `disp map filter`：贴图过滤方式（默认 VEX: Gaussian）
+    - `disp map wrap`：贴图平铺方式（默认 Repeat）
+    - `displacement scale`：置换强度缩放（默认 0.05）
+    - `displacement bound`：置换边界裕量；需设置为置换最大幅度，否则体积边缘可能被裁剪（默认 0，使用噪波时需适当增大）
+    - 噪波参数（`enable noise` 开启后生效）
+      - `noise type`：噪波类型（默认 Sparse Convolution Noise）
+      - `frequency`：噪波频率，值越大细节越密（默认 10, 10, 10）
+      - `offset`：噪波空间偏移（默认 0, 0, 0）
+      - `amplitude`：噪波幅度（默认 1）
+      - `roughness`：噪波粗糙度，控制高频细节比例（默认 0.5）
+      - `attenuation`：噪波衰减（默认 1）
+      - `turbulence`：噪波迭代层数，值越大细节越丰富（默认 5）
+    - `displace direction`：置换方向模式（默认 `Up & Down: Gray = No Displace`，灰色 = 无置换，白色向外，黑色向内）
+    - `disp map width`：置换贴图宽度（默认 1）
+    - `disp channel`：从贴图中提取置换值的通道（默认 Luminance 亮度）
+
 
 # 其他
 

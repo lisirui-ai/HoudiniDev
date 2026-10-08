@@ -4104,7 +4104,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 
 **uniformvolume**
 
-- 通用体积材质；将赋予对象的封闭内部作为均匀体积进行渲染，可赋予给 **particlefluidsurface节点** 输出的液面 mesh（将整个液体内部渲染为体积雾）或含有 `density` 字段的 VDB
+- 通用体积材质；用于渲染 `density` 字段的 VDB 体积；若要渲染 FLIP 液体体积，需先将 **particlefluidsurface节点** 输出的液面 mesh 用 **vdbfrompolygons节点** 转换为 fog VDB（smoke），再将 `uniformvolume` 材质赋予含有该 VDB
 - 分为 `Smoke` 和 `Displacement` 两个选项卡
   - Smoke
     - `smoke color`：体积散射颜色（默认白色）；控制体积在光照下呈现的颜色

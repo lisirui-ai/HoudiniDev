@@ -4001,7 +4001,7 @@ importpoint/primitive/vertex/**detailattribute节点**
       - `Reflect Lights` 子选项卡
         - `reflect lights`：对灯光产生高光；默认勾选
         - `specular model`：高光模型（Phong）
-        - `specular intensity`：高光强度（默认 1）
+        - `specular intensity`：高光强度（默认 0.1）；水面通常需要设置为 1 以上，过低会使水面缺乏镜面感、呈现雾面质感，看起来不像水
         - `specular color`：高光颜色（默认白色）
         - `specular angle`：高光锐度，值越小高光越锐利（默认 1）
         - `specular anisotropy`：高光各向异性（0 = 各向同性）

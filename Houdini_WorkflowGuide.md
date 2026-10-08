@@ -4050,13 +4050,13 @@ importpoint/primitive/vertex/**detailattribute节点**
 
 **uniformvolume**
 
-- 通用体积材质，用于烟雾、云、火焰等 VDB 体积的渲染；分为 `Smoke` 和 `Displacement` 两个选项卡
+- 通用体积材质；可赋予给普通 mesh，将其作为实心体积进行渲染（mesh 内部填充为均匀体积），也用于 VDB 体积的渲染；分为 `Smoke` 和 `Displacement` 两个选项卡
   - **Smoke**
     - `smoke color`：体积散射颜色（默认白色）；控制体积在光照下呈现的颜色
     - `use point color`：叠加体素 `Cd` 属性作为颜色；默认勾选，可通过 VDB 中的 `Cd` 字段驱动局部颜色
     - `cloud density`：体积密度倍增；值越大体积越厚实不透明，值越小越稀薄透明（默认 1）
     - `shadow density multiplier`：阴影密度倍增；独立控制体积投射阴影的浓度，与 `cloud density` 解耦，可单独加深阴影而不改变体积外观（默认 1）
-    - `scattering phase`：散射相位；0 = 各向同性散射（均匀发光），正值 = 前向散射（逆光时边缘发亮，如云的银边效果），负值 = 后向散射（默认 0）
+    - `scattering phase`：散射方向；不影响透光性（透光性由 `cloud density` 控制）；控制光打到体积粒子后向哪个方向散射：0 = 向四面八方均匀散射，正值 = 前向散射（光倾向于继续向前穿透，逆光时体积边缘发亮，如云的银边/丁达尔效果），负值 = 后向散射（光倾向于反射回光源方向，顺光时体积更亮）；默认 0
     - `volume samples`：体积采样次数；值越高渲染越细腻但越慢（默认 1）
   - **Displacement**
     - `enable displacement map`：启用贴图驱动的体积置换；默认关闭

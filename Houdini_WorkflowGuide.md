@@ -4052,7 +4052,7 @@ importpoint/primitive/vertex/**detailattribute节点**
       - `fresnel style`：菲涅耳计算方式（`Physically Based` = 基于 Schlick 近似）
     - `normal map export`：法线贴图导出设置（Source = Shader Normals，Space = Tangent，Range = 0 to 1）
 - `Displacement` 选项卡：控制液面几何置换，分为 `Vorticity Waves`、`Displacement Map`、`Bump | Normal Map` 三个子选项卡
-  - Vorticity Waves：根据粒子涡量（旋转强度）在液面添加程序化波纹，模拟湍流区域的细碎水波
+  - Vorticity Waves：根据粒子涡量（旋转强度）在液面添加程序化波纹，模拟湍流区域的细碎水波；需要液面 mesh 上同时具备三个属性才能生效：`vorticity`（涡量值，驱动波纹强度）、`rest`（静止位置参考，用于噪波空间锁定）、`rest2`（第二静止参考，用于多层噪波避免平铺重复）
     - `vorticity waves`：启用涡量波纹；默认关闭
     - `wave scale`：波纹的空间尺度（默认 0.1）
     - `wave height`：波纹的振幅高度（默认 0.1）

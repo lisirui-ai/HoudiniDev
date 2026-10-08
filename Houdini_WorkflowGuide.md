@@ -3985,7 +3985,7 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `enable diffuse`：启用漫反射；液体通常漫反射很弱，默认勾选但 `diffuse intensity` = 0.1 已压低
     - `diffuse intensity`：漫反射强度；默认 0.1，水几乎不散射，过高会使水看起来不透明
     - `vorticity to diffuse intensity`：根据粒子涡量（旋转强度）调制漫反射强度，可让湍流区域局部变亮；默认关闭
-      - `minimum / maximum vorticity`：涡量映射到漫反射强度的输入范围（0 / 10）
+      - `minimum / maximum vorticity`：涡量映射到漫反射强度的输入范围（0 / 10）；低于最小值时钳制到 ramp 左端值，高于最大值时钳制到 ramp 右端值，不会继续变化
       - `vorticity to diffuse ramp`：涡量值到漫反射强度的映射曲线
     - `diffuse roughness`：漫反射粗糙度；0 = 正对光源最亮、边缘逐渐变暗（光滑石膏感）；增大后边缘变亮、整体亮度趋于均匀（磨砂/粉末质感）；水的漫反射极弱，此参数对水的外观几乎无影响，保持 0 即可
     - `diffuse minimum`：漫反射的最低亮度截止值
@@ -4111,7 +4111,8 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `use point color`：将粒子 `Cd` 属性与 `smoke color` 相乘；默认勾选，可通过 VDB 中的 `Cd` 字段驱动局部颜色
     - `cloud density`：体积密度倍增；值越大体积越厚实不透明，值越小越稀薄透明（默认 1）
     - `shadow density multiplier`：阴影密度倍增；独立控制体积投射阴影的浓度，与 `cloud density` 解耦，可单独加深阴影而不改变体积外观（默认 1）
-    - `scattering phase`：散射方向；不影响透光性（透光性由 `cloud density` 控制）；0 = 向四面八方均匀散射，正值 = 前向散射（光倾向于继续向前穿透，逆光时体积边缘发亮，如云的银边/丁达尔效果），负值 = 后向散射（光倾向于反射回光源方向，顺光时体积更亮）；默认 0
+    - `scattering phase`：散射方向；基于 Henyey-Greenstein 散射模型，取值范围 -1 到 1；不影响透光性（透光性由 `cloud density` 控制）；0 = 各向同性（均匀散射），正值 = 前向散射（光倾向于继续向前穿透，逆光时体积边缘发亮，如云的银边/丁达尔效果；+1 为完全前向散射），负值 = 后向散射（光倾向于反射回光源方向，顺光时体积更亮；-1 为完全后向散射）；实际使用通常在 ±0.3～0.7 范围内效果较自然，接近极值时方向性极强；默认 0
+      - 实际渲染水时，`basic liquid`（表面）与 `uniformvolume`（液体内部体积）通常组合使用，两者存在依赖关系：`basic liquid` 的 `refract intensity` 决定有多少光折射进入水体，进入水体后才由 `uniformvolume` 的 `scattering phase` 决定散射方向；`refract intensity` 越低，进入体积的光越少，`scattering phase` 的散射效果越不明显
     - `volume samples`：体积采样次数；值越高渲染越细腻但越慢（默认 1）
   - Displacement
     - `enable displacement map`：启用贴图驱动的体积置换；默认关闭

@@ -3764,7 +3764,7 @@ importpoint/primitive/vertex/**detailattribute节点**
   - 可实现相当于距离驱动的效果，转为`vdb`后，主线使用`volumesample`函数读取辅线`vdb`的`@density`，靠近0的地方距离远
   - `fill interior`：改变体素密度值的分布方式，不改变体素数量
     - 不勾选（默认）：表面窄带 density = 1，内部 density = 0（空心）；光线从外穿入先遇到高密度表面壳 → 边界清晰硬朗；适合泡沫、飞沫等需要表面致密的效果
-    - 勾选：表面 density = 0，向内渐变至 density = 1（内部最密）；光线先遇到低密度边缘再遇到高密度内核 → 边缘柔和渐隐、体积感强；勾选后从外观察烟雾量明显减少，原因是表面由 density = 1 变为 density = 0，最外层最先被看到的部分密度最低；适合烟雾、云等需要蓬松柔和边缘的体积效果
+    - 勾选：表面 density = 0，向内渐变至 density = 1（内部最密）；光线先遇到低密度边缘再遇到高密度内核 → 边缘柔和渐隐、体积感强；勾选后从外观察烟雾量明显减少，原因是表面由 density = 1 变为 density = 0，最外层最先被看到的部分密度最低；适合烟雾、云等需要蓬松柔和边缘的体积效果，也适合液体体积渲染（配合 `uniformvolume` 材质）——液体内部越深越不透明，与此梯度方向吻合，可模拟深水光线逐渐衰减的效果
 
 - 只创建出体积雾，不能设置`@density`和`@surface`属性
 - 当为`distance`体积雾时，内外界生效
@@ -3979,6 +3979,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 
 **basic liquid**
 
+- FLIP 液面的专用渲染材质，模拟真实水的折射、反射和透明感；应赋予给 **particlefluidsurface节点** 输出的液面 mesh
 - `Surface` 选项卡下分为 `Diffuse`、`Subsurface`、`Reflect`、`Refract`、`Emission`、`Opacity`、`Settings` 七个子选项卡
   - Diffuse：光打到水面后向四面八方散射出来的部分；决定水的颜色和浑浊感——强：水变得不透明、像牛奶/泥浆；弱（默认 0.1）：水几乎无色散射，透明感强；水几乎不存在真实漫反射（光要么折射穿透要么镜面反射），保持默认低值即可
     - `enable diffuse`：启用漫反射；液体通常漫反射很弱，默认勾选但 `diffuse intensity` = 0.1 已压低
@@ -4100,6 +4101,37 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `reflect intensity`：反射强度（默认 1）
   - `reflect roughness`：反射粗糙度；值越小反射越锐利，值越大反射越模糊扩散（默认 0.35）
   - `reflect color`：反射颜色（默认白色）
+
+**uniformvolume**
+
+- 通用体积材质；将赋予对象的封闭内部作为均匀体积进行渲染，可赋予给 **particlefluidsurface节点** 输出的液面 mesh（将整个液体内部渲染为体积雾）或含有 `density` 字段的 VDB
+- 分为 `Smoke` 和 `Displacement` 两个选项卡
+  - Smoke
+    - `smoke color`：体积散射颜色（默认白色）；控制体积在光照下呈现的颜色
+    - `use point color`：将粒子 `Cd` 属性与 `smoke color` 相乘；默认勾选，可通过 VDB 中的 `Cd` 字段驱动局部颜色
+    - `cloud density`：体积密度倍增；值越大体积越厚实不透明，值越小越稀薄透明（默认 1）
+    - `shadow density multiplier`：阴影密度倍增；独立控制体积投射阴影的浓度，与 `cloud density` 解耦，可单独加深阴影而不改变体积外观（默认 1）
+    - `scattering phase`：散射方向；不影响透光性（透光性由 `cloud density` 控制）；0 = 向四面八方均匀散射，正值 = 前向散射（光倾向于继续向前穿透，逆光时体积边缘发亮，如云的银边/丁达尔效果），负值 = 后向散射（光倾向于反射回光源方向，顺光时体积更亮）；默认 0
+    - `volume samples`：体积采样次数；值越高渲染越细腻但越慢（默认 1）
+  - Displacement
+    - `enable displacement map`：启用贴图驱动的体积置换；默认关闭
+    - `enable noise`：启用程序噪波置换；默认关闭
+    - `displacement map`：置换贴图路径
+    - `disp map filter`：贴图过滤方式（默认 VEX: Gaussian）
+    - `disp map wrap`：贴图平铺方式（默认 Repeat）
+    - `displacement scale`：置换强度缩放（默认 0.05）
+    - `displacement bound`：置换边界裕量；需设置为置换最大幅度，否则体积边缘可能被裁剪（默认 0）
+    - 噪波参数（`enable noise` 开启后生效）
+      - `noise type`：噪波类型（默认 Sparse Convolution Noise）
+      - `frequency`：噪波频率，值越大细节越密（默认 10, 10, 10）
+      - `offset`：噪波空间偏移（默认 0, 0, 0）
+      - `amplitude`：噪波幅度（默认 1）
+      - `roughness`：噪波粗糙度，控制高频细节比例（默认 0.5）
+      - `attenuation`：噪波衰减（默认 1）
+      - `turbulence`：噪波迭代层数，值越大细节越丰富（默认 5）
+    - `displace direction`：置换方向模式（默认 `Up & Down: Gray = No Displace`，灰色 = 无置换，白色向外，黑色向内）
+    - `disp map width`：置换贴图宽度（默认 1）
+    - `disp channel`：从贴图中提取置换值的通道（默认 Luminance 亮度）
 
 
 # 其他
@@ -4537,7 +4569,10 @@ Scene View 中的材质显示
 
 flip渲染
 
-- 材质分配：为 **particlefluidsurface节点** 生成的液面 mesh 赋予 **Material Palette** 中内置的 `Basic Liquid` 材质；该材质已预设折射、反射和体积吸收参数，是 Mantra 渲染 FLIP 液面的基础起点
+- 材质分配
+  - 主体液面：为 **particlefluidsurface节点** 生成的液面 mesh 赋予 `Basic Liquid` 材质（折射 + 反射 + 菲涅耳，是 Mantra 渲染 FLIP 液面的基础起点）
+  - 白水（泡沫/飞沫/气泡）：为白水 VDB 赋予 `basicwhitewater` 材质（体积渲染，需先用 **volumerasterizeattributes节点** 将白水粒子栅格化为 `density` VDB，再用 **vdbanalysis节点** 生成 `density_gradient` VDB，合并两个VDB）
+  - 液体体积：若需将液体渲染为均匀体积（而非表面折射），可为液面 mesh 赋予 `uniformvolume` 材质，将封闭网格内部作为均匀密度体积渲染
 - 液面空洞
   - 渲染前必须保证液面网格无空洞、有体积感——水的真实感依赖完整的折射/反射，一旦液面存在穿孔，折射光线会穿透空洞露出后方背景（通常是黑色），立刻破坏水的体积感，看起来不像水而像破碎的半透明薄膜
   - 检查方式：在 Scene View 视窗中查看 **particlefluidsurface节点** 生成的 mesh，逐帧检查液面是否存在空洞或薄片；确认 mesh 完整无洞后再进行正式渲染
@@ -4552,3 +4587,8 @@ flip渲染
     - 适当增大 **flipobject节点** 的 `particle radius scale`（默认 1.2，可尝试调至 1.4～1.6）：粒子半径更大 → 相邻粒子重叠更充分 → SDF 无法"看到"粒子间的间隙 → 圆坑消失；注意同步检查 `grid scale` 是否仍为 `particle radius scale` 的 1.5～2 倍，以及 **flipsolver节点** `reseeding` 的 `particles per voxel` 是否满足 `grid scale³ × 1.5～2`
     - 在 **particlefluidsurface节点** 增大 `particle radius scale`：直接扩大重建时每个粒子的影响半径，效果立竿见影但不改变模拟本身
     - 在 **particlefluidsurface节点** 适当增大 `smooth`：对 SDF 做平滑，可消除圆坑，但会使液滴（droplets）减少、细节变软
+
+渲染时 geometry 节点的材质管理
+
+- 每个 geometry 节点内部应只负责渲染一种材质，不同材质的几何体应分别放在独立的 geometry 节点中，避免将多种材质 merge 在一起后再赋予——多材质 merge 容易出现材质覆盖、`shop_materialpath` 属性冲突等问题，导致部分材质缺失或渲染结果不符合预期
+- 例如 FLIP 渲染中，液面 mesh（`basic liquid`）、白水 VDB（`basicwhitewater`）、背景几何体各自放在独立的 geometry 节点中分别赋予材质，而不是 merge 到同一节点内

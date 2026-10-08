@@ -3211,8 +3211,8 @@ copy and **transform节点**
 - 顶层参数
   - `volume source`：指定提供 `vel`（速度场）和 `surface`（液面 SDF）的 SOP 节点路径，作为白沫粒子受力与深度判断的液面参考；通常为 **dopimportfield节点**、**fluidcompress节点** 或 **whitewatersource节点** 的第一输出端
   - 勾选 `import volumes`：将液体体积场复制到白沫对象中，便于视窗可视化
-  - `whitewater scale`：相邻白沫粒子的目标间距；减小此值会以三次方比例增加粒子数量；建议匹配 **flipobject节点** 的 `particle separation`，使白沫粒子密度与 FLIP 粒子密度量级一致
-  - `voxel size`：密度体积的体素尺寸，用于发射限制、泡沫侵蚀、排斥粒子播种；应至少为 `whitewater scale` 的两倍；建议匹配 **flipobject节点** 的 `particle separation × grid scale`（即 FLIP 液面网格的体素尺寸）
+  - `whitewater scale`：相邻白沫粒子的目标间距；减小此值会以三次方比例增加粒子数量；与 **flipobject节点** 的 `particle separation` 对齐可使白沫粒子密度与 FLIP 粒子密度量级一致，避免比例失调；也可设置为更小值以获得更精细的白水细节（白水本身比主体液面需要更多颗粒感），代价是粒子数量大幅增加
+  - `voxel size`：密度体积的体素尺寸，用于发射限制、泡沫侵蚀、排斥粒子播种；应至少为 `whitewater scale` 的两倍；与 **flipobject节点** 的 `particle separation × grid scale` 对齐可保持与 FLIP 液面网格精度一致；也可设置为更小值以提高发射判断精度和侵蚀/排斥效果的细腻程度，两者均为推荐对齐而非强制限制
   - `foam location`：泡沫层相对液面的深度位置；所有深度参数均以此为基准
   - `depth range`：各力和老化速率在泡沫层附近的插值范围
   - 勾选 `add state attributes`：为粒子添加 `bubble`（气泡）、`foam`（泡沫）、`spray`（飞沫）属性（值域 0~1），表示该粒子各形态的强度；三种状态由粒子在 `surface` SDF 中的深度决定，以 `foam location` 为中心、`depth range` 为过渡带连续插值，粒子在生命周期内可自由切换

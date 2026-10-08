@@ -3977,7 +3977,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 **basic liquid**
 
 - `Surface` 选项卡下分为 `Diffuse`、`Subsurface`、`Reflect`、`Refract`、`Emission`、`Opacity`、`Settings` 七个子选项卡
-  - Diffuse
+  - Diffuse：光打到水面后向四面八方散射出来的部分；决定水的颜色和浑浊感——强：水变得不透明、像牛奶/泥浆；弱（默认 0.1）：水几乎无色散射，透明感强；水几乎不存在真实漫反射（光要么折射穿透要么镜面反射），保持默认低值即可
     - `enable diffuse`：启用漫反射；液体通常漫反射很弱，默认勾选但 `diffuse intensity` = 0.1 已压低
     - `diffuse intensity`：漫反射强度；默认 0.1，水几乎不散射，过高会使水看起来不透明
     - `vorticity to diffuse intensity`：根据粒子涡量（旋转强度）调制漫反射强度，可让湍流区域局部变亮；默认关闭
@@ -3991,7 +3991,7 @@ importpoint/primitive/vertex/**detailattribute节点**
       - `base color map`：颜色贴图路径
       - `tint intensity`：贴图对基础颜色的叠加强度
       - `color map wrap / filter / width`：贴图平铺、过滤和宽度设置
-  - Reflect：分为 `Base`（基础反射层）和 `Coat`（涂层反射层）两个子选项卡，各自下含 `Reflect Lights`、`Reflect Objects`、`Reflection Mask Map` 三个子选项卡
+  - Reflect：水面像镜子一样反射环境/灯光的部分；表现为天空倒影、灯光高光、周围物体的镜像——强：水面镜面感强，倒影清晰；弱：水面看起来暗淡、缺少光泽；菲涅耳效应使正视角反射弱（能看穿水底）、侧视角反射强（水面变成镜面）；分为 `Base`（基础反射层）和 `Coat`（涂层反射层）两个子选项卡，各自下含 `Reflect Lights`、`Reflect Objects`、`Reflection Mask Map` 三个子选项卡
     - `Base` 子选项卡
       - `enable base reflection layer`：启用基础高光层；默认勾选
       - `Reflect Lights` 子选项卡
@@ -4009,7 +4009,7 @@ importpoint/primitive/vertex/**detailattribute节点**
       - `Reflect Lights` 子选项卡：`specular intensity` = 0.1（涂层高光弱于基础层），`specular angle` = 10（更宽散）
       - `Reflect Objects` 子选项卡：`reflection intensity` = 0.1，可独立控制涂层对物体的反射强度
       - `Reflection Mask Map` 子选项卡：涂层反射遮罩贴图
-  - Refract
+  - Refract：光穿透水面后发生弯折，使水下物体位置偏移、产生扭曲变形；决定水的透明感和水下扭曲——强（默认 1）：水下物体清晰可见且有折射扭曲，真实透明感；弱/关闭：水面变成不透明的彩色薄膜，完全看不到水下；IOR（折射率）决定弯折程度，水的标准值为 1.33
     - `enable refractions`：启用折射；默认勾选，折射是水体透明感的核心
     - `refraction model`：折射模型（Phong）
     - `refraction intensity`：折射强度（默认 1）

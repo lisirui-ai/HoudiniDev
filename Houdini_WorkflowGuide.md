@@ -4241,27 +4241,17 @@ importpoint/primitive/vertex/**detailattribute节点**
   - **gasfieldwrangle节点**`vex`控制
   - 节点内置的噪波和内部的`gas`系列整体噪波节点
 
-- `@pscale` 决定每个粒子的密度贡献范围（可表达的最小特征尺度），`voxelsize` 是 VDB 采样网格，应 ≈ `pscale` 才能正确捕获该特征；`voxelsize` 比 `pscale` 更小并不会增加信息量，只是过采样浪费内存；`particles per voxel`（由 `particle_separation` 与 `voxelsize` 的比值决定）决定密度场的平滑程度，而非精细度——particles per voxel 越多，密度越平滑（趋向烟雾感），越少则越稀疏跳变（噪点）
+- `@pscale` 决定每个粒子的密度贡献范围（可表达的最小特征尺度），`voxelsize` 是 VDB 采样网格，应 ≈ `pscale` 才能正确捕获该特征；`voxelsize` 比 `pscale` 更小并不会增加信息量，只是过采样浪费内存；`particles per voxel`（由 `particle_separation` 与 `voxelsize` 的比值决定）决定属性场的平滑程度，而非精细度——particles per voxel 越多，属性场采样越平滑，越少则越稀疏跳变（噪点）
 
-  - $$
-    \text{@pscale} \times 2 \quad (\text{直径}) > \text{voxelsize} \times 1.5
-    $$
-
-
-    - 建议 `@pscale` > `voxelsize` × 0.75，否则粒子的密度贡献小于一个体素，渲染时密度场出现跳跃和不连续；但不满足此条件仍可解算，并非强制要求
-    - `pscale` 与 `voxelsize` 的比值对渲染效果的影响：
-      - `pscale` >> `voxelsize`（粒子覆盖多个体素）：密度场平滑，细节少，渲染结果像大团均匀烟雾
-      - `pscale` ≈ `voxelsize`（粒子约对应 1 个体素）：密度场细节适中，是白水/泡沫等颗粒感效果的推荐比值
-      - `pscale` < `voxelsize`（粒子小于一个体素，亚体素级别）：每个粒子的密度贡献无法填满一个体素，密度场在体素间出现跳跃和不连续 → 渲染时表现为孤立的亮斑、密度场过于稀薄或体积局部消失；整体质感破碎、不自然
-    - `particle_separation` 与 `voxelsize` 的比值决定 particles per voxel（粒子中心数/体素）：
-      - $$\text{particles per voxel} = \left(\frac{\text{voxelsize}}{\mathrm{particle\_separation}}\right)^3$$
-      - `particle_separation` << `voxelsize`：particles per voxel 多 → 多粒子密度叠加平均 → 密度场平滑（烟雾感）
-      - `particle_separation` ≈ `voxelsize`：每体素约 1 个粒子 → 密度场有颗粒感（白水推荐）
-      - `particle_separation` >> `voxelsize`：particles per voxel 少 → 体素间密度稀疏跳变 → 噪点
-    - 两个条件需同时满足，渲染才完整正确：`particle_separation` ≤ `voxelsize` ≤ `pscale`
-      - `pscale` ≥ `voxelsize`：保证每个粒子至少覆盖 1 个体素，无亚体素混叠 artifact
-      - `particle_separation` ≤ `voxelsize`：保证粒子分布足够密集，体素间无空隙跳变
-      - 白水推荐：三者接近相等，`particle_separation` ≈ `voxelsize` ≈ `pscale`，颗粒感与渲染质量均衡
+  - `particle separation` 与 `voxelsize` 的比值决定 particles per voxel（粒子中心数/体素）：
+    - $$\text{particles per voxel} = \left(\frac{\text{voxelsize}}{\mathrm{particle\_separation}}\right)^3$$
+    - `particle separation` << `voxelsize`：particles per voxel 多 → 多粒子密度叠加平均 → 属性场采样平滑
+    - `particle separation` ≈ `voxelsize`：每体素约 1 个粒子 → 密度场有颗粒感（白水推荐）
+    - `particle separation` >> `voxelsize`：particles per voxel 少 → 体素间密度稀疏跳变 → 噪点
+  - 两个条件需同时满足，渲染才完整正确：`particle_separation` ≤ `voxelsize` ≤ `pscale`
+    - `pscale` ≥ `voxelsize`：保证每个粒子至少覆盖 1 个体素，无亚体素混叠 artifact
+    - `particle separation` ≤ `voxelsize`：保证粒子分布足够密集，体素间无空隙跳变
+    - 白水推荐：三者接近相等，`particle separation` ≈ `voxelsize` ≈ `pscale`，颗粒感与渲染质量均衡
 
 `distance`体积雾
 

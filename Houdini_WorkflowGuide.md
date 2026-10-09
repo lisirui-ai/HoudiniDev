@@ -4241,7 +4241,7 @@ importpoint/primitive/vertex/**detailattribute节点**
   - **gasfieldwrangle节点**`vex`控制
   - 节点内置的噪波和内部的`gas`系列整体噪波节点
 
-- `@pscale` 决定每个粒子的密度贡献范围，即可表达的最小特征尺度——`pscale` 越小，单个粒子覆盖的空间越小，可表达的细节越精细；`voxelsize` 是 VDB 采样网格，应 ≈ `pscale` 才能正确捕获该特征，`voxelsize` 比 `pscale` 更小不会增加信息量，只是过采样浪费内存；`particles per voxel`（由 `particle separation` 与 `voxelsize` 的比值决定）决定属性场的采样精细度——particles per voxel 越多，每体素内参与密度估计的粒子越多，采样越精确（结果越平滑），越少则越稀疏跳变（噪点）
+- `@pscale` 决定每个粒子的密度贡献范围，即可表达的最小特征尺度——`pscale` 越小，单个粒子覆盖的空间越小，可表达的细节越精细；`voxelsize` 是 VDB 采样网格，应 ≈ `pscale` 才能正确捕获该特征，`voxelsize` 比 `pscale` 更小不会增加信息量，只是过采样浪费内存；`particles per voxel`（由 `particle separation` 与 `voxelsize` 的比值决定）决定属性场的采样精细度——`particles per voxel` 越多，每体素内参与密度估计的粒子越多，采样越精确（结果越平滑），越少则越稀疏跳变（噪点）
 
   - `particle separation` 与 `voxelsize` 的比值决定 particles per voxel（粒子中心数/体素）：
     - $$\text{particles per voxel} = \left(\frac{\text{voxelsize}}{\text{particle separation}}\right)^3$$

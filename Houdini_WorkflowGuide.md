@@ -4054,8 +4054,8 @@ importpoint/primitive/vertex/**detailattribute节点**
 - `Displacement` 选项卡：控制液面几何置换，分为 `Vorticity Waves`、`Displacement Map`、`Bump | Normal Map` 三个子选项卡
   - Vorticity Waves：根据粒子涡量（旋转强度）在液面添加程序化波纹，模拟湍流区域的细碎水波；需要液面 mesh 上同时具备三个属性才能生效：`vorticity`（涡量值，驱动波纹强度）、`rest`（静止位置参考，用于噪波空间锁定）、`rest2`（第二静止参考，用于多层噪波避免平铺重复）
     - `vorticity waves`：启用涡量波纹；默认关闭
-    - `wave scale`：波纹的空间尺度（默认 0.1）
-    - `wave height`：波纹的振幅高度（默认 0.1）
+    - `wave scale`：波纹的空间尺度（默认 0.1）；基于世界空间单位，值越小波纹越密集细碎，值越大波纹越稀疏宽阔；需根据场景实际比例调整
+    - `wave height`：波纹的振幅高度（默认 0.1）；基于世界空间单位（1 单位 = 1 米），即顶点被推高/压低的最大距离；需与 `displacement bound` 同步，`displacement bound` 应不小于 `wave height`，否则置换会被裁剪；需根据场景实际比例调整
     - `minimum / maximum vorticity`：涡量映射到波纹强度的输入范围（默认 10 / 30）；涡量低于最小值时无波纹，高于最大值时达到最大波高
     - `wave height ramp`：涡量值到波纹高度的映射曲线
   - Displacement Map：通过贴图或程序噪波对液面进行几何置换（真正改变网格顶点位置）

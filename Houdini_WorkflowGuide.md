@@ -4572,7 +4572,7 @@ flip渲染
 
 - 材质分配
   - 主体液面：为 **particlefluidsurface节点** 生成的液面 mesh 赋予 `Basic Liquid` 材质（折射 + 反射 + 菲涅耳，是 Mantra 渲染 FLIP 液面的基础起点）
-  - 白水（泡沫/飞沫/气泡）：为白水 VDB 赋予 `basicwhitewater` 材质（体积渲染，需先用 **volumerasterizeattributes节点** 将白水粒子栅格化为 `density` VDB，再用 **vdbanalysis节点** 生成 `density_gradient` VDB，合并两个VDB）
+  - 白水（泡沫/飞沫/气泡）：为白水 VDB 赋予 `basicwhitewater` 材质（体积渲染，需先用 **volumerasterizeattributes节点** 将白水粒子栅格化为 `density` VDB，再用 **vdbanalysis节点** 生成 `gradient` VDB，合并两个VDB）
   - 液体体积：若需将液体渲染为均匀体积（而非表面折射），可为液面 mesh 赋予 `uniformvolume` 材质，将封闭网格内部作为均匀密度体积渲染
 - 液面空洞
   - 渲染前必须保证液面网格无空洞、有体积感——水的真实感依赖完整的折射/反射，一旦液面存在穿孔，折射光线会穿透空洞露出后方背景（通常是黑色），立刻破坏水的体积感，看起来不像水而像破碎的半透明薄膜

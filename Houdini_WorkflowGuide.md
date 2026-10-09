@@ -311,7 +311,7 @@ for (int i = 0; i < 10; i++) {
 ```c++
 @Frame                                     //帧；1秒等于24帧；float类型；精度取决于时间轴最小单位
 @Time                                     //秒；float类型
-@pscale                                  //点的渲染大小属性；类型是float；可控制克隆体的大小；控制粒子的渲染大小；默认值是0.05；控制点云转换为体积时，单元的大小，影响体素个数；点云生成体积时必须有@pscale控制体积单元的大小；可以在aw节点中定义和控制，也可以在pyrosource节点/pointsfromvolume节点中定义和控制
+@pscale                                  //点的渲染大小属性；类型是float；可控制克隆体的大小；控制粒子的渲染大小；默认值是0.05；控制点云转换为体积时，单元的大小，影响体素个数；点云生成体积时必须有@pscale控制体积单元的大小；可以在aw节点中定义和控制，也可以在pyrosource节点/pointsfromvolume节点中定义和控制；@pscale的本质含义是半径（radius）而非直径，点在物理上被视为以@pscale为半径的球体
 @N                                       //点的法线属性;三维向量类型；控制法线的朝向;默认法线朝向是世界z轴
 @up                                      //点的法线的旋转（朝向不变）；浮点数类型
 3@transform                              //点的坐标系属性；类型是三维矩阵；控制点的坐标系；第一个分量固定是x轴，第二个分量固定是y轴，第三个分量固定是z轴；不是固有属性；使用时，需要自行定义；一般用于克隆节点控制克隆体的旋转；分量||向量的长度还控制克隆体在对应方向上的缩放
@@ -4241,18 +4241,6 @@ importpoint/primitive/vertex/**detailattribute节点**
   - **gasfieldwrangle节点**`vex`控制
   - 节点内置的噪波和内部的`gas`系列整体噪波节点
 
-- `@pscale` 决定每个粒子的密度贡献范围，即可表达的最小特征尺度——`pscale` 越小，单个粒子覆盖的空间越小，可表达的细节越精细；`voxelsize` 是 VDB 采样网格，应 ≈ `pscale` 才能正确捕获该特征，`voxelsize` 比 `pscale` 更小不会增加信息量，只是过采样浪费内存；`particles per voxel`（由 `particle separation` 与 `voxelsize` 的比值决定）决定属性场的采样精细度——`particles per voxel` 越多，每体素内参与密度估计的粒子越多，采样越精确（结果越平滑），越少则越稀疏跳变（噪点）
-
-  - `particle separation` 与 `voxelsize` 的比值决定 particles per voxel（粒子中心数/体素）：
-    - $$\text{particles per voxel} = \left(\frac{\text{voxelsize}}{\text{particle separation}}\right)^3$$
-    - `particle separation` << `voxelsize`：particles per voxel 多 → 多粒子密度叠加平均 → 属性场采样平滑
-    - `particle separation` ≈ `voxelsize`：每体素约 1 个粒子 → 密度场有颗粒感（白水推荐）
-    - `particle separation` >> `voxelsize`：particles per voxel 少 → 体素间密度稀疏跳变 → 噪点
-  - 两个条件需同时满足，渲染才完整正确：`particle separation` ≤ `voxelsize` ≤ `pscale`
-    - `pscale` ≥ `voxelsize`：保证每个粒子至少覆盖 1 个体素，无亚体素混叠 artifact
-    - `particle separation` ≤ `voxelsize`：保证粒子分布足够密集，体素间无空隙跳变
-    - 白水推荐：三者接近相等，`particle separation` ≈ `voxelsize` ≈ `pscale`，颗粒感与渲染质量均衡
-
 `distance`体积雾
 
 - `@surface`的值*体积的梯度=点到到模型表面的距离向量
@@ -4592,3 +4580,15 @@ flip渲染
 
 - 每个 geometry 节点内部应只负责渲染一种材质，不同材质的几何体应分别放在独立的 geometry 节点中，避免将多种材质 merge 在一起后再赋予——多材质 merge 容易出现材质覆盖、`shop_materialpath` 属性冲突等问题，导致部分材质缺失或渲染结果不符合预期
 - 例如 FLIP 渲染中，液面 mesh（`basic liquid`）、白水 VDB（`basicwhitewater`）、背景几何体各自放在独立的 geometry 节点中分别赋予材质，而不是 merge 到同一节点内
+
+`@pscale` 与 `voxelsize`、`particle separation` 是两个独立的控制维度：
+- `pscale` 与 `voxelsize`（耦合控制渲染质量）：`pscale` 决定每个粒子的属性贡献范围；`voxelsize` 理想值 ≈ `pscale`，两者同比例调整
+  - `pscale` ≈ `voxelsize`：使用 Gaussian filter，每个粒子产生平滑的属性 blob，渲染质量最佳
+  - `pscale` >> `voxelsize`：过采样，每个粒子覆盖多个体素，浪费内存，无额外信息量
+  - `pscale` < `voxelsize`（亚体素）：粒子小于体素，VDB 无法正确分辨单个粒子，移动时会出现跳变（pop）；可将 `Minimum Filter Size` 设为 1（确保每个粒子至少模糊到 1 个体素大小）来消除跳变，多粒子叠加平均后属性场仍可平滑
+- `particle separation` 控制 `particles per voxel`（独立控制平滑度）：`particle separation` 决定粒子间距，与 `pscale`无关
+  - $$\text{particles per voxel} = \left(\frac{\text{voxelsize}}{\text{particle separation}}\right)^3$$
+  - `particle separation` << `voxelsize`：particles per voxel 多 → 多粒子属性叠加平均 → 属性场平滑（FLIP 液体 / Pyro 烟雾追求连续流体感）
+  - `particle separation` ≈ `voxelsize`：每体素约 1 个粒子 → 属性场有颗粒感（白水泡沫追求粒子感）
+  - `particle separation` >> `voxelsize`：大量体素属性值为 0 → 属性场呈孤立团簇，团簇之间有空洞
+

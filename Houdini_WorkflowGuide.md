@@ -4088,7 +4088,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 **basicwhitewater**
 
 - 本质是体积材质——通过渲染 VDB 体积来模拟泡沫/飞沫/气泡的白水质感，而非对粒子点云直接着色
-- 使用流程：**whitewatersolver节点** 输出的是粒子点云，需在 SOP 中先用 **volumerasterizeattributes节点** 将粒子点云栅格化为 `density` VDB，再用 **vdbanalysis节点** 对 `density` 求梯度生成 `gradient` VDB，最后将 `basicwhitewater` 材质赋予含有这两个 VDB 的 geometry 节点；**volumerasterizeattributes节点** 的体素尺寸应对齐白水粒子的 `pscale`（粒子实际半径），体素越小渲染结果越像泡沫/飞沫（细节丰富、边界清晰），体素越大则越像扩散的烟雾（边界模糊、细节丢失）
+- 使用流程：**whitewatersolver节点** 输出的是粒子点云，需在 SOP 中先用 **volumerasterizeattributes节点** 将粒子点云栅格化为 `density` VDB，再用 **vdbanalysis节点** 对 `density` 求梯度生成 `gradient` VDB，最后将 `basicwhitewater` 材质赋予含有这两个 VDB 的 节点；**volumerasterizeattributes节点** 根据 **whitewatersolver节点** 解算出的点云重建 smoke VDB；体素尺寸应小于等于白水粒子的 `pscale`（粒子实际半径），若体素大于 `pscale` 则粒子无法被正确分辨、产生视觉 artifact（密度场在帧间闪烁跳变 popping、走样锯齿 aliasing，极端情况下粒子直接从体积中消失）；体素越小，空间分辨率越高，渲染结果细节丰富、边界清晰，更接近真实泡沫/飞沫形态（但同一粒子的`density`被分摊到更多体素中，每个体素分到的`density`更小，白水整体看起来更稀薄，需调大 `density scale` 补偿）；体素越大，粒子密度相互融合、边界模糊，渲染结果越像扩散的烟雾
 - 该材质内部实现固定读取两个特定名称的 VDB 字段，VDB 名称不可更改：
   - `density`（fog/smoke 类型）：白水的体积密度场，控制白水的不透明度和厚度；由粒子点云转换而来
   - `gradient`（向量场）：`density` 场的梯度，用作体积内部的伪法线，使白水在光照下产生方向感和立体感（梯度指向密度增大最快的方向，即白水团块的"表面朝外"方向）；需在 SOP 中用 **vdbanalysis节点** 对 `density` 求 `gradient` 运算后生成，并确保输出名称为 `gradient`

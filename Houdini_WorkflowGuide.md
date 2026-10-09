@@ -4088,10 +4088,10 @@ importpoint/primitive/vertex/**detailattribute节点**
 **basicwhitewater**
 
 - 本质是体积材质——通过渲染 VDB 体积来模拟泡沫/飞沫/气泡的白水质感，而非对粒子点云直接着色
-- 使用流程：**whitewatersolver节点** 输出的是粒子点云，需在 SOP 中先用 **volumerasterizeattributes节点** 将粒子点云栅格化为 `density` VDB，再用 **vdbanalysis节点** 对 `density` 求梯度生成 `density_gradient` VDB，最后将 `basicwhitewater` 材质赋予含有这两个 VDB 的 geometry 节点；**volumerasterizeattributes节点** 的体素尺寸应对齐白水粒子的 `pscale`（粒子实际半径），体素越小渲染结果越像泡沫/飞沫（细节丰富、边界清晰），体素越大则越像扩散的烟雾（边界模糊、细节丢失）
+- 使用流程：**whitewatersolver节点** 输出的是粒子点云，需在 SOP 中先用 **volumerasterizeattributes节点** 将粒子点云栅格化为 `density` VDB，再用 **vdbanalysis节点** 对 `density` 求梯度生成 `gradient` VDB，最后将 `basicwhitewater` 材质赋予含有这两个 VDB 的 geometry 节点；**volumerasterizeattributes节点** 的体素尺寸应对齐白水粒子的 `pscale`（粒子实际半径），体素越小渲染结果越像泡沫/飞沫（细节丰富、边界清晰），体素越大则越像扩散的烟雾（边界模糊、细节丢失）
 - 该材质内部实现固定读取两个特定名称的 VDB 字段，VDB 名称不可更改：
   - `density`（fog/smoke 类型）：白水的体积密度场，控制白水的不透明度和厚度；由粒子点云转换而来
-  - `density_gradient`（向量场）：`density` 场的梯度，用作体积内部的伪法线，使白水在光照下产生方向感和立体感（梯度指向密度增大最快的方向，即白水团块的"表面朝外"方向）；需在 SOP 中用 **vdbanalysis节点** 对 `density` 求 `gradient` 运算后生成，并确保输出名称为 `density_gradient`
+  - `gradient`（向量场）：`density` 场的梯度，用作体积内部的伪法线，使白水在光照下产生方向感和立体感（梯度指向密度增大最快的方向，即白水团块的"表面朝外"方向）；需在 SOP 中用 **vdbanalysis节点** 对 `density` 求 `gradient` 运算后生成，并确保输出名称为 `gradient`
 - 若两个 VDB 名称与材质内部硬编码的名称不一致，对应效果将失效（密度场缺失则无体积，梯度场缺失则体积无方向感光照，看起来像均匀发光的云团）
 - 主要参数（UI）：
   - `density scale`：密度倍增，控制白水的整体不透明度和厚度（默认 3，值越大白水越厚实）

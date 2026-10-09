@@ -4584,7 +4584,7 @@ flip渲染
 `@pscale` 与 `voxelsize`、`voxelsize`与`particle separation` 是两个独立的控制维度：
 - `pscale` 与 `voxelsize`耦合控制渲染质量：`pscale` 决定每个粒子的属性贡献范围；`voxelsize` 理想值 ≈ `pscale`，两者同比例调整
   - `pscale` ≈ `voxelsize`：每个粒子恰好对应约 1 个体素，渲染质量最佳；视觉效果趋向颗粒感，可见单粒子边界
-  - `pscale` >> `voxelsize`：过采样，每个粒子覆盖多个体素，浪费内存，无额外信息量；视觉效果趋向厚重烟雾/云团感，看不到单粒子边界
+  - `pscale` >> `voxelsize`：过采样，每个粒子覆盖多个体素，浪费内存，无额外信息量；视觉效果趋向厚重体积感，看不到单粒子边界
   - `pscale` < `voxelsize`（亚体素）：粒子小于体素，VDB 无法正确分辨单个粒子，移动时会出现跳变（pop）；可将 `Minimum Filter Size` 设为 1（确保每个粒子至少模糊到 1 个体素大小）来消除跳变，多粒子叠加平均后属性场仍可平滑
 - `voxelsize`与`particle separation` 控制 `particles per voxel`（独立控制平滑度）：`particle separation` 决定粒子间距，与 `pscale`无关
   - $$\text{particles per voxel} = \left(\frac{\text{voxelsize}}{\text{particle separation}}\right)^3$$

@@ -4586,7 +4586,7 @@ flip渲染
   - `pscale` ≈ `voxelsize`：每个粒子恰好对应约 1 个体素，渲染质量最佳；视觉效果趋向颗粒感，可见单粒子边界
   - `pscale` >> `voxelsize`：过采样，每个粒子覆盖多个体素，浪费内存，无额外信息量；视觉效果趋向厚重体积感，看不到单粒子边界
   - `pscale` < `voxelsize`（亚体素）：粒子小于体素，VDB 无法正确分辨单个粒子，移动时会出现跳变（pop）；可将 `Minimum Filter Size` 设为 1（确保每个粒子至少模糊到 1 个体素大小）来消除跳变，多粒子叠加平均后属性场仍可平滑
-- `voxelsize`与`particle separation` 控制 `particles per voxel`（独立控制平滑度）：`particle separation` 决定粒子间距，与 `pscale`无关
+- `voxelsize`与`particle separation` 控制 `particles per voxel`属性场平滑度：`particle separation` 决定粒子间距，与 `pscale`无关
   - $$\text{particles per voxel} = \left(\frac{\text{voxelsize}}{\text{particle separation}}\right)^3$$
   - `particle separation` << `voxelsize`：`particles per voxel` 多 → 多粒子属性叠加平均 → 属性场平滑（FLIP 液体 / Pyro 烟雾/whitewater白水追求连续流体感）
   - `particle separation` ≈ `voxelsize`：每体素约 1 个粒子 → 属性场密度分布较稀疏，介于平滑与孤立团簇之间

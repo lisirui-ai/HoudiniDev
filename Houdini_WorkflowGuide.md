@@ -2138,6 +2138,18 @@ copy and **transform节点**
   - 勾选 `visualize emission volume`：在视窗中显示 `emit` VDB
   - `source particles` 子选项（默认开启）：按与 **whitewaterSolver节点** 相同的参数（`whitewater scale`、`emission amount`）预生成可视化粒子，并按发射类型着色（`curvature color`、`acceleration color`、`vorticity color` 等）；预览粒子从节点的第四输出端输出，需在 SOP 中查看该输出端的几何体；便于在解算前直接评估粒子数量和发射分布；`max point limit` 限制预览粒子总数上限
 
+**extrudevolume节点**
+
+- 将表面几何体（如地形、平面网格）向体积方向挤出，生成带有厚度的几何体，常用于为沙子或液体模拟构建碰撞体
+- 第一个输出端输出挤出后的完整几何体；第二个输出端单独输出挤出的底部延伸（`Base Extension`），可对其进行扩展和抬升以构建碰撞底座
+- `Group Creation`中为挤出结果的各区域创建组：`extrudeTop`（顶面）、`extrudeSide`（侧面）、`extrudeBase`（底面）、`extrudeTopSeam`（顶面与侧面交界边）、`extrudeBaseSeam`（底面与侧面交界边）
+- 关键参数说明：
+  - `depth`：挤出深度，正值向法线方向挤出，负值向反方向挤出，默认为`-1`
+  - `basenormal`：挤出的方向向量，默认为`(0,1,0)`即沿`Y`轴方向
+  - `flattenbase`：是否将挤出底面压平为一个平面，默认开启
+  - `basepadding`（属于第二输出的底部延伸）：底部最外圈的额外扩展量，以分数表示，`0.1`即扩展`10%`
+  - `baselift`（属于第二输出的底部延伸）：将底部最外圈边缘向上抬升的距离，配合`basepadding`可构建碗状碰撞底座
+
 ## dop
 
 **solver节点**

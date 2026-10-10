@@ -3211,7 +3211,7 @@ copy and **transform节点**
 - 顶层参数
   - `volume source`：指定提供 `vel`（速度场）和 `surface`（液面 SDF）的 SOP 节点路径，作为白沫粒子受力与深度判断的液面参考；通常为 **dopimportfield节点**、**fluidcompress节点** 或 **whitewatersource节点** 的第一输出端
   - 勾选 `import volumes`：将液体体积场复制到白沫对象中，便于视窗可视化
-  - `whitewater scale`：相邻白沫粒子的目标间距；减小此值会以三次方比例增加粒子数量；与 **flipobject节点** 的 `particle separation` 对齐可使白沫粒子密度与 FLIP 粒子密度量级一致，避免比例失调；也可设置为更小值以获得更精细的白水细节（白水本身比主体液面需要更多颗粒感），代价是粒子数量大幅增加
+  - `whitewater scale`：相邻白沫粒子的目标间距；减小此值会以三次方比例增加粒子数量；与 **flipobject节点** 的 `particle separation` 对齐可使白沫粒子密度与 FLIP 粒子密度量级一致，避免比例失调；不应设置为小于 **flipobject节点** `particle separation` 的值——白水 solver 的输入场（`vel` 速度场和 `surface` 液面 SDF）由 FLIP 解算生成，其分辨率由 `particle separation` 决定；若 `whitewater scale` 远小于 `particle separation`（如 `particle separation = 0.05` 而 `whitewater scale = 0.01`），白水粒子的精度超出 FLIP 输入场的分辨率上限，液面 SDF 无法在白水粒子的间距精度上正确判断粒子是在液面上方还是下方，导致某帧批量误判并删除粒子，渲染出现帧间跳变；即使同步缩小 **whitewatersolver节点** 的 `voxel size`，FLIP 输入场的分辨率瓶颈依然存在
   - `voxel size`：密度体积的体素尺寸，用于发射限制、泡沫侵蚀、排斥粒子播种；应至少为 `whitewater scale` 的两倍；与 **flipobject节点** 的 `particle separation × grid scale` 对齐可保持与 FLIP 液面网格精度一致；也可设置为更小值以提高发射判断精度和侵蚀/排斥效果的细腻程度，两者均为推荐对齐而非强制限制
   - `foam location`：泡沫层相对液面的深度位置；所有深度参数均以此为基准
   - `depth range`：各力和老化速率在泡沫层附近的插值范围
@@ -3263,7 +3263,7 @@ copy and **transform节点**
     - 勾选 `variable stiffness`：按深度变化约束刚度（配合 `stiffness by depth` 曲线）
   - `erosion` 部分：在稀疏区域侵蚀泡沫、在密集区域保留
     - 勾选 `enable erosion`：启用侵蚀
-    - `depth range`：受侵蚀影响的深度范围
+    - `depth range`：距液面此距离以内的粒子才会参与侵蚀计算；值越大，侵蚀影响的深度范围越广（深层气泡也会被侵蚀）；值越小，仅紧贴液面的粒子受影响；通常与顶层 `depth range` 保持一致或略小，使侵蚀只作用于泡沫层
     - `erosion strength`：稀疏区域的侵蚀速率
     - `preservation strength`：密集区域的保留强度阈值
   - `repellants` 部分：创建排斥粒子推开白沫，形成蜂窝状泡沫结构

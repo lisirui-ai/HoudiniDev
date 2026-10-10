@@ -3018,16 +3018,16 @@ copy and **transform节点**
   - **flipobject节点** 的输出端 → **flipsolver节点** 的第一个输入端（object 输入）
   - **flipsolver节点** 的输出端 → **output节点**
 - `particle separation`（粒子间距）
-  - 控制粒子之间的交互距离，值越小粒子越密集，精度越高但计算越慢
+  - 粒子中心到中心的距离，值越小粒子越密集，精度越高但计算越慢
   - 减小粒子间距 → 粒子数量增多，每个粒子代表的液体体积更小、质量更轻，但同一区域内所有粒子的质量之和不变，即流体总密度不受分辨率影响
 - `particle radius scale`（粒子半径缩放）
-  - 粒子实际半径 = `particle separation` × `particle radius scale`；默认值 1.2
+  - 交互范围由粒子半径 `pscale` = `particle separation × particle radius scale` 决定，默认值 1.2；`particle separation` 只是中心距，不是交互距离
   - 值越大液面越平滑但细节越少；减小则细节丰富但易出现液面塌陷；默认 1.2 已是较理想的平衡值，通常不建议随意调整
   - 调大可改善液面圆坑（粒子印记）和液面空洞：粒子半径更大 → 相邻粒子重叠更充分 → SDF 无法"看到"单个粒子轮廓（消除圆坑）、粒子间微小间隙也被覆盖（减少空洞）
-    - 小幅增大 `particle radius scale`（1.2 → 1.4）时 `grid scale = 2.0` 仍可接受；明显增大（≥ 1.5）时建议将 `grid scale` 同步调大至 `particle radius scale × 1.5～2`
-- `grid scale` 与 `particle radius scale` 的比值规律：推荐 `grid scale` 约为 `particle radius scale` 的 1.5～2 倍，原因如下：
-  - 最低要求（比值 > 1）：体素必须大于粒子半径，否则单粒子横跨多个体素，压力解算中该粒子在不同体素中归属矛盾，直接导致解算崩溃
-  - 推荐 1.5～2 倍的原因：压力解算依赖每体素内多粒子的速度平均来保持统计稳定——比值 ≈ 1 时每体素仅约 1 个粒子，单粒子速度直接决定体素速度，统计噪声极大，液面抖动；比值 ≈ 2 时每体素约 8 个粒子，多粒子平均后压力场平滑稳定
+    - 增大 `particle radius scale` 不改变粒子间距，因此不影响每体素粒子数；但粒子半径 = `particle separation × particle radius scale`，体素尺寸 = `particle separation × grid scale`，需保持 `grid scale` <= `particle radius scale`（体素小于等于粒子半径），否则会出现亚体素问题
+- `grid scale` 与 `particle separation` 的比值规律：推荐 `grid scale` 为 1.5～2（体素尺寸 = `particle separation × grid scale`，即约为粒子间距的 1.5～2 倍），原因如下：
+  - 最低要求（`grid scale` > 1）：体素必须大于粒子间距，否则体素比粒子还小，每个粒子对应多个体素，压力解算中该粒子在不同体素中归属矛盾，直接导致解算崩溃
+  - 推荐 1.5～2 的原因：每体素粒子数 = `(体素尺寸 / particle separation)³ = grid scale³`，与 `particle radius scale` 无关——压力解算依赖每体素内多粒子的速度平均来保持统计稳定；`grid scale` ≈ 1 时每体素仅约 1 个粒子，单粒子速度直接决定体素速度，统计噪声极大，液面抖动；`grid scale` ≈ 2 时每体素约 8 个粒子，多粒子平均后压力场平滑稳定
 - `grid scale`（网格缩放）
   - 控制速度场（`vel`）和液面场（`surface`）的体素尺寸相对于粒子间距的比例；体素尺寸 = `particle separation × grid scale`；值越小网格越精细，解算越准确但越慢
   - 推荐默认值 2.0：此时体素尺寸 = 2 × `particle separation`，每个体素约含 8 个粒子（2³），兼顾速度场分辨率与解算效率；追求更多细节可降至 1.5～1.7，但切勿低于 1.0——`grid scale` = 1.0 时体素尺寸等于粒子间距，每体素约 1 个粒子；低于 1.0 后体素比粒子还小，每个粒子对应多个体素，体素数超过粒子数，计算量骤增且易崩溃
@@ -4569,7 +4569,7 @@ flip渲染
   - 现象：液面出现均匀分布的圆形凹坑，坑的大小与粒子半径近似相同；本质是粒子之间重叠不足，SDF 能"看见"单个粒子的轮廓边界，重建出的等值面凹陷于粒子间隙处
   - 检查方式：在 Scene View 中放大液面，观察是否有规律排列的小圆坑；圆坑越均匀说明越接近粒子尺寸，越随机则越可能是其他原因（如泡沫/碰撞体等）
   - 常见修复手段：
-    - 适当增大 **flipobject节点** 的 `particle radius scale`（默认 1.2，可尝试调至 1.4～1.6）：粒子半径更大 → 相邻粒子重叠更充分 → SDF 无法"看到"粒子间的间隙 → 圆坑消失；注意同步检查 `grid scale` 是否仍为 `particle radius scale` 的 1.5～2 倍，以及 **flipsolver节点** `reseeding` 的 `particles per voxel` 是否满足 `grid scale³ × 1.5～2`
+    - 适当增大 **flipobject节点** 的 `particle radius scale`（默认 1.2，可尝试调至 1.4～1.6）：粒子半径更大 → 相邻粒子重叠更充分 → SDF 无法"看到"粒子间的间隙 → 圆坑消失；增大半径不改变每体素粒子数，只需确认 `grid scale` <= `particle radius scale`（体素小于等于粒子半径，避免亚体素），以及 **flipsolver节点** `reseeding` 的 `particles per voxel` 是否满足 `grid scale³ × 1.5～2`
     - 在 **particlefluidsurface节点** 增大 `particle radius scale`：直接扩大重建时每个粒子的影响半径，效果立竿见影但不改变模拟本身
     - 在 **particlefluidsurface节点** 适当增大 `smooth`：对 SDF 做平滑，可消除圆坑，但会使液滴（droplets）减少、细节变软
 

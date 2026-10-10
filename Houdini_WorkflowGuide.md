@@ -3033,6 +3033,7 @@ copy and **transform节点**
   - 推荐默认值 2.0：此时体素尺寸 = 2 × `particle separation`，每个体素约含 8 个粒子（2³），兼顾速度场分辨率与解算效率；追求更多细节可降至 1.5～1.7，但切勿低于 1.0——`grid scale` = 1.0 时体素尺寸等于粒子间距，每体素约 1 个粒子；低于 1.0 后体素比粒子还小，每个粒子对应多个体素，体素数超过粒子数，计算量骤增且易崩溃
   - 体素与粒子的比例直接影响模拟精度：每个体素含的粒子越多（`grid scale` 越大），速度场越粗糙，流体运动细节越少但越稳定；每个体素含的粒子越少（`grid scale` 越小），速度场越精细，能捕捉更多涡流和表面细节，但体素数随 `grid scale` 的减小以三次方比例增加（`grid scale` 减半 → 体素数 × 8 → 计算量 × 8）；粒子定义流体体积与位置，网格解算压力与速度——二者分辨率失衡（体素远多于或远少于粒子）都会导致解算结果不稳定
   - 此乘积也是 **whitewatersource节点** 和 **whitewaterSolver节点** 中 `voxel size` 的推荐对齐目标，保持三者体素尺寸一致可确保发射场与液面网格精度匹配
+  - `grid scale` 需保持 <= `particle radius scale`（即体素尺寸 <= 粒子半径），否则粒子小于体素（亚体素），VDB 无法正确分辨单个粒子，液面移动时会出现跳变（pop）；默认值 `grid scale = 2.0`、`particle radius scale = 1.2` 已轻微违反此条件，建议调大 `particle radius scale` 或调小 `grid scale` 使两者接近，例如 `particle radius scale = 1.35`、`grid scale = 1.3`（细节优先）或 `particle radius scale = 1.85`、`grid scale = 1.8`（稳定优先）
 - `collision separation`（碰撞分辨率）
   - 碰撞相关字段的体素尺寸；可独立于整体分辨率，设为较小值可提高碰撞精度
   - 适合低分辨率原型阶段提升碰撞质量，避免穿插

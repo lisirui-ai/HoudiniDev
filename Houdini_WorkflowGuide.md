@@ -3173,6 +3173,14 @@ copy and **transform节点**
   - `collisions` 子标签（解算器侧）
     - `velocity scale`：碰撞速度缩放，>1 产生更大飞溅效果；通常设为 1
     - `surface extrapolation`：当液面距碰撞体在此体素数以内时视为碰撞区域，使液体沿弯曲表面流动更平滑；不建议设为 0
+    - `stick on collision`：使流体速度在靠近碰撞体时与碰撞体速度保持一致，即让液体粘附在碰撞表面上；当碰撞体静止时，可使靠近碰撞面的液体减速趋零
+      - `stick scale`：将碰撞体速度混入流体速度的比例，`1`表示完全匹配碰撞体速度
+      - `max distance`：施加粘附效果的最大世界空间距离
+      - `max cells`：施加粘附效果的最大体素数量
+      - `stick bias`：控制在粘附距离内效果达到`stick scale`上限的速度，值越接近`1`效果在整个粘附范围内越强
+      - `normal scale`：沿碰撞体表面法线方向的速度调整缩放
+      - `tangent scale`：沿碰撞体表面切线方向的速度调整缩放；保持高`normal scale`同时降低`tangent scale`可产生"静摩擦"效果，即液体沿碰撞体快速绕流但粘附在表面上
+      - `control field`：用一个空间变化的场来缩放粘附效果，该场分辨率应与碰撞场一致；可用**volume rasterize attributes节点**将点属性（如`sticky`）转为体积场，实现不同碰撞体有不同粘附强度
   - `viscosity` 子标签
     - 勾选 `enable viscosity`：启用粘度解算；粘度值在 **flipobject节点** 的 `physical` 标签中设置
   - `surface tension` 子标签

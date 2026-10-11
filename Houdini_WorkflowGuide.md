@@ -3107,8 +3107,8 @@ copy and **transform节点**
   - `volume motion`：控制网格/体积场层面——粒子与网格的速度传递方式（FLIP/APIC）、解算范围等
 - 节点连接关系（共 4 个输入端）
   - 第一个输入端（`fluid to solve`）：连接 **flipobject节点** 输出端，传入待解算的流体对象
-  - 第二个输入端（`particle velocity`）：粒子速度更新后、传入体积场之前注入；适合接入修改 `v`、`targetv`、`force` 属性的 POP 力节点（如 **popforce节点**、**popspin节点**）
-  - 第三个输入端（`volume velocity`）：体积速度场建立后、散度消除之前注入；适合接入操作速度场的微解算器（microsolver）
+  - 第二个输入端（`particle velocity`）：粒子速度更新后、传入体积场之前注入；适合接入修改 `v`、`targetv`、`force` 属性的 POP 力节点（如 **popforce节点**、**popspin节点**、**popwrangle节点**）
+  - 第三个输入端（`volume velocity`）：体积速度场建立后、散度消除之前注入；适合接入操作速度场的微解算器（microsolver），如**gasfieldwrangle节点**
   - 第四个输入端（`sourcing post-solve`）：解算结束后执行；接入 **volumesource节点** 持续向场景注入/移除粒子（如水龙头、消亡区域等发射源效果）
 - `substeps`选项
   - `time scale`：解算时间缩放比例；>1 加速，<1 慢动作

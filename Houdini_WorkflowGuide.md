@@ -2534,7 +2534,7 @@ copy and **transform节点**
     - `swirlsize`控制纹理的频率，`amplitude`控制力场线在力场方向上的偏移程度
       - `swirlsize`越大，相当于频率越低，纹理越整体
       - `ampliitude`越大，偏移越强，力场线越偏移力场方向
-    - `pulselength`控制纹理随时间动态变化
+    - `pulselength`控制纹理随时间动态变化，单位为秒
       - 为0，纹理不随时间动态变化
       - 为0到1的小数时，变化幅度大；越大，变化幅度越小
     - `turbulence`控制重复次数

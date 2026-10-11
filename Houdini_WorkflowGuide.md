@@ -3059,7 +3059,7 @@ copy and **transform节点**
   - 推荐默认值 2.0：此时体素尺寸 = 2 × `particle separation`，每个体素约含 8 个粒子（2³），兼顾速度场分辨率与解算效率；追求更多细节可降至 1.5～1.7，但切勿低于 1.0——`grid scale` = 1.0 时体素尺寸等于粒子间距，每体素约 1 个粒子；低于 1.0 后体素比粒子还小，每个粒子对应多个体素，体素数超过粒子数，计算量骤增且易崩溃
   - 体素与粒子的比例直接影响模拟精度：每个体素含的粒子越多（`grid scale` 越大），速度场越粗糙，流体运动细节越少但越稳定；每个体素含的粒子越少（`grid scale` 越小），速度场越精细，能捕捉更多涡流和表面细节，但体素数随 `grid scale` 的减小以三次方比例增加（`grid scale` 减半 → 体素数 × 8 → 计算量 × 8）；粒子定义流体体积与位置，网格解算压力与速度——二者分辨率失衡（体素远多于或远少于粒子）都会导致解算结果不稳定
   - 此乘积也是 **whitewatersource节点** 和 **whitewaterSolver节点** 中 `voxel size` 的推荐对齐目标，保持三者体素尺寸一致可确保发射场与液面网格精度匹配
-  - `grid scale` 需保持 <= `particle radius scale`（即体素尺寸 <= 粒子半径），否则粒子小于体素（亚体素），VDB 无法正确分辨单个粒子，液面移动时会出现跳变（pop）；默认值 `grid scale = 2.0`、`particle radius scale = 1.2` 已轻微违反此条件，建议调大 `particle radius scale` 或调小 `grid scale` 使两者接近，例如 `particle radius scale = 1.35`、`grid scale = 1.3`（细节优先）或 `particle radius scale = 1.85`、`grid scale = 1.8`（稳定优先）
+  - `grid scale` 需满足 `particle radius scale >= grid scale / 2`（即粒子半径 >= 体素尺寸的一半），否则粒子小于半个体素（亚体素），VDB 无法正确分辨单个粒子，液面移动时会出现跳变（pop）；默认值 `grid scale = 2.0`、`particle radius scale = 1.2`，代入验证：`1.2 >= 2.0 / 2 = 1.0` ，满足条件，不会产生亚体素问题；若需要更高细节可适当降低 `grid scale` 或提高 `particle radius scale`，但两者始终需保持 `particle radius scale >= grid scale / 2`
 - `collision separation`（碰撞分辨率）
   - 碰撞相关字段的体素尺寸；可独立于整体分辨率，设为较小值可提高碰撞精度
   - 适合低分辨率原型阶段提升碰撞质量，避免穿插
@@ -4615,10 +4615,10 @@ flip渲染
 - 例如 FLIP 渲染中，液面 mesh（`basic liquid`）、白水 VDB（`basicwhitewater`）、背景几何体各自放在独立的 geometry 节点中分别赋予材质，而不是 merge 到同一节点内
 
 `@pscale` 与 `voxelsize`、`voxelsize`与`particle separation` 是两个独立的控制维度：
-- `pscale` 与 `voxelsize` 耦合控制渲染质量：`pscale` 决定每个粒子的属性贡献范围，`pscale` 越小粒子越小、细节越精细；`voxelsize` 理想值 ≈ `pscale`，两者同比例调整
-  - `pscale` ≈ `voxelsize`：每个粒子恰好对应约 1 个体素，渲染质量最佳；视觉效果趋向颗粒感，可见单粒子边界
-  - `pscale` >> `voxelsize`：过采样，每个粒子覆盖多个体素，浪费内存，无额外信息量；视觉效果趋向厚重体积感，看不到单粒子边界
-  - `pscale` < `voxelsize`（亚体素）：粒子小于体素，VDB 无法正确分辨单个粒子，移动时会出现跳变（pop）；可将 `Minimum Filter Size` 设为 1（确保每个粒子至少模糊到 1 个体素大小）来消除跳变，多粒子叠加平均后属性场仍可平滑
+- `pscale` 与 `voxelsize` 耦合控制渲染质量：`pscale` 是粒子半径，决定每个粒子的属性贡献范围，`pscale` 越小粒子越小、细节越精细；粒子直径（`2 × pscale`）与体素尺寸对齐时质量最佳；`voxelsize` 理想值 ≈ `2 × pscale`，两者同比例调整
+  - `pscale` ≈ `voxelsize / 2`（直径 ≈ 体素）：每个粒子恰好对应约 1 个体素，渲染质量最佳；视觉效果趋向颗粒感，可见单粒子边界
+  - `pscale` >> `voxelsize / 2`（直径 >> 体素）：过采样，每个粒子覆盖多个体素；视觉效果趋向厚重体积感，看不到单粒子边界
+  - `pscale` < `voxelsize / 2`（亚体素，直径 < 体素）：粒子直径小于体素，VDB 无法正确分辨单个粒子，移动时会出现跳变（pop）；可将 `Minimum Filter Size` 设为 1（确保每个粒子至少模糊到 1 个体素大小）来消除跳变，多粒子叠加平均后属性场仍可平滑
 - `voxelsize`与`particle separation` 控制 `particles per voxel`属性场平滑度：`particle separation` 决定粒子间距，与 `pscale`无关
   - $$\text{particles per voxel} = \left(\frac{\text{voxelsize}}{\text{particle separation}}\right)^3$$
   - `particle separation` << `voxelsize`：`particles per voxel` 多 → 多粒子属性叠加平均 → 属性场平滑（FLIP 液体 / Pyro 烟雾/whitewater白水追求连续流体感）

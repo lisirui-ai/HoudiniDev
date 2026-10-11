@@ -2010,8 +2010,8 @@ copy and **transform节点**
   - `oversampling` / `oversampling bandwidth`：在 SDF 零等值面附近过采样粒子，提升液面附近粒子密度；带宽以`particle separation`的倍数为单位
   - `radius attribute`：勾选后在粒子上添加半径属性，值等于`particle separation`；半径与间距相等并非"恰好相切"的几何关系，而是 FLIP 的设计约定——FLIP 粒子不是刚体球而是体积采样点，半径用于表面重建而非碰撞；设为`particle separation`意味着每个粒子的球体恰好延伸到相邻粒子的中心位置，所有球体互相重叠覆盖整个流体体积，不留空隙；若半径仅为`particle separation / 2`（恰好相切），对角方向会留有间隙，表面重建时出现空洞；实际解算时有效半径还会被**flipobject节点**的`particle radius scale`进一步缩放
 - `velocity`：勾选后为生成的粒子赋予初始速度，存储于`v`属性
-- `add rest attribute`：在粒子上添加`rest`属性（当前位置 + `rest offset`偏移量），用于在液体着色器中映射噪波/贴图
-- `dual rest attributes`：同时添加`rest2`属性，配合**flipsolver节点**的双休止属性支持，避免长时间模拟时的跳变
+- `add rest attribute`：在粒子上添加`rest`属性（当前位置 + `rest offset`偏移量），用于在液体着色器中映射噪波/贴图；虽然**flipsolver节点**也会为 reseeding 产生的粒子自动初始化`rest`，但初始发射帧的粒子能否在 solver 解算前正确初始化存在时序风险，建议保险起见勾选
+- `dual rest attributes`：同时添加`rest2`属性，配合**flipsolver节点**的双休止属性支持，避免长时间模拟时的跳变；同上，建议随`add rest attribute`一起勾选
 
 **dopnetwork节点**
 

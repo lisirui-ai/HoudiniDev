@@ -2070,11 +2070,12 @@ copy and **transform节点**
 **particlefluidsurface节点**
 
 - 将 FLIP 粒子（或 Vellum 流体粒子）重建为多边形液面网格；粒子需携带 `pscale` 属性（指定每个粒子的虚拟半径）
-- 三个输入端
+- 四个输入端
   - 第一输入端（`particles and volumes`）：粒子几何体（可为 **fluidcompress节点** 压缩后的 packed points 或 VDB Points）及可选体积
-  - 第二输入端（`collision objects and volumes`）：碰撞体几何体或 SDF 体积，用于从液面中减去碰撞区域
-  - 第三输入端（`mask volumes`）：fog 体积，用于遮罩滤波操作
-- 如输入来自 **fluidcompress节点**，节点会自动识别压缩标记，用 `surface` VDB 补全被剔除的深层粒子区域，并从 `vel` VDB 中读取速度数据
+  - 第二输入端（`container`，蓝色）：接收 **flipcontainer节点** 输出的域边界体积，定义液面重建的空间范围
+  - 第三输入端（`collision objects and volumes`）：碰撞体几何体或 SDF 体积，用于从液面中减去碰撞区域
+  - 第四输入端（`mask volumes`）：fog 体积，用于遮罩滤波操作
+- 若输入来自 **fluidcompress节点**，节点会自动识别压缩标记，用 `surface` VDB 补全被剔除的深层粒子区域，并从 `vel` VDB 中读取速度数据
 - `surfacing`选项卡
   - `method`：液面初始 SDF 的生成算法
     - `average position`：基于粒子平均位置生成平滑液面，效果好但开销较高

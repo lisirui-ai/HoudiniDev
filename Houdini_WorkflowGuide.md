@@ -3665,6 +3665,21 @@ importpoint/primitive/vertex/**detailattribute节点**
 
 **mantra节点**
 
+- 顶层控制
+  - 渲染触发按钮
+    - `Render to Disk`：将渲染结果直接写入磁盘，前台执行，Houdini 界面在渲染完成前被阻塞
+    - `Render to MPlay`：将渲染结果输出到 MPlay 预览窗口，不写盘，适合快速检查效果
+    - `Render to Disk in Background`：后台提交渲染进程，Houdini 界面保持可操作，适合长时间渲染任务
+    - `Controls...`：打开独立的渲染控制对话框，可监控渲染进度、中止渲染等
+  - `valid frame range`：决定渲染的帧范围策略
+    - `Render Current Frame`：仅渲染当前帧，适合单帧测试
+    - `Render Frame Range`：渲染 `Start/End/Inc` 指定的帧范围；若多个渲染节点串联（如"先烘焙缓存节点 → 再渲染图像节点"），下游节点会主动向上游节点要帧，上游节点此时会响应下游要求的帧，自身设置的帧范围可能被忽略
+    - `Render Frame Range Only (Strict)`：严格只处理 `Start/End/Inc` 范围内的帧，拒绝响应范围外的任何请求；即使下游节点来索要范围外的帧，本节点也不会给——适合节点只负责一段固定帧（如循环动作第 1-60 帧、循环贴图第 1-20 帧），不希望被整个序列的其他帧"借用"时使用；单独使用（不串联其他渲染节点）时与 `Render Frame Range` 效果相同
+  - `Start/End/Inc`：帧范围的起始帧、结束帧、帧步长（间隔），仅在 `valid frame range` 非 `Render Current Frame` 时生效
+  - `render with take`：指定渲染时使用的 Take；`(Current)` 表示使用当前激活的 Take，可切换为其他 Take 以渲染不同版本的场景状态
+  - `camera`：指定渲染使用的摄像机路径（如 `/obj/cam1`），渲染视角、焦距、景深等均由该摄像机节点的参数决定
+  - `override camera resolution`：勾选后可在此节点上单独覆盖摄像机的输出分辨率，而无需修改摄像机节点本身；适合在同一摄像机下渲染不同尺寸的测试图
+
 - 分层渲染
   - 一个**mantra节点**负责渲染一个层
   - 渲染被`forced matte`遮挡的`force objects`

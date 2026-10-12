@@ -1646,9 +1646,17 @@ copy and **transform节点**
   - `shutter`：速度模糊的快门时间
   - `shutter offset`：快门偏移
   - `blur samples`：沿速度路径的采样点数量，值越大结果越平滑准确，但计算更慢
-- `coverage`对属性进行缩放
-  - 一般`coverageattribute`不设置任何属性
-    - 继承的属性的值会自乘`coverageattribute`的值
+- `coverage`选项：控制每个粒子对体积的影响权重及属性栅格化方式
+  - `coverage attribute`：指定存储每个粒子影响权重（coverage）的点属性名；若该属性不存在，每个粒子的权重默认为 1；一般留空（即默认权重均为 1，所有粒子等权重贡献）
+  - `coverage scale`：对 `coverage attribute` 的值做整体缩放，默认 1；调小可整体降低粒子的贡献强度
+  - `normalize by clamped coverage`：勾选后将采样体积乘以 coverage 值，在粒子影响范围边缘产生平滑过渡；同时将默认栅格化方式从 `Weighted Average` 切换为 `Covered Average`；`Attribute Rules` 可覆盖此默认行为
+  - `attribute rules`：按属性名模式单独指定栅格化方式；多条规则匹配同一属性时取第一条；`coverage attribute` 本身始终强制使用 `Accumulated` 方式（不受规则影响）
+    - `attributes`：填写属性名模式（如 `density`、`v`、`*`），匹配的属性将使用下方指定的栅格化方式
+    - `method`：栅格化方式
+      - `Weighted Average`：体素值为覆盖该体素的所有粒子属性的加权平均，权重取决于 coverage 属性和粒子与采样点的距离（默认方式）
+      - `Covered Average`：与 `Weighted Average` 相同，但粒子影响范围之外的区域会被衰减，产生更平滑的边缘过渡；开启 `normalize by clamped coverage` 后此为默认方式
+      - `Accumulated`：直接叠加所有粒子的贡献值（求和），不做平均；适合累积型属性（如密度叠加）
+      - `Stochastic`：体素值由伪随机选取的单个粒子决定，适合需要随机采样的场景
 - 输出`vdb`
 
 **volumetrail节点**
@@ -3960,10 +3968,24 @@ importpoint/primitive/vertex/**detailattribute节点**
 
 **vdbfromparticles节点**
 
-- 将点云转换为体积（`fog`、`sdf`）
-- 设置体素大小
-- `pointradiusscale`控制粒子的`@pscale`的缩放，进而控制每个单元的大小
-- `pointattributes`增加并选择从粒子继承到体积的属性
+- 将点云（粒子）转换为 VDB 体积，使用粒子的 `@pscale` 属性作为球体半径进行栅格化，可生成距离场（SDF）、密度场（Fog）和遮罩场（Mask）
+- `voxel size`：生成 VDB 的体素尺寸；体素越小精度越高但计算量越大；小于体素尺寸的粒子将无法被分辨而丢失
+- `reference VDB`：若第二输入端接入参考 VDB，可在此填写该 VDB 的名称，节点将从中复制朝向和体素尺寸
+- 输出类型（三者可同时开启）：
+  - `distance VDB`：生成有符号距离场（SDF），默认名称 `surface`；体素值为到最近粒子表面的距离，用于后续网格化（如 **vdbconvert节点**）
+  - `fog VDB`：生成密度场（Fog），默认名称 `density`；粒子所在区域密度为 1，外部为 0；用于烟雾/体积渲染
+  - `mask VDB`：生成遮罩场，默认名称 `mask`；标记粒子占据的区域，用于后续 VDB 操作的遮罩输入
+- `point radius scale`：对粒子的 `@pscale`（球体半径）做整体缩放，默认 1；调大可使每个粒子覆盖更大区域，粒子之间融合更充分，表面更平滑；调小则粒子独立、表面颗粒感更强
+- `minimum radius in voxels`：忽略半径小于指定体素数的粒子，默认 1.5；官方建议不低于 1.5——小于 1.5 个体素的粒子会产生走样（aliasing）和闪烁伪影，因为体素无法正确分辨亚体素粒子
+- `prune level set`：勾选后修剪距离场中冗余的体素，减少内存占用
+- `mask width scale`：遮罩场的宽度缩放，仅在 `mask VDB` 开启时可用
+- `use world space for band`：切换 `half-band` 的单位；关闭时以体素数为单位，开启时以 Houdini 世界单位为单位
+- `half-band voxels`：在粒子球体外侧额外填充的体素层数，默认 3；决定 SDF 的有效计算带宽，用于网格化时需足够宽以支持平滑操作
+- `merge with reference VDB`：将生成结果与参考 VDB 合并，需连接第二输入端
+- `particle footprint`：粒子的体积占用形状
+  - `Spherical`：以 `@pscale` 为半径的球体（默认，最常用）
+  - `Velocity Trail`：沿速度方向（`@v`）拉伸为轨迹形状，配合 `velocity multiplier` 和 `velocity spacing` 控制轨迹长度和密度
+- `point attributes`：点击 `+` 指定要从粒子继承到 VDB 体积的属性（如 `Cd`、`v` 等），每条记录对应一个属性，输出为同名的属性 VDB
 
 **vdbvisualization节点**
 

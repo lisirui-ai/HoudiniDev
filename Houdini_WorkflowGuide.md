@@ -3617,7 +3617,9 @@ worley **noise节点**
 **parameter节点**
 
 - 相当于`bind`，将外部属性导入`vop`
-- 优于**bind节点**
+- 优于**bind节点**：**bind节点**只能单纯读取属性；**parameter节点**额外支持以下能力：
+  - 可通过 `Export` 选项同时写出属性（读写两用）
+  - 可提升（Promote）为父节点的可见参数，在节点 UI 面板中直接调节
 
 importpoint/primitive/vertex/**detailattribute节点**
 

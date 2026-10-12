@@ -3828,7 +3828,7 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `sampling quality`设置为2、4、8
     - 物体光设置为4、8
     - 普通灯光设置为2
-- `exposure`：以 2 为底数对灯光强度做指数缩放，类似相机的 F-stop；0 不缩放，+1 强度翻倍，-1 强度减半；结果与 `intensity` 相乘；通常先用 `intensity` 设置大致亮度，再用 `exposure` 微调
+- `exposure`：以 2 为底数对灯光强度做指数缩放；0 不缩放，+1 强度翻倍，-1 强度减半；结果与 `intensity` 相乘；通常先用 `intensity` 设置大致亮度，再用 `exposure` 微调
 - `contributions`：精细控制该灯光允许影响哪些着色分量；点击 `+` 新增条目并填写分量名称勾选即可，填入的分量即为该灯光被允许贡献的范围；列表为空时默认影响所有分量；可填写的分量名称如下：
   - `diffuse`：漫反射
   - `reflect`：镜面反射

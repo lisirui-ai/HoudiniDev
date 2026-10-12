@@ -3912,11 +3912,16 @@ importpoint/primitive/vertex/**detailattribute节点**
 材质类
 
 - **volumeshadercore节点**
-  - 设置自发光程度`emission` `scale`和自发光颜色`emission` color
+  - 设置自发光程度`emission scale`和自发光颜色`emission color`
     - 自发光是光源，既影响自身，也影响其他`geo`
-  - 设置体积颜色`smoke` color
-  - 渲染浓度`density` scale
+  - 设置体积颜色`smoke color`
+  - 渲染浓度`density scale`
   - **principledshadercore节点**无法渲染`fog`
+  - 输出端
+    - `layer`：着色器层输出，接入分层材质系统（如 **layermix节点**）用于多层叠加合成
+    - `F`：最终颜色输出（Final color），体积的主色彩结果，通常接入 **computelighting节点** 或直接作为材质输出
+    - `Of`：不透明度输出（Opacity float），控制体积的透射/遮挡程度
+    - `Ce`：自发光颜色输出（Color emission），将 `emission color × emission scale` 的结果向下游传递
 - **computelighting节点**
 
 **vdbsmooth节点**

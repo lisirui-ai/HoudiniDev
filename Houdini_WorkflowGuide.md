@@ -3421,7 +3421,7 @@ copy and **transform节点**
     - 对`material` **builder节点**中位置通道的置换需要先转换为世界坐标系，之后再转换为相机坐标系
       - 使得P不受相机移动的影响
   - `interpretation`处选择转换的属性，例如法线`normal`，位置`position`
-- shading **normal节点**
+- **shading normal节点**
   - 计算相机坐标系下的法线
   - 置换完之后要重新计算法线，使得渲染准确
   - 输入置换完的转为相机坐标系下的P，输出相机坐标系下的N
@@ -3456,6 +3456,20 @@ copy and **transform节点**
   - `contexttype`选择模式
   - 勾选`outputasinglevariable`只显示一个通道
     - 在下方选择显示的通道
+- **pbrreflection节点**（PBR Non-Metallic）
+  - 计算非金属（电介质）材质的反射和/或折射，输出 BSDF；可通过 `base` 层输入端将其他 BSDF 叠加进来，构建更复杂的材质
+  - 主要参数
+    - `reflection label`：为反射 BSDF 分量指定标签，可将该分量单独导出到独立图像平面（AOV）
+    - `refraction label`：为折射 BSDF 分量指定标签，同上
+    - `reflectivity`：控制反射输出量；表面背对视角时，根据菲涅耳定律反射量会自动增加（现实中 90° 时反射率为 100%），与该参数无关
+    - `roughness`：控制表面粗糙程度；0.0 为光滑镜面（锐利反射），1.0 为完全粗糙（模糊漫反射状反射）
+    - `anisotropy`：使反射沿 `anisotropy direction` 指定的方向拉伸，模拟具有方向性微观凹凸的材质（如拉丝金属），仅在 `roughness > 0` 时有效
+    - `anisotropy direction`：各向异性方向相对于 UV 坐标的旋转角度；0.0 沿 U 方向拉伸，0.5 旋转 90° 至 V 方向，1.0 旋转 180°（与 0.0 效果相同）
+    - `index of refraction`（IOR）：折射率，值越大反射越强、折射光线弯折越大
+    - `abbe number`：色散系数，模拟光在折射介质内不同波长分离的程度（棱镜效果），值越大色散越强
+    - `transmittance color`：透射颜色，光线在材质内传播一定距离后呈现的颜色（Beer-Lambert 吸收）
+  - 输出端
+    - `f`：合并后的反射+折射 BSDF，接入 **computelighting节点** 或 **Output Variables and Parameters节点** 的 `F` 输入
 
 **uvcoords节点**
 

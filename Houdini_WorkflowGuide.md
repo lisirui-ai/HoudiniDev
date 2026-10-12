@@ -3477,6 +3477,11 @@ copy and **transform节点**
     - `energy conserving fresnel blend`：能量守恒菲涅耳混合，默认开启；确保反射与折射分量的能量之和不超过入射光能量，物理正确；关闭后可超能量，仅用于特殊艺术效果
     - `shade both sides as front`：双面均按正面着色；注意官方指出对透明表面会产生错误结果，不推荐透明材质勾选
     - `shade back side`：在 `shade both sides as front` 关闭时，控制背面是否接受着色；关闭则背面渲染为纯黑
+  - 输入端
+    - `base`：叠加在下方的基础 BSDF 层，用于构建复合材质（如在漫反射层上叠加玻璃层）；简单材质可不连
+    - `nN`：归一化表面法线；不连时自动使用全局 `N`，做了凹凸贴图或置换后必须接入修正后的法线（如 **shadingnormal节点** 的输出）
+    - `nI`：归一化视线方向；不连时自动使用全局 `I`，通常无需手动连接
+    - `utan` / `vtan`：表面切线和副切线；仅在启用各向异性（`aniso > 0`）时需要连接，通常配合 **Compute Tangents节点** 生成；无各向异性时可不连
   - 输出端
     - `f`：合并后的反射+折射 BSDF，接入 **computelighting节点** 或 **Output Variables and Parameters节点** 的 `F` 输入
 - **layerpack节点**（Layer Pack）

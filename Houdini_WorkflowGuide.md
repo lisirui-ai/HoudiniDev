@@ -2035,9 +2035,9 @@ copy and **transform节点**
 
 **dopimportfield节点**
 
-- 将 DOP 流体解算中的标量场或向量场批量导入 SOP，是烟雾/Pyro/FLIP 解算结果回到 SOP 管线的标准接口
+- 将 DOP 流体解算中的标量场或向量场批量导入 SOP，是烟雾/Pyro/FLIP 解算结果回到 SOP 管线的标准接口；**DOP Network** 节点本身输出的几何体中不包含场数据（`density`、`vel`、`surface` 等体积属性），必须通过本节点显式提取，才能在 SOP 中对这些场进行渲染、后处理或缓存
 - `dop network`：指定要导入的 DOP 网络路径
-- `dop node`：指定 DOP 节点，导入该节点创建的所有对象对应的场（覆盖 `default object` 设置）
+- `dop node`：指定 DOP 节点，导入该节点创建的所有对象对应的场（覆盖 `default object` 设置），一般是以 object为后缀的容器节点，如 **smokeobject**（烟雾/Pyro）、**flipobject**（FLIP 液体）、**popobject**（粒子）等；这类节点在 DOP 内部负责持有解算数据（场/几何），是解算结果的"容器"，指向它即可批量导出其下挂载的所有场
 - `default object`：未在各导入条目中指定对象时使用的默认 DOP 对象
 - `presets`：快速预设，一键填充常用场的导入配置（如烟雾、FLIP 等）
 - `import`（导入条目列表）

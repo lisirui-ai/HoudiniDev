@@ -3457,7 +3457,7 @@ copy and **transform节点**
   - 勾选`outputasinglevariable`只显示一个通道
     - 在下方选择显示的通道
 - **pbrreflection节点**（PBR Non-Metallic）
-  - 计算非金属（电介质）材质的反射和/或折射，输出 BSDF；可通过 `base` 层输入端将其他 BSDF 叠加进来，构建更复杂的材质
+  - 计算非金属材质的反射和/或折射，输出 BSDF以及shaderlayer；同时产生高光——高光并非独立效果，而是反射的副效果：`roughness = 0` 时反射清晰如镜，`roughness > 0` 时反射模糊分散，光源在模糊反射中即呈现为高光，两者本质相同；可通过 `base` 层输入端将其他 BSDF 叠加进来，构建更复杂的材质
   - 主要参数
     - `specular model`：高光模型，决定镜面反射的形状分布；默认 `GGX`，是目前物理精度最高的模型，推荐保持默认；`roughness` 为 0 时模型选择无效（完全镜面不依赖分布模型）
     - `reflection label`：反射 BSDF 分量的标签，用于将该分量单独导出到 AOV 图像平面，默认 `reflect`；多材质叠加时可修改避免标签冲突
@@ -3484,6 +3484,7 @@ copy and **transform节点**
     - `utan` / `vtan`：表面切线和副切线；仅在启用各向异性（`aniso > 0`）时需要连接，通常配合 **Compute Tangents节点** 生成；无各向异性时可不连
   - 输出端
     - `f`：合并后的反射+折射 BSDF，接入 **computelighting节点** 或 **Output Variables and Parameters节点** 的 `F` 输入
+    - `layer`：将 `f`（BSDF）、`Of`（不透明度）、`Ce`（自发光）打包后的 ShaderLayer 结构体，接入 **computelighting节点** 的 `layer` 输入或 **layermix节点** 进行多层叠加；可与 `f` 同时连接到不同的下游节点
 - **layerpack节点**（Layer Pack）
   - 将 `F`（BSDF）、`Of`（不透明度）、`Ce`（自发光颜色）三个独立着色分量打包为一个 `ShaderLayer` 结构体，通过 `layer` 输出端传递给下游节点；是手动构建 ShaderLayer 的标准方式，与 **computelighting节点** 的拆包操作互为逆过程
   - 输入端

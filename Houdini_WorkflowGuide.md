@@ -3459,17 +3459,34 @@ copy and **transform节点**
 - **pbrreflection节点**（PBR Non-Metallic）
   - 计算非金属（电介质）材质的反射和/或折射，输出 BSDF；可通过 `base` 层输入端将其他 BSDF 叠加进来，构建更复杂的材质
   - 主要参数
-    - `reflection label`：为反射 BSDF 分量指定标签，可将该分量单独导出到独立图像平面（AOV）
-    - `refraction label`：为折射 BSDF 分量指定标签，同上
-    - `reflectivity`：控制反射输出量；表面背对视角时，根据菲涅耳定律反射量会自动增加（现实中 90° 时反射率为 100%），与该参数无关
-    - `roughness`：控制表面粗糙程度；0.0 为光滑镜面（锐利反射），1.0 为完全粗糙（模糊漫反射状反射）
-    - `anisotropy`：使反射沿 `anisotropy direction` 指定的方向拉伸，模拟具有方向性微观凹凸的材质（如拉丝金属），仅在 `roughness > 0` 时有效
-    - `anisotropy direction`：各向异性方向相对于 UV 坐标的旋转角度；0.0 沿 U 方向拉伸，0.5 旋转 90° 至 V 方向，1.0 旋转 180°（与 0.0 效果相同）
-    - `index of refraction`（IOR）：折射率，值越大反射越强、折射光线弯折越大
-    - `abbe number`：色散系数，模拟光在折射介质内不同波长分离的程度（棱镜效果），值越大色散越强
-    - `transmittance color`：透射颜色，光线在材质内传播一定距离后呈现的颜色（Beer-Lambert 吸收）
+    - `specular model`：高光模型，决定镜面反射的形状分布；默认 `GGX`，是目前物理精度最高的模型，推荐保持默认；`roughness` 为 0 时模型选择无效（完全镜面不依赖分布模型）
+    - `reflection label`：反射 BSDF 分量的标签，用于将该分量单独导出到 AOV 图像平面，默认 `reflect`；多材质叠加时可修改避免标签冲突
+    - `refraction label`：折射 BSDF 分量的标签，同上，默认 `refract`
+    - `reflect`：反射输出量，默认 1；控制正面反射的强度，边缘处菲涅耳效应自动增强反射量（90° 时为 100%）与本参数无关；调低可减弱正面高光，设为 0 则完全无反射
+    - `refract`：折射输出量，默认 0（不透明）；制作玻璃/水等透明材质时调为 1；可与 `reflect` 同时开启，`energy conserving fresnel blend` 开启时二者会自动做能量守恒混合
+    - `roughness`：表面微观粗糙程度；0.0 完全光滑（锐利镜面反射），1.0 完全粗糙（模糊漫反射状高光）；磨砂玻璃约 0.2～0.4，抛光玻璃约 0～0.05
+    - `anisotropy`：各向异性强度，使反射在 `anisotropy direction` 方向上拉伸；0 为各向同性（圆形高光），仅在 `roughness > 0` 时有效；值越大高光越椭圆拉伸
+    - `anisotropy direction`：各向异性拉伸方向相对于 UV 坐标的旋转；0.0 沿 U 方向，0.5 旋转至 V 方向（90°），1.0 等同于 0.0（180° 对称）；需配合正确展开的 UV 使用
+    - `reflectance color`：同时为反射和折射叠加颜色，默认白色（1, 1, 1）；为均匀着色，与物体厚度无关；制作彩色玻璃推荐用 `transmittance color`（物理厚度着色，更真实），`reflectance color` 更适合做整体色调调整或程式化着色
+    - `index of refraction`（IOR）：折射率，默认 1.5（标准玻璃）；值越大正面反射越强、折射光线弯折越大；常用参考值：空气 1.0、水 1.33、玻璃 1.5、钻石 2.4；配合 `refract > 0` 使用
+    - `surface priority`：表面优先级，用于多个折射面相交（嵌套电介质）时的内外关系判断；数值越小优先级越高，高优先级表面在重叠区域会"覆盖"低优先级表面；0 表示忽略优先级；需在 **mantra节点** 的 `Enable Absorption and Nested Dielectrics` 开启后生效；典型场景：冰块在水中（冰优先级高于水）
+    - `dispersion`：色散强度，模拟折射光线按波长分离产生彩虹/棱镜效果；0 为无色散，值越大色彩分离越明显；开启后渲染时间显著增加，慎用
+    - `transmittance color`：透射颜色，光线在物体内传播 `at distance` 指定的距离后被完全染色；颜色分量为 0 表示该通道完全不被吸收（光线自由穿透），为 1 表示完全被吸收（光线无法穿透）；注意：该参数是吸收色而非透射色，若要制作红色玻璃（红光穿透、其他被吸收），需将绿/蓝通道设为 1、红通道设为 0
+    - `at distance`：光线在物体内传播多远后被 `transmittance color` 完全染色，默认 0.1；值越小同样厚度下颜色越深饱和，值越大颜色越淡；推荐使用非完全饱和的颜色以获得最佳效果
+    - `thin film refractions`：将表面视为无限薄（不产生光线偏折），适合薄片玻璃、窗玻璃等情况；勾选后折射不会产生偏移，性能更好；不适合有厚度的透明固体
+    - `energy conserving fresnel blend`：能量守恒菲涅耳混合，默认开启；确保反射与折射分量的能量之和不超过入射光能量，物理正确；关闭后可超能量，仅用于特殊艺术效果
+    - `shade both sides as front`：双面均按正面着色；注意官方指出对透明表面会产生错误结果，不推荐透明材质勾选
+    - `shade back side`：在 `shade both sides as front` 关闭时，控制背面是否接受着色；关闭则背面渲染为纯黑
   - 输出端
     - `f`：合并后的反射+折射 BSDF，接入 **computelighting节点** 或 **Output Variables and Parameters节点** 的 `F` 输入
+- **layerpack节点**（Layer Pack）
+  - 将 `F`（BSDF）、`Of`（不透明度）、`Ce`（自发光颜色）三个独立着色分量打包为一个 `ShaderLayer` 结构体，通过 `layer` 输出端传递给下游节点；是手动构建 ShaderLayer 的标准方式，与 **computelighting节点** 的拆包操作互为逆过程
+  - 输入端
+    - `F`：BSDF 分量，描述光线与表面/体积的散射方式，用于计算光照颜色
+    - `Of`：不透明度分量
+    - `Ce`：自发光颜色分量
+  - 输出端
+    - `layer`：打包后的 ShaderLayer 结构体，接入 **computelighting节点** 的 `layer` 输入或 **layermix节点** 进行多层叠加
 
 **uvcoords节点**
 

@@ -3840,8 +3840,16 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `any non-diffuse`：所有非漫反射类分量
   - `direct lighting`：直接照明
   - `indirect lighting`：间接照明（GI）
-- `categories`：灯光所属的类别标签，名称自定义（如 `Key`、`Fill`、`Rim`），多个类别用空格或逗号分隔；用于灯光链接（Light Linking）——在几何体节点的Render 选项卡 → Shading 子选项卡中，`Light Selection` 字段（默认 `*` 表示接受所有灯光）填写允许照射该物体的灯光类别名称，即可实现灯光与物体的选择性关联
-- `LPE tag`：为灯光指定自定义标签，用于 Light Path Expression（光路表达式）；在 Karma 渲染设置节点中配合 `Split per LPE Tag` 可自动将 Beauty 等 AOV 按灯光拆分为独立通道（如 `C_Key`、`C_Fill`、`C_Rim`），方便合成阶段单独控制每盏灯的贡献；Mantra 工作流中不适用
+- `categories`：灯光所属的类别标签，名称自定义，多个类别用空格或逗号分隔；用于灯光链接（Light Linking）——在几何体节点的Render 选项卡 → Shading 子选项卡中，`Light Selection` 字段（默认 `*` 表示接受所有灯光）填写允许照射该物体的灯光类别名称，即可实现灯光与物体的选择性关联；**必须两端同时配置**：灯光侧填写 `categories`，几何体侧填写对应的 `Light Selection`，两端标签匹配才生效
+  - `Light Selection` 语法（Category Expression）：
+    - `sun | env`：拥有 `sun` 标签的灯光或拥有 `env` 标签的灯光会照射该物体（OR，两盏灯均生效）
+    - `sun & env`：拥有 `sun` 标签的灯光且拥有 `env` 标签的灯光会照射该物体（AND，灯光必须同时拥有两个标签）
+    - `*`：所有灯光（默认）
+    - `-*`：不接受任何灯光
+    - `-sun`：排除拥有 `sun` 标签的灯光
+    - `sun | -`：拥有 `sun` 标签的灯光，或没有任何 categories 的灯光
+    - 注意：直接空格分隔（如 `sun env`）不等同于 OR，需明确使用 `|` 符号
+- `LPE tag`：为灯光指定自定义标签（如 `Key`、`Fill`、`Rim`），用于 Light Path Expression（光路表达式）；在 Karma 渲染设置节点中配合 `Split per LPE Tag` 可自动将 Beauty 等 AOV 按灯光拆分为独立通道（如 `C_Key`、`C_Fill`、`C_Rim`），方便合成阶段单独控制每盏灯的贡献；Mantra 工作流中不适用
   - AOV（Arbitrary Output Variable，任意输出变量）：渲染时除最终合成图像（Beauty）之外单独输出的分层图像（如漫反射层、反射层、阴影层、每盏灯的贡献层等）；合成时可对每层单独调整再叠加，不需要重新渲染
   - LPE（Light Path Expression，光路表达式）：描述光线传播路径的过滤规则语言，用于指定只将符合某种光线路径的光照贡献输出到对应 AOV；`C` 表示所有路径（Beauty），`CD` 表示相机→漫反射路径（直接漫反射）；配合 `LPE tag` 可进一步过滤"只来自某盏灯的贡献"，对应 AOV 通道自动命名为 `C_Key`、`C_Fill` 等，合成时可单独控制每盏灯的强弱
 - `render light geometry`：勾选后灯光的几何体形状会作为可见对象出现在渲染中（如面积光的矩形、球形等直接可见）；用于调试高光强度、在 IPR 渲染中辅助灯光摆放

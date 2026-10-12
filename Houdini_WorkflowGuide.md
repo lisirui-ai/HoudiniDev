@@ -4256,6 +4256,7 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `smoke color`：体积散射颜色（默认白色）；控制体积在光照下呈现的颜色
     - `use point color`：将粒子 `Cd` 属性与 `smoke color` 相乘；默认勾选，可通过 VDB 中的 `Cd` 字段驱动局部颜色
     - `cloud density`：体积密度倍增；值越大体积越厚实不透明，值越小越稀薄透明（默认 1）
+      - 节点内部会自动读取 SOP 几何体中名为 `density` 的体积场，并将其与 `cloud density` 参数相乘，作为最终的散射/吸收系数传入着色计算；SOP 中不存在 `density` 场时则视为全局均匀密度
     - `shadow density multiplier`：阴影密度倍增；独立控制体积投射阴影的浓度，与 `cloud density` 解耦，可单独加深阴影而不改变体积外观（默认 1）
     - `scattering phase`：散射方向；基于 Henyey-Greenstein 散射模型，取值范围 -1 到 1；不影响透光性（透光性由 `cloud density` 控制）；0 = 各向同性（均匀散射），正值 = 前向散射（光倾向于继续向前穿透，逆光时体积边缘发亮，如云的银边/丁达尔效果；+1 为完全前向散射），负值 = 后向散射（光倾向于反射回光源方向，顺光时体积更亮；-1 为完全后向散射）；实际使用通常在 ±0.3～0.7 范围内效果较自然，接近极值时方向性极强；默认 0
       - 实际渲染水时，`basic liquid`（表面）与 `uniformvolume`（液体内部体积）通常组合使用，两者存在依赖关系：`basic liquid` 的 `refract intensity` 决定有多少光折射进入水体，进入水体后才由 `uniformvolume` 的 `scattering phase` 决定散射方向；`refract intensity` 越低，进入体积的光越少，`scattering phase` 的散射效果越不明显

@@ -3825,9 +3825,26 @@ importpoint/primitive/vertex/**detailattribute节点**
     - 指定模型而不要指定材质
       - Geometry Light 不依赖材质的`Emission` 来发光，它直接把几何体的表面当作面积光源来采样，发光颜色和强度由 Light 节点自身的参数控制（比如 `Color`、`Intensity`），和物体有没有材质、材质有没有 Emission 无关
 - 渲染质量
-  - sampling `quality`设置为2、4、8
+  - `sampling quality`设置为2、4、8
     - 物体光设置为4、8
     - 普通灯光设置为2
+- `exposure`：以 2 为底数对灯光强度做指数缩放，类似相机的 F-stop；0 不缩放，+1 强度翻倍，-1 强度减半；结果与 `intensity` 相乘；通常先用 `intensity` 设置大致亮度，再用 `exposure` 微调
+- `contributions`：白名单模式，精细控制该灯光允许影响哪些着色分量；点击 `+` 新增条目并填写分量名称即可，填入的分量即为该灯光被允许贡献的范围；列表为空时默认影响所有分量；可填写的分量名称如下：
+  - `diffuse`：漫反射
+  - `reflect`：镜面反射
+  - `coat`：涂层反射
+  - `sss`：次表面散射
+  - `refract`：折射
+  - `volume`：体积
+  - `any diffuse`：所有漫反射类分量
+  - `any non-diffuse`：所有非漫反射类分量
+  - `direct lighting`：直接照明
+  - `indirect lighting`：间接照明（GI）
+- `categories`：灯光所属的类别标签，名称自定义（如 `Key`、`Fill`、`Rim`），多个类别用空格或逗号分隔；用于灯光链接（Light Linking）——在几何体节点的Render 选项卡 → Shading 子选项卡中，`Light Selection` 字段（默认 `*` 表示接受所有灯光）填写允许照射该物体的灯光类别名称，即可实现灯光与物体的选择性关联
+- `LPE tag`：为灯光指定自定义标签，用于 Light Path Expression（光路表达式）；在 Karma 渲染设置节点中配合 `Split per LPE Tag` 可自动将 Beauty 等 AOV 按灯光拆分为独立通道（如 `C_Key`、`C_Fill`、`C_Rim`），方便合成阶段单独控制每盏灯的贡献；Mantra 工作流中不适用
+  - AOV（Arbitrary Output Variable，任意输出变量）：渲染时除最终合成图像（Beauty）之外单独输出的分层图像（如漫反射层、反射层、阴影层、每盏灯的贡献层等）；合成时可对每层单独调整再叠加，不需要重新渲染
+  - LPE（Light Path Expression，光路表达式）：描述光线传播路径的过滤规则语言，用于指定只将符合某种光线路径的光照贡献输出到对应 AOV；`C` 表示所有路径（Beauty），`CD` 表示相机→漫反射路径（直接漫反射）；配合 `LPE tag` 可进一步过滤"只来自某盏灯的贡献"，对应 AOV 通道自动命名为 `C_Key`、`C_Fill` 等，合成时可单独控制每盏灯的强弱
+- `render light geometry`：勾选后灯光的几何体形状会作为可见对象出现在渲染中（如面积光的矩形、球形等直接可见）；用于调试高光强度、在 IPR 渲染中辅助灯光摆放
 - `sun`模式
   - distant light `options`中的`sun` `angle`越小，影子边界越锐利，反之影子边界越模糊
 

@@ -3400,7 +3400,12 @@ copy and **transform节点**
   - `out_F`的`BSDF`+`pbrphase`的`BSDF`的结果输入到`surface_output`的F通道
   - 调节反射，`scattering` `phase`为负代表光被反向折射，为正代表光被正向折射，越靠近0物体越亮
 - **computelighting节点**
-  - 将`pbr`渲染模式下的`BSDF`类型的F通道转换为`raytracing`渲染模式下的`vector`类型的`Cf`通道
+  - 对 ShaderLayer 进行拆包，并根据渲染引擎执行不同工作：在非 PBR（raytracing）模式下，使用 BSDF `F` 结合场景光照计算最终颜色 `Cf`（并叠加自发光 `Ce`）；在 PBR 模式下不做任何计算，直接将 `F` 透传给渲染引擎自行处理，`Cf` 输出此时不参与渲染；两种模式下无需手动切换，节点自动适配
+    - ShaderLayer：Houdini 着色系统中的结构体，将三个着色分量打包为一个整体传递：`F`（BSDF，描述光线散射方式）、`Of`（不透明度）、`Ce`（自发光颜色）；上游着色器节点（如 **volumeshadercore**、**principledshader** 等）通过 `layer` 输出端输出该结构体，下游节点通过接收 `layer` 一次性获得全部分量，无需分别连线；**computelighting节点** 负责将其拆包，提取各分量分别处理后送入 **Output Variables and Parameters节点** 完成最终输出
+  - 输出端
+    - `Cf`：计算后的最终表面颜色（computed final color），在非 PBR（raytracing）模式下由 BSDF 与场景光照计算得出，同时叠加自发光 `Ce`；在 PBR 模式下此输出不参与计算，保持未使用；需接入 **Output Variables and Parameters节点** 的 `Cf` 输入
+    - `out_Of`：不透明度输出，直接透传自输入的 `Of` 或 `layer` 中的 `Of` 分量；需接入 **Output Variables and Parameters节点** 的 `Of` 输入
+    - `out_F`：BSDF 输出，在 PBR 模式下将输入的 BSDF `F` 直接透传（PBR 引擎自行用它计算光照），在非 PBR 模式下不参与计算；需接入 **Output Variables and Parameters节点** 的 `F` 输入
 - **uvtriplanarproject节点**
   - 将路径对应的图片朝着x/y/z轴投射到物体表面，和`uv`无关，不计算`uv`属性
   - 每个轴向的`mark` `sharpness`控制边缘的锐度；`tint` with `color`辅助显示投射图片的位置；`angle`控制图片的旋转角度；`scale`控制图片的缩放
@@ -3919,7 +3924,7 @@ importpoint/primitive/vertex/**detailattribute节点**
   - **principledshadercore节点**无法渲染`fog`
   - 输出端
     - `layer`：着色器层输出，接入分层材质系统（如 **layermix节点**）用于多层叠加合成
-    - `F`：最终颜色输出（Final color），体积的主色彩结果，通常接入 **computelighting节点** 或直接作为材质输出
+    - `F`：BSDF 输出（Bidirectional Scattering Distribution Function，双向散射分布函数），描述光线与体积的散射/反射方式；并非最终颜色，需接入 **computelighting节点** 后才能计算出最终颜色 `Cf`
     - `Of`：不透明度输出（Opacity float），控制体积的透射/遮挡程度
     - `Ce`：自发光颜色输出（Color emission），将 `emission color × emission scale` 的结果向下游传递
 - **computelighting节点**

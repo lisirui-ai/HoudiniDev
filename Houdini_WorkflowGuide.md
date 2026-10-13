@@ -2235,6 +2235,62 @@ copy and **transform节点**
   - `channels`：烘焙写入的通道（默认 `Displacement in RGB`，将 xyz 位移分别写入 R/G/B 通道）
   - `raster depth`：输出图像的位深（默认 `32 Bit Floating Point`，保留完整精度）
 
+**oceanspectrum节点**
+
+- 生成描述海浪形态的频谱体积场，是海洋模拟的数据源；输出供 **oceanevaluate节点**（SOP 几何体置换）和 **oceansurface节点**（渲染时置换）读取；多个 **oceanspectrum节点** 可通过 **merge节点** 叠加，实现多层海浪混合
+- 顶部参数
+  - `resolution exponent`：频谱分辨率（以 2 的幂次表示，默认 7 = 128×128）；值越大频谱细节越丰富，内存和计算量成倍增加
+  - `grid size`：频谱覆盖的世界空间尺寸（单位：米，默认 50）；决定海浪的空间重复周期，值越大单个波纹越大
+  - `grid center`：频谱网格的世界空间中心位置（默认 0, 0）
+  - `depth`：水深（单位：米，默认 3000）；影响波速和波形，浅水时长波被抑制，仅 TMA 频谱类型有效
+  - `gravity`：重力加速度（默认 9.8 m/s²）；影响波速和波长，通常保持默认
+  - `seed`：随机种子（默认 0）；不同种子生成不同的随机相位分布，保持场景可重复性
+  - `time offset`：时间偏移（默认 0）；将整体波浪动画提前或延后
+  - `time scale`：时间缩放（默认 1）；大于 1 加快波浪运动，小于 1 减慢
+  - `loop over time`：启用时间循环（默认关闭）；开启后波浪动画在 `loop period` 帧后无缝重复，适合制作循环海洋动画
+    - `loop period`：循环周期（帧数，默认 10，仅 `loop over time` 开启时生效）
+- Wind 子选项卡：风场参数，决定海浪的基本形态
+  - `spectrum type`：频谱物理模型（默认 `TMA`）；`Phillips` = 经典无限深水模型；`JONSWAP` = 有限fetch海域模型；`TMA` = 考虑水深的近岸模型
+  - `direction`：风向角度（度，默认 0 = 正 X 方向）；控制主波浪传播方向
+  - `speed`：风速（m/s，默认 5）；值越大波浪越高、波长越长；是控制海况最直观的参数
+  - `swell`：涌浪系数（默认 0）；增大后垂直于风向的横向波浪成分被抑制，波浪方向性更强，模拟远处风场传来的长涌浪
+  - `fetch (km)`：风区长度（km，默认 300）；风吹过水面的距离，值越大波浪能量积累越充分、波高越大；仅 JONSWAP/TMA 模型有效
+  - `chop`：浪尖尖锐度（默认 0.7）；增大后波峰变尖、形成"choppy"翻滚感；过大（>1）会导致波浪自相交产生破碎伪影
+- Amplitude 子选项卡：振幅整体控制
+  - `normalize`：归一化振幅（默认勾选）；使频谱振幅与 `reference wind` 对齐，跨不同风速设置保持一致的 `scale` 含义
+  - `reference wind`：归一化参考风速（默认 10 m/s）；`normalize` 开启时，此风速下 `scale = 1` 对应"标准"波高
+  - `scale`：整体振幅缩放（默认 3）；直接倍增所有频率的波高，是控制波浪大小最快捷的参数
+  - `random distribution`：随机相位的分布方式（默认 `Gaussian`）；影响波浪细节的统计特性
+  - `min wavelength`：最小波长下限（默认 0，即不过滤）；过滤掉短于此值的高频波纹
+  - `filter above resolution` / `filter below resolution`：按频谱分辨率过滤高频/低频成分（默认关闭）
+  - `remap amplitude`：启用振幅重映射曲线（默认关闭）；开启后可用 `amplitude ramp` 对不同波长的振幅进行自定义调整
+    - `max remap resolution`：重映射曲线覆盖的最大频谱分辨率
+    - `amplitude ramp`：波长→振幅倍增的映射曲线
+- Wave Instancing 子选项卡：将输入点作为波浪实例化锚点，在各点位置叠加独立的局部波浪（需在输入端 0 连接点几何体）
+  - `radius`：每个实例波浪的影响半径（默认 20）；`variance`：半径的随机方差（默认 5）
+  - `rotation`：实例波浪的旋转角度（默认 0）；`variance`：旋转方差（默认 10）
+  - `amplitude`：实例波浪的振幅（默认 0.8）；`variance`：振幅方差（默认 0.2）
+  - `offset`：实例波浪的空间偏移（默认 0）；`variance`：偏移方差（默认 1）
+  - `wavelength`：实例波浪的波长（默认 10，启用后生效）；`variance`：波长方差（默认 8）
+  - `wave chop`：实例波浪的 chop 值（默认 0.5，启用后生效）
+  - `rolloff`：实例波浪从中心到边缘的衰减速度（默认 5）；值越大边缘衰减越快
+  - `seed`：实例随机种子（默认 0）
+  - `point configuration`：输入点的配置读取方式（默认 `Auto Detect`）
+- Mask 子选项卡：对频谱振幅应用空间遮罩，限定海浪出现/消失的区域
+  - `type`：遮罩类型（默认 `Suppression` = 抑制，遮罩区域内波浪被压制；`Contribution` = 贡献，只在遮罩区域内有波浪）
+  - `add noise`：在遮罩基础上叠加噪波，使边界更自然（默认关闭）
+    - `size`：噪波尺寸（默认 20, 20）；`roughness`：噪波粗糙度（默认 0.5）；`turbulence`：噪波迭代层数（默认 3）
+    - `direction`：噪波运动方向（默认 0）；`speed`：噪波运动速度（默认 5）；`pulse length`：噪波脉冲长度（默认 5）
+    - `offset`：噪波空间偏移（默认 0, 0, 0）
+    - `input range`：将遮罩体积的值映射到输出的输入范围（默认 -0.8～0.8）
+    - `output range`：遮罩映射的输出范围（默认 0～1）
+  - `blend with spectrum`：将遮罩与频谱混合（默认关闭）
+- Visualization 子选项卡：在视窗中可视化频谱振幅分布（仅调试用，不影响输出）
+  - `visualize`：可视化模式（默认 `None`，关闭）；可选振幅分布等模式
+  - `visualization ramp`：可视化颜色映射（默认 `Infra-Red`）
+  - `visualization resolution`：可视化显示分辨率（默认 7）
+  - `visualization range`：可视化值域范围（默认 -0.001～0.001）
+
 ## dop
 
 **solver节点**

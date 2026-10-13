@@ -2208,22 +2208,31 @@ copy and **transform节点**
   - `cusp direction attribute`：写出 `cuspdir` （浪尖方向）属性
   - `visualize cusp`：在视窗中可视化 `cusp` 值（调试用）
   - `attribute ramp`：将 `cusp` 值通过颜色渐变可视化
-- Points 子选项卡：控制采样点的输出（用于粒子/白水发射）
-  - `surface SDF`：输出液面的有符号距离场（SDF）
-  - `height field`：输出高度场
-  - `method`：点生成方式（`Point Sampling` = 在液面上均匀采样生成点）
-  - `surface depth`：采样点在液面以下的深度范围
-  - `smoothing`：对采样点位置进行平滑
-  - `velocity`：在采样点上写出速度属性
-  - `hydrostatic pressure`：写出流体静压强属性
-  - `size` / `center`：采样区域的包围盒尺寸和中心位置
-  - `uniform sampling` / `uniform sampling divs`：均匀采样模式和采样格子数
-  - `max extrap cells`：SDF 向外延伸的最大体素数
-  - `max displacement`：最大位移估算（用于确定 bounding box，默认自动估算）
-  - Rest Volumes 子区域：输出静止状态的体积场，供材质 rest 贴图使用
-    - `rest displacement`：输出静止位移体积
-    - `rest velocity`：输出静止速度体积
-    - `rest derivatives`：输出静止导数体积
+- Volumes 子选项卡：生成体积场输出（供 **oceanvolume节点** 材质或后续模拟使用）
+  - `surface SDF`：生成名为 `surface` 的 SDF 体积场，描述液面形态
+  - `height field`：生成名为 `height` 的 2D 高度场体积，可与 HeightField 系列节点配合使用
+  - `method`：体积生成方式；`Point Sampling`（快速但精度低）/ `Projection`（慢但精度高，大分辨率时内存消耗大）
+  - `surface depth`：SDF 体积表示的液面深度（配合 `depth falloff` 设置）
+  - `smoothing`：`Point Sampling` 模式下点的采样半径，值越大越平滑但越慢
+  - `velocity`：生成名为 `vel` 的速度体积场
+  - `hydrostatic pressure`：生成名为 `pressure` 的流体静压强体积（基于水深和高度场计算）
+    - `gravity`：静压强计算用的重力加速度；`mass density`：液体密度
+  - `size` / `center`：生成体积的世界空间尺寸和中心位置
+  - `uniform sampling` / `uniform sampling divs`：均匀采样模式（保证体素为正方体）和该轴的体素数量
+  - `max extrap cells`：速度体积向液面外延伸的体素数（默认 2）
+  - `max displacement`：最大位移估算帧（勾选后只在指定帧估算一次最大位移以确定 bounding box，快速且通常足够准确；取消勾选则每帧重新计算，适合动画振幅或快速变化的实例几何体）
+  - Rest Volumes 子区域：输出静止坐标系下的体积场，供渲染时材质在 rest 空间中采样
+    - `rest displacement`：输出位移体积（采样位置在静止坐标下）
+    - `rest velocity`：输出速度体积（采样位置在静止坐标下）
+    - `rest derivatives`：输出位移的空间导数体积（采样位置在静止坐标下）
+- Points 子选项卡：在液面与指定包围盒的交集体积内生成带速度属性的粒子点（用于驱动白水/泡沫模拟）
+  - `points from volume`：启用后在体积交集中生成点（默认关闭）
+  - `point separation`：点之间的最小间距（初始配置下）
+  - `jitter seed`：点位置抖动的随机种子；`jitter scale`：抖动幅度缩放
+  - `min rest depth` / `max rest depth`：相对液面的最小/最大点深度范围
+  - `box size`：生成点的包围盒尺寸；`box center`：包围盒中心位置
+  - `pad scale`：静止配置的填充缩放（极端位移时可能需要增大，默认通常足够）
+  - `create output group`：将生成的点放入指定组；`output group`：组名称
 - Export to Texture 子选项卡：将置换数据烘焙输出为贴图文件
   - `save to disk`：执行烘焙，将位移数据写出到图片文件
   - `valid frame range`：烘焙的帧范围模式（`Save Frame Range` = 按起止帧批量烘焙）

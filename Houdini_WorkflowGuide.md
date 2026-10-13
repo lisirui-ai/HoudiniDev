@@ -4395,7 +4395,7 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `scattering phase`：散射方向（默认 0.5）；基于 Henyey-Greenstein 模型，正值 = 前向散射（光穿透性强，水体通透）；海水通常有较强前向散射，默认 0.5 比 **uniformvolume** 的 0 更偏前向
   - `volume samples`：体积采样次数（默认 1）；值越高渲染越细腻但越慢
 - Displacement 选项卡（与海洋频谱联动，参数含义与 **oceansurface节点** 的 Displacement 选项卡完全相同）
-  - `spectrum geometry`：提供波谱数据的 SOP 路径；体积材质同样需要与液面形态同步，否则水体体积与液面网格会错位
+  - `spectrum geometry`：提供波谱数据的 SOP 路径；必须与 **oceansurface节点** 的 `spectrum geometry` 填写相同的频谱路径，两者使用同一频谱才能产生相同的位移，否则液面网格与水体体积的置换结果不一致，波峰处液面与体积之间出现缝隙或穿插
   - `mask geometry`：遮罩 SOP 路径，限定置换生效区域
   - `anti-alias blur`：抗锯齿模糊量（默认 0.5）
   - `downsample`：频谱降采样级别（默认 0）

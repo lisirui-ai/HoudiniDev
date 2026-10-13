@@ -2290,7 +2290,7 @@ copy and **transform节点**
   - `rolloff`：实例波浪从中心到边缘的衰减速度（默认 5）；值越大边缘衰减越快
   - `seed`：实例随机种子（默认 0）
   - `point configuration`：输入点的配置读取方式（默认 `Auto Detect`）
-- Mask 子选项卡：对频谱振幅应用空间遮罩，限定海浪出现/消失的区域
+- Mask 子选项卡：对频谱振幅应用空间遮罩，控制不同区域的海浪强弱
   - `type`：遮罩类型（默认 `Suppression` = 抑制，遮罩区域内波浪被压制；`Contribution` = 贡献，只在遮罩区域内有波浪）
   - `add noise`：在遮罩基础上叠加噪波，使边界更自然（默认关闭）
     - `size`：噪波尺寸（默认 20, 20）；`roughness`：噪波粗糙度（默认 0.5）；`turbulence`：噪波迭代层数（默认 3）
@@ -2300,7 +2300,11 @@ copy and **transform节点**
     - `output range`：遮罩映射的输出范围（默认 0～1）
   - `blend with spectrum`：将遮罩与频谱混合（默认关闭）
 - Visualization 子选项卡：在视窗中可视化频谱振幅分布（仅调试用，不影响输出）
-  - `visualize`：可视化模式（默认 `None`，关闭）；可选振幅分布等模式
+  - `visualize`：可视化模式（默认 `None`，关闭）；可选：
+    - `None`：关闭可视化
+    - `Spectrum`：可视化频谱的振幅分布，低频波在平面中心、高频波在边缘
+    - `Wave Instancing`：可视化 Wave Instancing 参数的效果
+    - `Mask`：可视化遮罩场（含噪波）的分布
   - `visualization ramp`：可视化颜色映射（默认 `Infra-Red`）
   - `visualization resolution`：可视化显示分辨率（默认 7）
   - `visualization range`：可视化值域范围（默认 -0.001～0.001）

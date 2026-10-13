@@ -2321,6 +2321,36 @@ copy and **transform节点**
   - `visualization resolution`：可视化显示分辨率（默认 7）
   - `visualization range`：可视化值域范围（默认 -0.001～0.001）
 
+**rop geometry output节点**
+
+- 将 SOP 几何体写出为磁盘文件序列（如 `.bgeo.sc`）的 ROP 节点；在 SOP 网络内部使用，可直接在 SOP 层触发几何体写出，无需跳转到 ROP 网络
+- 顶层按钮
+  - `save to disk`：立即执行缓存写出（前台阻塞）
+  - `save to disk in background`：在后台进程中执行写出，不阻塞当前 Houdini 会话
+  - `controls...`：打开渲染控制面板
+- 参数
+  - `valid frame range`：写出的帧范围模式
+    - `Render Current Frame`：仅写出当前帧（默认）；`Start/End/Inc` 参数变灰
+    - `Render Frame Range`：按 `Start/End/Inc` 指定范围批量写出
+    - `Render Frame Range Only (Strict)`：严格按帧范围写出，不受其他 ROP 依赖链影响
+  - `start/end/inc`：批量写出的起始帧、结束帧、步长（默认 1～240，步长 1；仅帧范围模式下生效）
+  - `render with take`：使用指定的 Take 设置写出（默认 `(Current)`）
+  - `SOP path`：要写出的 SOP 节点路径；留空则使用节点的输入端几何体
+  - `output file`：输出文件路径（默认 `$HIP/geo/$HIPNAME.$OS.$F.bgeo.sc`；`$OS` 为节点名，`$F` 为帧编号）
+  - `transform`：写出前对几何体应用的变换（默认 `None`）
+  - `create intermediate directories`：自动创建路径中不存在的目录（默认勾选）
+  - `initialize simulation OPs`：写出前重置所有模拟节点到初始状态（默认关闭；用于确保缓存从第 1 帧重新解算）
+  - `alfred style progress`：以 Alfred 格式输出进度信息（用于农场渲染系统，默认关闭）
+  - `report network use`：记录网络 I/O 使用情况（默认关闭）
+  - `save retries`：写出失败时的重试次数（默认 0）
+  - `save in background`：`save to disk` 按钮触发时在后台执行（默认勾选）
+- 脚本钩子（各项可选 `Hscript` 或 `Python`）
+  - `pre-render script`：整个写出任务开始前执行一次
+  - `pre-frame script`：每帧写出前执行
+  - `post-frame script`：每帧写出后执行
+  - `post-write script`：文件写入磁盘完成后执行
+  - `post-render script`：整个写出任务结束后执行一次
+
 ## dop
 
 **solver节点**

@@ -3702,7 +3702,7 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `search radius`：搜索半径；只返回与 `location` 距离在此半径内的点（默认 0.1）
   - `max points`：最多返回的点数量；在半径内按距离从近到远取前 N 个（默认 10）
 - 输出
-  - `handle`：点云句柄，传入 **point cloud import节点** 以读取搜索到的各点属性
+  - `result`（`inta`，整型数组）：搜索到的点的索引数组，传入 **point cloud import节点** 以读取各点的属性
 
 ## 渲染
 

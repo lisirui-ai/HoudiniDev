@@ -4384,6 +4384,24 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `fresnel blending`：启用菲涅耳混合，视角越侧反射越强、折射越弱（默认勾选，符合物理）
   - `inside IOR`：水体内部折射率（默认 1.33，水的真实值）；`outside IOR`：外部介质折射率（默认 1，空气）
 
+**oceanvolume节点**
+
+- 专用于海洋水体内部体积渲染的材质节点；配合 **oceansurface节点** 使用——**oceansurface**负责液面表面的反射/折射着色，**oceanvolume** 负责水体内部的散射/颜色/透光性；参数与 **uniformvolume节点** 高度相似，额外增加了与海洋频谱联动的 `Displacement` 选项卡
+- 顶层选项卡（体积着色）
+  - `smoke color`：水体散射颜色（默认绿蓝色 ~0.45, 0.65, 0.54）；控制光在水体内部散射呈现的颜色，模拟水的自然色调
+  - `use point color`：将几何体 `Cd` 属性与 `smoke color` 相乘（默认勾选）；可通过 VDB 中的 `Cd` 字段驱动局部水色变化
+  - `cloud density`：体积密度倍增（默认 0.3）；值越大水体越厚实不透明，越小越清澈透明；海洋水体通常比烟雾稀薄，默认值低于 **uniformvolume** 的 1.0
+  - `shadow density multiplier`：阴影密度倍增（默认 1）；独立控制水体投射阴影的浓度，与 `cloud density` 解耦
+  - `scattering phase`：散射方向（默认 0.5）；基于 Henyey-Greenstein 模型，正值 = 前向散射（光穿透性强，水体通透）；海水通常有较强前向散射，默认 0.5 比 **uniformvolume** 的 0 更偏前向
+  - `volume samples`：体积采样次数（默认 1）；值越高渲染越细腻但越慢
+- Displacement 选项卡（与海洋频谱联动，参数含义与 **oceansurface节点** 的 Displacement 选项卡完全相同）
+  - `spectrum geometry`：提供波谱数据的 SOP 路径；体积材质同样需要与液面形态同步，否则水体体积与液面网格会错位
+  - `mask geometry`：遮罩 SOP 路径，限定置换生效区域
+  - `anti-alias blur`：抗锯齿模糊量（默认 0.5）
+  - `downsample`：频谱降采样级别（默认 0）
+  - `time`：频谱评估的时间偏移（默认 0）
+  - `displacement bound`：置换幅度上限（默认 2）；需与 **oceansurface节点** 保持一致，否则体积边界与液面不匹配
+
 
 # 其他
 

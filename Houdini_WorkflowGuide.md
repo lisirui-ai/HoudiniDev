@@ -877,11 +877,34 @@ copy and **transform节点**
 - 将输入端1的属性按距离传递到输入端0的几何体上
   - 输入端0：目标几何体（接收属性的模型）
   - 输入端1：源几何体（提供属性的模型）
-- `pointattributes` / `primitiveattributes` / `vertexattributes` / `detailattributes`：分别填写要传递的点/面/顶点/detail 层级属性名，多个属性用空格分隔，留空则不传递该层级
-- `distancethreshold`（距离阈值）：目标几何体上的点/面若与源几何体的最近距离超过该值，则不接收属性（属性值保持原值或为默认值）；阈值越大，传递范围越广
-- `kernel`：插值核函数，控制距离对属性权重的影响方式
-  - `metaball`（默认）：基于距离平滑衰减插值，距离越近权重越大
-  - `none`：直接取最近点的属性值，无插值
+- `source group`：仅从源几何体中指定组内的元素提取属性；留空则使用全部元素
+- `source group type`：指定 `source group` 的元素层级（Primitives / Points / Vertices / Edges）
+- `destination group`：仅将属性写入目标几何体中指定组内的元素；留空则写入全部元素
+- `destination group type`：指定 `destination group` 的元素层级
+- Attributes 选项卡：选择要传递的属性层级及属性名
+  - `detail`：勾选后传递 detail 层级属性，右侧填写属性名（留空传递全部，`*` 为通配符）
+  - `primitives`：勾选后传递面层级属性（默认勾选）
+  - `points`：勾选后传递点层级属性（默认勾选）
+  - `vertices`：勾选后传递顶点层级属性
+  - `copy local variables`：同时复制源几何体中与属性关联的局部变量（Local Variables）映射关系（默认勾选）
+  - `allow P attribute`：允许传递 `P`（位置）属性；默认不勾选以防止意外移动目标几何体顶点
+- Conditions 选项卡：控制距离衰减和采样方式
+  - `kernel function`：插值核函数，控制距离对属性权重的衰减曲线形状；可选：
+    - `Wyvill model`：C² 连续平滑衰减
+    - `Elendt model`（默认）：常用的标准衰减模型，兼顾平滑与效率
+    - `Blinn model`：Blinn 幂函数衰减
+    - `Links model`：分段线性衰减
+    - `RenderMan model`：RenderMan 风格衰减
+    - `Hart model`：Hart 衰减
+    - `Exponential Bump`：指数型凸起衰减，中心权重高、边缘急速衰减
+    - `Uniform Model`：均匀权重，范围内所有采样点权重相等（无距离衰减）
+  - `kernel radius`：核函数的有效半径（世界空间单位）；源几何体上超出此半径的元素不参与加权计算（默认 10）
+    - 以目标元素为圆心，半径 `kernel radius` 在源几何体上画圆；圆内的源元素参与加权平均，圆外的源元素忽略
+  - `max sample count`：每个目标元素最多采样多少个源元素参与加权平均；值越大结果越平滑但计算越慢（默认 1，即仅取最近点）
+  - `distance threshold`：勾选后启用距离上限；目标元素与源几何体最近距离超过该值时不接收属性，属性值保持原值（默认启用，值为 10）；阈值越大传递范围越广
+    - 同样以目标元素为出发点，量到源几何体最近点的距离；超过阈值则直接放弃传递（硬截断），不进入后续加权步骤；两者参考点相同（都是目标元素），区别在于 `distance threshold` 是门槛判断，`kernel radius` 是采样范围划定
+  - `blend width`：在距离阈值边界附近创建渐变过渡区，避免属性值在边界处突变；设为 0 则无过渡（默认 0）
+  - `uniform bias`：仅在 `Uniform Model` 核函数下生效，控制均匀权重的偏置系数（默认 0.5）
 - 典型用途：
   - 将高精度模型的 `@Cd`（颜色）/`@N`（法线）/自定义属性烘焙到低精度模型上
   - 配合 **nearpoint** / **xyzdist** 函数的节点版替代方案，无需写 `vex`

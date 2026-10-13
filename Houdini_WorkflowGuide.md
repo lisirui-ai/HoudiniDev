@@ -2617,9 +2617,8 @@ copy and **transform节点**
       - 横轴为曲线位置，与`individualforces`选项中的`ramp`图的横轴相同
 
 - **gravityforce节点**
-  - 添加重力场
-  - 前连**popsolver节点**/所有**solver节点**的**merge节点**
-  - 类似**popdrag节点**
+  - 添加重力场，产生重力效果
+  - 前连所有**solver节点**
 
 - **popreplicate节点**
   - 根据输入的粒子生成新的发射源，发射源随着粒子的运动而运动，是固定的

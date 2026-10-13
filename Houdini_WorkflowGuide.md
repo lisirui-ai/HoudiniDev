@@ -2213,6 +2213,7 @@ copy and **transform节点**
   - `height field`：生成名为 `height` 以及 `mask` 的 2D 高度场体积，可与 **HeightField** 系列节点配合使用
     - `height`：每个体素存储该位置的波浪高度值（Y 方向位移量），是 **HeightField** 系列节点标准的高度层
     - `mask`：对应 **oceanspectrum节点** 输出的振幅遮罩场，表示该位置的海浪振幅缩放权重（0 = 完全抑制，1 = 全振幅）；**HeightField** 系列节点通过 `mask` 层控制操作的作用范围
+    - 勾选后，在 SOP 视窗（scene view）中会以高度场形式显示 `height` 体积的波浪起伏形态，便于直接在视窗中观察高度场效果
   - `method`：体积生成方式；`Point Sampling`（快速但精度低）/ `Projection`（慢但精度高，大分辨率时内存消耗大）
   - `surface depth`：SDF 体积表示的液面深度（配合 `depth falloff` 设置）
   - `smoothing`：`Point Sampling` 模式下点的采样半径，值越大越平滑但越慢

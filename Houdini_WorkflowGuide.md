@@ -2203,11 +2203,11 @@ copy and **transform节点**
   - `deform input geometry`：将波浪位移应用到输入几何体的顶点上（默认勾选）；关闭则仅计算属性，不移动顶点
   - `preview grid`：在视窗中显示频谱的预览网格（仅用于调试）
   - `point velocity`：在置换后的点上写出速度属性 `v`
-  - `UV attribute`：写出 UV 属性，供后续贴图采样使用
-  - `cusp attribute`：写出 cusp（浪尖）属性，表示波浪破碎/尖锐程度，可用于驱动泡沫生成
-  - `cusp direction attribute`：写出 cusp 方向属性
-  - `visualize cusp`：在视窗中可视化 cusp 值（调试用）
-  - `attribute ramp`：将 cusp 值通过颜色渐变可视化
+  - `UV attribute`：写出 `UV` 属性，供后续贴图采样使用
+  - `cusp attribute`：写出 `cusp`（浪尖）属性，表示波浪破碎/尖锐程度，可用于驱动泡沫生成
+  - `cusp direction attribute`：写出 `cuspdir` （浪尖方向）属性
+  - `visualize cusp`：在视窗中可视化 `cusp` 值（调试用）
+  - `attribute ramp`：将 `cusp` 值通过颜色渐变可视化
 - Points 子选项卡：控制采样点的输出（用于粒子/白水发射）
   - `surface SDF`：输出液面的有符号距离场（SDF）
   - `height field`：输出高度场

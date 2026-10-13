@@ -2187,6 +2187,54 @@ copy and **transform节点**
   - `basepadding`（属于第二输出的底部延伸）：底部最外圈的额外扩展量，以分数表示，`0.1`即扩展`10%`
   - `baselift`（属于第二输出的底部延伸）：将底部最外圈边缘向上抬升的距离，配合`basepadding`可构建碗状碰撞底座
 
+**oceanevaluate节点**
+
+- 读取 **oceanspectrum节点** 生成的频谱体积，对输入几何体或点云执行海浪位移/速度/cusp 等属性的计算；是在 SOP 层将海浪形态"烘焙"到几何体上的核心节点
+  - 输入端 0：被置换的几何体（如海面网格平面）
+  - 输入端 1：**oceanspectrum节点** 的输出（频谱体积，可 merge 多个频谱层叠加）
+- 顶部参数
+  - `time`：评估频谱的时间（默认绑定 `$T`，随时间轴自动推进）；手动设置可冻结某一时刻的波浪形态
+  - `downsample`：评估前对频谱降采样的级别（默认 0，不降采样）；增大可提速，代价是损失高频波浪细节
+  - `max resolution`：频谱评估的最大分辨率上限（勾选后启用）
+  - `depth falloff`：随深度衰减波浪幅度的模式（默认 `None`）；可选线性/指数衰减，用于模拟浅水区域波浪减弱
+    - `falloff scale`：衰减缩放系数；`max depth`：衰减生效的最大深度；`depth divisions`：深度方向的采样层数
+  - `solo layer`：仅评估指定编号的频谱层（用于调试单层频谱效果，0 = 全部层）
+- Geometry 子选项卡：控制对输入几何体的置换输出
+  - `deform input geometry`：将波浪位移应用到输入几何体的顶点上（默认勾选）；关闭则仅计算属性，不移动顶点
+  - `preview grid`：在视窗中显示频谱的预览网格（仅用于调试）
+  - `point velocity`：在置换后的点上写出速度属性 `v`
+  - `UV attribute`：写出 UV 属性，供后续贴图采样使用
+  - `cusp attribute`：写出 cusp（浪尖）属性，表示波浪破碎/尖锐程度，可用于驱动泡沫生成
+  - `cusp direction attribute`：写出 cusp 方向属性
+  - `visualize cusp`：在视窗中可视化 cusp 值（调试用）
+  - `attribute ramp`：将 cusp 值通过颜色渐变可视化
+- Points 子选项卡：控制采样点的输出（用于粒子/白水发射）
+  - `surface SDF`：输出液面的有符号距离场（SDF）
+  - `height field`：输出高度场
+  - `method`：点生成方式（`Point Sampling` = 在液面上均匀采样生成点）
+  - `surface depth`：采样点在液面以下的深度范围
+  - `smoothing`：对采样点位置进行平滑
+  - `velocity`：在采样点上写出速度属性
+  - `hydrostatic pressure`：写出流体静压强属性
+  - `size` / `center`：采样区域的包围盒尺寸和中心位置
+  - `uniform sampling` / `uniform sampling divs`：均匀采样模式和采样格子数
+  - `max extrap cells`：SDF 向外延伸的最大体素数
+  - `max displacement`：最大位移估算（用于确定 bounding box，默认自动估算）
+  - Rest Volumes 子区域：输出静止状态的体积场，供材质 rest 贴图使用
+    - `rest displacement`：输出静止位移体积
+    - `rest velocity`：输出静止速度体积
+    - `rest derivatives`：输出静止导数体积
+- Export to Texture 子选项卡：将置换数据烘焙输出为贴图文件
+  - `save to disk`：执行烘焙，将位移数据写出到图片文件
+  - `valid frame range`：烘焙的帧范围模式（`Save Frame Range` = 按起止帧批量烘焙）
+  - `start/end/inc`：烘焙的起始帧、结束帧、步长（默认 1～240，步长 1）
+  - `render with take`：使用指定的 Take 设置进行烘焙
+  - `output file`：输出文件路径（默认 `$HIP/maps/ocean_displace.layer_$OCEANLAYER.$F4.pic`；`$OCEANLAYER` 为频谱层编号，`$F4` 为四位帧编号）
+  - `create intermediate directories`：自动创建输出路径中不存在的目录（默认勾选）
+  - `bake all displacements to one layer`：将所有频谱层合并烘焙为单张贴图（默认关闭，每层单独输出）
+  - `channels`：烘焙写入的通道（默认 `Displacement in RGB`，将 xyz 位移分别写入 R/G/B 通道）
+  - `raster depth`：输出图像的位深（默认 `32 Bit Floating Point`，保留完整精度）
+
 ## dop
 
 **solver节点**

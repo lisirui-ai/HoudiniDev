@@ -2238,6 +2238,15 @@ copy and **transform节点**
 **oceanspectrum节点**
 
 - 生成描述海浪形态的频谱体积场，是海洋模拟的数据源；输出供 **oceanevaluate节点**（SOP 几何体置换）和 **oceansurface节点**（渲染时置换）读取；多个 **oceanspectrum节点** 可通过 **merge节点** 叠加，实现多层海浪混合
+- 输入端
+  - 输入端 0：非体积点（点几何体）：作为波浪实例化锚点，在各点位置叠加局部波浪（对应 Wave Instancing 子选项卡）
+  - 输入端 1：遮罩体积（Houdini 体积或 VDB fog）：作为空间振幅遮罩，限定海浪的强弱区域（对应 Mask 子选项卡）；不连接则全区域振幅不受遮罩限制
+- 输出端
+  - 输出四个命名体积场，供 **oceanevaluate节点** 或 **oceansurface节点** 读取：
+    - `phase`：每个波的相位偏移
+    - `frequency`：每个波的角频率
+    - `amplitude`：每个波的振幅；`amplitude` 体积上还附加了额外属性（如 Chop、Time Offset 等）控制评估时的行为
+    - `mask`：空间振幅遮罩场；无论是否连接遮罩体积，始终作为第四个体积输出
 - 顶部参数
   - `resolution exponent`：频谱分辨率（以 2 的幂次表示，默认 7 = 128×128）；值越大频谱细节越丰富，内存和计算量成倍增加
   - `grid size`：频谱覆盖的世界空间尺寸（单位：米，默认 50）；决定海浪的空间重复周期，值越大单个波纹越大
@@ -2250,7 +2259,7 @@ copy and **transform节点**
   - `loop over time`：启用时间循环（默认关闭）；开启后波浪动画在 `loop period` 帧后无缝重复，适合制作循环海洋动画
     - `loop period`：循环周期（帧数，默认 10，仅 `loop over time` 开启时生效）
 - Wind 子选项卡：风场参数，决定海浪的基本形态
-  - `spectrum type`：频谱物理模型（默认 `TMA`）；`Phillips` = 经典无限深水模型；`JONSWAP` = 有限fetch海域模型；`TMA` = 考虑水深的近岸模型
+  - `spectrum type`：频谱物理模型（默认 `TMA`）；`Phillips` = 经典无限深水全发展海洋模型（也称 Tessendorf），通过风向控制方向性；`TMA` = 在 Phillips 基础上增加水深和风区参数的近岸模型（也称 Encino waves/Texel-Marsen-Arsloe），低水深时表现更准确
   - `direction`：风向角度（度，默认 0 = 正 X 方向）；控制主波浪传播方向
   - `speed`：风速（m/s，默认 5）；值越大波浪越高、波长越长；是控制海况最直观的参数
   - `swell`：涌浪系数（默认 0）；增大后垂直于风向的横向波浪成分被抑制，波浪方向性更强，模拟远处风场传来的长涌浪

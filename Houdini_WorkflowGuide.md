@@ -4528,7 +4528,7 @@ v@camPos = cracktransform(0,0,0,0, @camMatrix);    // 提取相机位置
 - `abc`（Alembic）：以逐帧烘焙顶点位置的方式记录动画（顶点缓存），没有骨骼概念；读取速度快、格式开放，是 Houdini 模拟缓存和特效流程的首选格式；支持点、线、面、体积、摄像机、自定义属性等几乎所有几何数据类型；着色/灯光均不随文件传递，导入后需在目标软件中重新指定材质；跨软件互操作性最佳，是各大 DCC 软件间几何体/动画传递的行业标准
 - `obj`（Wavefront OBJ）：纯文本格式，结构极简；只存储静态多边形网格（顶点、UV、法线、面），无动画、无骨骼、无灯光；配套 `.mtl` 文件可描述基础材质颜色但几乎没有实际着色价值；格式太旧且信息量少，仅适合传递简单静态网格
 - `fbx`（FilmBox）：包含完整的骨骼绑定（Skeleton）、蒙皮权重（Skin Weight）、变形目标（Blend Shape/Morph Target）、基础灯光等数据；适合从 Maya、Blender、MotionBuilder 等软件导入带骨骼的角色；在 Houdini 中通过 `File > Import > FBX` 导入，动画部分需配合deform节点使用；着色/灯光可携带但跨软件着色器不通用（如 Maya 的 Arnold 材质在 Houdini 中无法直接还原），实际仍需重新连接贴图
-- 稀疏覆盖（Sparse Overrides）：三种格式均不支持；这是 USD（`.usd`/`.usda`/`.usdc`）格式的核心特性，允许仅记录相对于基础层的差异数据（如只覆盖某个材质参数），而无需重写整个场景文件
+- 稀疏覆盖（Sparse Overrides）：三种格式均不支持；这是 USD（Universal Scene Description，由 Pixar 开发并于 2016 年开源；`.usd`/`.usda`/`.usdc`/`.usdz`）格式的核心特性，允许仅记录相对于基础层的差异数据（如只覆盖某个材质参数），而无需重写整个场景文件
 
 体积驱动粒子比粒子驱动体积更加真实
 

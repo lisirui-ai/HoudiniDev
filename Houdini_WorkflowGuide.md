@@ -2232,7 +2232,7 @@ copy and **transform节点**
   - `points from volume`：启用后在体积交集中生成点（默认关闭）
   - `point separation`：点之间的最小间距（初始配置下）
   - `jitter seed`：点位置抖动的随机种子；`jitter scale`：抖动幅度缩放
-  - `min rest depth` / `max rest depth`：相对液面的最小/最大点深度范围
+  - `min rest depth` / `max rest depth`：相对液面的最小/最大点深度范围（世界空间单位，与场景单位一致，默认为米）；0 = 液面处，正值 = 液面以下
   - `box size`：生成点的包围盒尺寸；`box center`：包围盒中心位置
   - `pad scale`：静止配置的填充缩放（极端位移时可能需要增大，默认通常足够）
   - `create output group`：将生成的点放入指定组；`output group`：组名称

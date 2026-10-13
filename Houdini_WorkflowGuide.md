@@ -2273,7 +2273,10 @@ copy and **transform节点**
   - `scale`：整体振幅缩放（默认 3）；直接倍增所有频率的波高，是控制波浪大小最快捷的参数
   - `random distribution`：随机相位的分布方式（默认 `Gaussian`）；影响波浪细节的统计特性
   - `min wavelength`：最小波长下限（默认 0，即不过滤）；过滤掉短于此值的高频波纹
-  - `filter above resolution` / `filter below resolution`：按频谱分辨率过滤高频/低频成分（默认关闭）
+  - `filter above resolution` / `filter below resolution`：按频谱分辨率过滤高频/低频成分（默认关闭）；两者组合构成带通滤波器，主要用于多层频谱叠加时让每层只负责特定频率范围
+    - `filter above resolution`：压制高于指定分辨率才存在的高频短波纹（低通滤波）；如层 A 设为 8（256×256），则层 A 只保留分辨率 8 以下的低频涌浪
+    - `filter below resolution`：压制低于指定分辨率才存在的低频长涌浪（高通滤波）；如层 B 设为 8（256×256），则层 B 只保留分辨率 8 以上的高频细碎波纹
+    - 两层以同一分辨率值（如 8）作为分界点，一层设 `filter above`、另一层设 `filter below`，合并后覆盖全频率范围且无重叠；各层可独立施加不同遮罩/噪波而互不干扰；不叠加多层时通常无需设置
   - `remap amplitude`：启用振幅重映射曲线（默认关闭）；开启后可用 `amplitude ramp` 对不同波长的振幅进行自定义调整
     - `max remap resolution`：重映射曲线覆盖的最大频谱分辨率
     - `amplitude ramp`：波长→振幅倍增的映射曲线

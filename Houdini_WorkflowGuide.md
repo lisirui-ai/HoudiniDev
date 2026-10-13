@@ -2330,8 +2330,8 @@ copy and **transform节点**
   - `controls...`：打开渲染控制面板
 - 参数
   - `valid frame range`：写出的帧范围模式
-    - `Render Current Frame`：仅写出当前帧（默认）；`Start/End/Inc` 参数变灰
-    - `Render Frame Range`：按 `Start/End/Inc` 指定范围批量写出
+    - `Render Current Frame`：仅写出当前帧（UI默认值）；`Start/End/Inc` 参数变灰；对于 **oceanspectrum** 等输出频域数据的节点，单帧写出已足够——材质在渲染时会根据当前时间对相位求值，从单帧频谱重建出完整动画（类似逆 FFT 按时间求解）
+    - `Render Frame Range`：按 `Start/End/Inc` 指定范围逐帧写出；适合 FLIP、布料、刚体等每帧状态互不相同、无法从单帧推算的模拟结果
     - `Render Frame Range Only (Strict)`：严格按帧范围写出，不受其他 ROP 依赖链影响
   - `start/end/inc`：批量写出的起始帧、结束帧、步长（默认 1～240，步长 1；仅帧范围模式下生效）
   - `render with take`：使用指定的 Take 设置写出（默认 `(Current)`）

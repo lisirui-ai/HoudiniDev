@@ -2106,6 +2106,7 @@ copy and **transform节点**
   - `attribute radius`：属性转移时的采样平滑半径（以粒子间距为单位）；值越大属性值越平滑
   - `attribute samples`：属性转移时每个网格顶点采样的粒子数量；值越大属性（尤其是速度）越平滑，对 Geometry Velocity Blur 运动模糊渲染效果更好
   - `visualize`：在视窗中将速度或涡度以顶点颜色形式叠加显示在液面上，方便调试；可选 `velocity`（速度）或 `vorticity`（涡度）
+    - 启用后会在输出几何体上写入 `Cd`（顶点颜色）属性来承载可视化数据；若后续渲染或着色器中直接读取 `Cd`，需注意此时 `Cd` 已被可视化数据覆盖而非原始颜色
 - `filtering`选项卡（对生成的 SDF 进行平滑处理，常用于 `spherical` 模式）
   - `dilate`：先将液面向外膨胀指定体素数，填补粒子间空隙
   - `smooth`：在膨胀后对液面进行平滑迭代

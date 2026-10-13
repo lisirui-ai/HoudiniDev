@@ -4335,6 +4335,54 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `disp map width`：置换贴图宽度（默认 1）
     - `disp channel`：从贴图中提取置换值的通道（默认 Luminance 亮度）
 
+**oceansurface节点**
+
+- 专用于海洋液面渲染的材质节点，包含 `Ocean Shader`、`Displacement`、`Settings` 三个顶层选项卡
+- Ocean Shader 选项卡（着色）
+  - Waves 子选项卡：控制浪花/水体整体着色
+    - `wave min/max height`：将浪高（Min～Max 范围）映射到 `Diffuse Color` 颜色渐变和 `Diffuse Ramp` 亮度渐变的横轴；浪高低于 Min 对应渐变左端，高于 Max 对应右端
+      - `diffuse intensity`：漫反射整体强度（默认 0.05）；海水漫反射很弱，通常保持低值
+      - `diffuse color`：按浪高从低到高映射的颜色渐变；默认从深蓝（波谷）到浅青白（波峰）
+      - `diffuse ramp`：按浪高映射的亮度倍增曲线；控制不同浪高区域的明暗分布
+    - Reflections 子选项卡：反射设置（与 **basic liquid** 材质的 Reflect 选项卡参数含义相同）
+    - Refractions 子选项卡：折射设置（与 **basic liquid** 材质的 Refract 选项卡参数含义相同）
+  - Foam 子选项卡：泡沫渲染
+    - `foam particles`：泡沫粒子的 SOP 路径，将白水粒子几何体连接到此处
+    - `particle radius scale`：泡沫粒子的渲染半径缩放（默认 1）
+    - `particle alpha`：泡沫粒子整体透明度（默认 0.1）；数值小使泡沫半透明，叠加后形成自然的泡沫感
+    - `particle alpha ramp`：每个泡沫粒子渲染为圆形精灵（Sprite），横轴为从该粒子自身圆心到边缘的归一化距离（0 = 圆心，1 = 由 `particle radius scale` 决定的边缘），纵轴为透明度；通过此曲线控制单个粒子从中心到边缘的透明度渐变，使粒子边缘柔化而非硬边
+    - Diffuse 子选项卡
+      - `streak intensity`：浪尖拖尾条纹的强度（默认 0.5）；`streak color`：条纹颜色（默认白色）
+      - `whitecap intensity`：白浪帽（浪峰白色泡沫）的强度（默认 0.5）；`whitecap color`：白浪帽颜色（默认白色）
+    - Whitecaps 子选项卡
+      - `foam sharpness`：泡沫边缘锐度（默认 0.8）；值越大泡沫边界越清晰，值越小边缘越柔和
+      - `filter scale`：泡沫纹理的过滤缩放（默认 0.5）
+      - `frequency`：泡沫噪波频率（默认 1.5，四轴 xyzw 可分别设置）；值越大纹理越细碎
+      - `offset`：泡沫纹理的偏移（四轴）
+      - `streak direction`：条纹方向偏移（默认 0）；`streak bias`：条纹偏置（默认 0）
+    - Bubbles / Foam Displacement 子选项卡：气泡与泡沫置换（进阶参数，控制泡沫的三维立体感）
+- Displacement 选项卡（海面置换）
+  - `spectrum geometry`：提供波谱数据的 SOP 路径（通常连接 **oceanspectrum节点** 的输出）
+  - `mask geometry`：提供遮罩的 SOP 路径，限定置换生效区域
+  - `anti-alias blur`：置换贴图的抗锯齿模糊量（默认 0.5）
+  - `downsample`：置换计算前对频谱降采样级别（默认 0，不降采样）；增大可提速，代价是损失高频波浪细节
+  - `time`：置换的时间偏移（默认 0，随 `$T` 自动驱动）
+  - `add bump to ray traced displacements`：在光线追踪置换上叠加 bump，增强细节（默认关闭）
+  - `displacement bound`：置换幅度上限（世界空间单位，默认 2）；需大于实际最大波高，否则会出现几何体被裁剪的渲染错误
+  - `displacement space`：置换边界的坐标空间（默认 `Bounds specified in world space`，即世界空间）
+  - `re-dice displacements`：是否在置换后重新细分几何体（默认关闭）
+  - `share displacements between instances`：实例间共享置换缓存（默认关闭）
+  - `true displacements`：真实几何置换（默认勾选）；关闭则退化为 bump 贴图，只改变法线方向而不移动顶点
+- Settings 选项卡（反射/折射/物理参数）
+  - `enable reflection`：启用反射；`reflect lights`：对灯光产生高光；`reflect objects`：反射场景中的物体
+  - `reflection component`：反射 AOV 分量名称（默认 `reflect`）
+  - `enable refractions`：启用折射；`refract lights` / `refract objects`：折射灯光/物体
+  - `refraction component`：折射 AOV 分量名称（默认 `refract`）
+  - `enable fake caustics`：启用伪焦散；`transmission tint`：透射色调强度（默认 0.2）；`shadow`：阴影强度（默认 1）
+  - `conserve energy`：启用能量守恒，反射+折射总量不超过入射光（默认勾选）
+  - `fresnel blending`：启用菲涅耳混合，视角越侧反射越强、折射越弱（默认勾选，符合物理）
+  - `inside IOR`：水体内部折射率（默认 1.33，水的真实值）；`outside IOR`：外部介质折射率（默认 1，空气）
+
 
 # 其他
 

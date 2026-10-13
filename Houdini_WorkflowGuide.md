@@ -2195,7 +2195,7 @@ copy and **transform节点**
   - `start frame`：从第几帧开始执行迭代计算
 - 内部结构（双击进入节点内部）
   - **Prev_Frame节点**：提供上一帧的几何体/属性状态作为本帧输入；只保存紧邻的上一帧，不保存更早帧
-  - **Object Merge节点**（`Input_1` ～ `Input_4`）：solver 内部预置 4 个 **Object Merge节点**，分别通过表达式 `` `opinputpath("../.."), 0)` `` / `1` / `2` / `3` 自动映射到 solver 节点对外的第 0～3 个输入端；在外部将几何体连接到 solver 的对应输入端，内部对应的 **Object Merge节点** 即可读取该几何体，无需手动填写路径
+  - **Object Merge节点**（`Input_1` ～ `Input_4`）：solver 内部预置 4 个 **Object Merge节点**，分别通过表达式 `` `opinputpath("../..", 0)` `` / `` `opinputpath("../..", 1)` `` / `` `opinputpath("../..", 2)` `` / `` `opinputpath("../..", 3)` `` 自动映射到 solver 节点对外的第 0～3 个输入端；在外部将几何体连接到 solver 的对应输入端，内部对应的 **Object Merge节点** 即可读取该几何体，无需手动填写路径
   - **Output节点**：将本帧计算结果输出；该结果同时作为下一帧 **Prev_Frame节点** 的输入，形成迭代闭环
   - 用户自定义节点（如 **attributewrangle节点** 等）连接在 **Prev_Frame节点** 和 **Output节点** 之间，对每帧数据执行变换
 - 注意事项

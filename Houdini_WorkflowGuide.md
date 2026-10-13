@@ -2259,7 +2259,7 @@ copy and **transform节点**
   - `time offset`：时间偏移（默认 0）；将整体波浪动画提前或延后
   - `time scale`：时间缩放（默认 1）；大于 1 加快波浪运动，小于 1 减慢
   - `loop over time`：启用时间循环（默认关闭）；开启后波浪动画在 `loop period` 帧后无缝重复，适合制作循环海洋动画
-    - `loop period`：循环周期（帧数，默认 10，仅 `loop over time` 开启时生效）
+    - `loop period`：循环周期（秒，默认 10，仅 `loop over time` 开启时生效）
 - Wind 子选项卡：风场参数，决定海浪的基本形态
   - `spectrum type`：频谱物理模型（默认 `TMA`）；`Phillips` = 经典无限深水全发展海洋模型（也称 Tessendorf），通过风向控制方向性；`TMA` = 在 Phillips 基础上增加水深和风区参数的近岸模型（也称 Encino waves/Texel-Marsen-Arsloe），低水深时表现更准确
   - `direction`：风向角度（度，默认 0 = 正 X 方向）；控制主波浪传播方向

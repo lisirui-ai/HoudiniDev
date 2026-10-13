@@ -4363,6 +4363,7 @@ importpoint/primitive/vertex/**detailattribute节点**
     - Bubbles / Foam Displacement 子选项卡：气泡与泡沫置换（进阶参数，控制泡沫的三维立体感）
 - Displacement 选项卡（海面置换）
   - `spectrum geometry`：提供波谱数据的 SOP 路径（通常连接 **oceanspectrum节点** 的输出）
+    - **oceanspectrum节点** 在频域中存储了海浪在不同频率下的振幅和相位（即"多大的浪、多密的浪、什么方向"）；Displacement 选项卡读取此频谱后，通过逆 FFT（快速傅里叶逆变换）将频域数据还原为每个顶点的实际位移向量，从而驱动网格顶点产生海浪起伏；海面的几何形态（平静/汹涌/碎浪）由 `spectrum geometry` 中的频谱数据决定；`oceansurface` 材质同时承担着色（颜色、反射、折射）和渲染时置换（读取频谱、执行逆 FFT、将顶点 `P` 实际移动）两项工作，频谱提供"波形的数学描述"，材质负责"执行"
   - `mask geometry`：提供遮罩的 SOP 路径，限定置换生效区域
   - `anti-alias blur`：置换贴图的抗锯齿模糊量（默认 0.5）
   - `downsample`：置换计算前对频谱降采样级别（默认 0，不降采样）；增大可提速，代价是损失高频波浪细节

@@ -3705,6 +3705,14 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `max points`：最多返回的点数量；在半径内按距离从近到远取前 N 个（默认 10）
 - 输出
   - `result`（`inta`，整型数组）：搜索到的点的索引数组，传入 **point cloud import节点** 以读取各点的属性
+    - VOP 逐点执行，每次执行针对的是当前被处理的单个点；`point cloud find` 以该点位置为中心搜索邻近点，邻近点可能有多个（最多 `max points` 个），因此返回整型数组而非单个整型；数组中每个元素是一个邻近点的索引，代表"当前点的邻域集合"，各点独立持有自己的搜索结果
+
+**array length节点**
+
+- 返回输入数组的元素个数（长度），等价于 VEX 中的 `len()` 函数
+- 输入：任意类型的数组（如 `inta`、`floata`、`vector[]` 等）
+- 输出：`length`（`int`）：数组的元素数量
+- 典型用途：配合 **point cloud find节点** 使用，获取实际搜索到的点数（因为搜索结果可能少于 `max points`），再用于后续循环或条件判断
 
 ## 渲染
 

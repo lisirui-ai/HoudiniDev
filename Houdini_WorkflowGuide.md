@@ -4511,7 +4511,7 @@ v@camPos = cracktransform(0,0,0,0, @camMatrix);    // 提取相机位置
 
 | 对比项 | `abc`（Alembic） | `obj`（Wavefront） | `fbx`（FilmBox） |
 |---|---|---|---|
-| 开发方 | Autodesk + Sony Pictures | Wavefront Technologies | Autodesk |
+| 开发方 | Autodesk + Sony Pictures Imageworks | Wavefront Technologies | Autodesk（原 Kaydara 开发，后收购） |
 | 文件体积 | 轻量，二进制压缩存储 | 极轻，纯文本，无压缩 | 较大，包含大量元数据 |
 | 动画方式 | 逐帧烘焙几何体（顶点缓存动画） | 不支持动画 | 支持骨骼绑定（Rig）+ 蒙皮动画 |
 | 骨骼/绑定 | 不支持 | 不支持 | 支持，适合带骨骼的角色 |

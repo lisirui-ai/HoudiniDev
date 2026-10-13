@@ -2254,11 +2254,11 @@ copy and **transform节点**
   - 输入端 0：非体积点（点几何体）：作为波浪实例化锚点，在各点位置叠加局部波浪（对应 Wave Instancing 子选项卡）
   - 输入端 1：遮罩体积（Houdini 体积或 VDB fog）：作为空间振幅遮罩，限定海浪的强弱区域（对应 Mask 子选项卡）；不连接则全区域振幅不受遮罩限制
 - 输出端
-  - 输出四个命名体积场，供 **oceanevaluate节点** 或 **oceansurface节点** 读取：
+  - 输出四个命名体积场（频域数据），供 **oceanevaluate节点** 或 **oceansurface节点** 读取；每个体素代表一个正弦波分量，评估节点在运行时将所有分量按 `phase + frequency × time` 叠加，相当于逆 FFT，从单帧频谱即可还原任意时刻的海面动态
     - `phase`：每个波的相位偏移
     - `frequency`：每个波的角频率
     - `amplitude`：每个波的振幅；`amplitude` 体积上还附加了额外属性（如 Chop、Time Offset 等）控制评估时的行为
-    - `mask`：空间振幅遮罩场；无论是否连接遮罩体积，始终作为第四个体积输出
+    - `mask`：空间振幅遮罩场（对频域振幅做空间加权）；无论是否连接遮罩体积，始终作为第四个体积输出
 - 顶部参数
   - `resolution exponent`：频谱分辨率（以 2 的幂次表示，默认 7 = 128×128）；值越大频谱细节越丰富，内存和计算量成倍增加
     - 决定输出体积场（`phase`/`frequency`/`amplitude`/`mask`）的体素分辨率，分辨率越高，频谱中包含的高频波纹细节越多

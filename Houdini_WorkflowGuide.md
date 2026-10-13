@@ -3467,6 +3467,11 @@ copy and **transform节点**
     - `space`选择`world`世界坐标，即世界坐标系下的固定位置
     - `space`选择`camera`相机坐标，即相机坐标系下的固定位置
   - 只能通过该节点读取`sop`中的`@rest`
+  - 与 **global variables节点** 的 `P` 的区别与联系：
+    - `P`（Global Variables）：当前帧的实时位置，随几何体变形/动画每帧更新
+    - restposition（`@rest`）：静止参考位置，在 SOP 中提前固定，不随变形/动画改变
+    - 核心用途差异：用 `P` 驱动贴图时，贴图会随几何体拉伸而滑动；用 `@rest` 驱动贴图时，贴图锁定在初始位置，不随变形滑动——这是 `@rest` 存在的核心意义
+    - 联系：当几何体完全没有变形，且 SOP 中以第 0 帧的 `P` 初始化了 `@rest` 时，两者数值相同（`@rest == P`），但这只是初始状态的巧合，并非等价关系
 - **texture节点**
   - 用于读取贴图
   - 前连**uvcoords节点**读取模型的`uv`，后连**principledshadercore节点**的对应通道输出贴图
@@ -3684,6 +3689,20 @@ importpoint/primitive/vertex/**detailattribute节点**
 
 - 设置向量某个分类的值
 - 设置的值的通道必须在输入端中键手动添加`constant`
+
+**point cloud find节点**
+
+- 在点云文件或输入几何体中，以指定位置为中心搜索最近的若干个点，返回点句柄（handle）供后续属性读取使用
+- 参数
+  - `input`：数据来源，`File`（从外部 `.pc` 点云文件读取）或 `Op`（从 SOP 输入端读取几何体）
+  - `filename`：`input` 为 `File` 时填写点云文件路径
+  - `point group`：限定搜索范围为源几何体中的指定点组；留空则搜索全部点
+  - `position channel`：用于计算距离的属性名（默认 `P`，即世界空间位置）；也可指定其他向量属性作为搜索坐标
+  - `location`：搜索中心点的世界空间坐标（xyz）
+  - `search radius`：搜索半径；只返回与 `location` 距离在此半径内的点（默认 0.1）
+  - `max points`：最多返回的点数量；在半径内按距离从近到远取前 N 个（默认 10）
+- 输出
+  - `handle`：点云句柄，传入 **point cloud import节点** 以读取搜索到的各点属性
 
 ## 渲染
 

@@ -4549,7 +4549,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 - 专用于海洋液面渲染的材质节点，包含 `Ocean Shader`、`Displacement`、`Settings` 三个顶层选项卡
 - Ocean Shader 选项卡（着色）
   - Waves 子选项卡：控制浪花/水体整体着色
-    - `wave min/max height`：将浪高（Min～Max 范围）映射到 `Diffuse Color` 颜色渐变和 `Diffuse Ramp` 亮度渐变的横轴；浪高低于 Min 对应渐变左端，高于 Max 对应右端
+    - `wave min/max height`：将浪高（Min～Max 范围）映射到 `Diffuse Color` 颜色渐变和 `Diffuse Ramp` 亮度渐变的横轴；浪高低于 Min 对应渐变左端，高于 Max 对应右端；应与 **oceanspectrum节点** 的 `scale` 参数对齐，Min 设为 `-scale`，Max 设为 `+scale`（即波谷到波峰的实际振幅范围）
       - `diffuse intensity`：漫反射整体强度（默认 0.05）；海水漫反射很弱，通常保持低值
       - `diffuse color`：按浪高从低到高映射的颜色渐变；默认从深蓝（波谷）到浅青白（波峰）
       - `diffuse ramp`：按浪高映射的亮度倍增曲线；控制不同浪高区域的明暗分布

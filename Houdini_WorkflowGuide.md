@@ -692,12 +692,38 @@ k帧
 
 **scatter节点**
 
-- 对于`fog`体积，`@density`为0的区域不会被撒点
-- 基于属性撒点
-  - 属性为0的区域不撒点
-- 撒点是基于面的，包括按组撒点也是按面的组撒点
-- 属性视窗中几项控制撒点的随机性（一般不建议开启随机性）
-- 两项控制撒点上限和最大撒点数
+- 在表面或体积中随机散布点；对于 `fog` 体积，`@density` 为 0 的区域不会被撒点；基于密度属性撒点时属性为 0 的区域不撒点；撒点基于面（primitive），按组撒点也是按面的组操作
+- `Options` 选项卡
+  - `Generate`：撒点方式（默认 `By Density`）；可选：
+    - `By Density`：按密度在每个 primitive 上独立分布点，密度为每单位长度（曲线）、单位面积（表面）或单位体积（体积）的期望点数
+    - `Count per Primitive`：对每个 primitive 精确生成指定数量的点
+    - `In Texture Space`：先在 UV 纹理空间的单位正方形内撒点，再由几何体的 `uv` 属性将点映射到三维表面，适合跨拓扑变化保持点分布一致
+  - `Scatter on Voxels Independently`：对体积的每个体素独立撒点（默认关闭）；开启后改变一个区域的密度不影响其他区域的点，但无法保证精确总点数，不支持 `Force Total Count`
+  - `Force Total Count`：勾选后精确生成指定数量的点（默认勾选，默认值 1000）；关闭时点数随 primitive 面积/密度变化可能逐帧抖动；仅 `By Density` 模式下可用
+  - `Density Scale`：密度缩放值（默认 10）；`Force Total Count` 开启时变灰
+  - `Density Attribute`：指定密度分布的属性名（默认 `density`，未勾选）；支持点/顶点/面/detail 属性，点和顶点属性会在面上线性插值；`Force Total Count` 开启时此属性表示相对分布权重而非绝对密度
+  - `Override Prim Area`：覆盖 primitive 面积计算（默认未勾选）；不建议在变形几何体上使用
+  - `Use Area for 2D Volumes`：对单体素厚度的二维体积按面积密度而非体积密度处理（默认关闭）
+  - `Max Point Limit`：生成点数的硬上限（默认 1000000，已勾选）；超出时输出警告并截断到此上限
+  - `Global Seed`：全局随机种子（默认 0）；影响点数量、位置和顺序的随机性
+  - `Primitive Seed Attribute`：每个 primitive 的额外随机种子属性（默认 `primtd`，未勾选）；关闭时用 primitive 编号作为种子；开启可在增删低编号 primitive 时保持其他 primitive 上的点分布稳定
+  - `Randomize Point Order`：随机化输出点的顺序（默认勾选）；关闭后点按 primitive 顺序排列
+  - `Relax Iterations`：松弛迭代次数（默认 10，已勾选）；将点推离彼此以减少聚集，迭代次数越多点分布越均匀（蓝噪声分布）；关闭后不做松弛
+  - `Use Geometric Normals`：松弛时使用几何法线而非点/顶点 N 属性（默认关闭）；几何法线更准确反映实际几何形状
+  - `Scale Radii By`：松弛前对点半径的缩放系数（默认 1）；小于 1 增加聚集感，大于 1 加快松弛收敛
+  - `Max Relax Radius`：松弛时点影响其他点的最大半径（默认 10，已勾选）；防止低密度区域的点半径趋于无穷大而推开过远的邻点
+- `Output Attributes` 选项卡
+  - `Prim Num Attribute`：输出每个生成点所在源 primitive 编号的属性（默认名 `sourceprim`，未勾选）；配合 **attributeinterpolate节点** 实现变形几何体上的粘附撒点
+  - `Prim UVW Attribute`：输出每个生成点在源 primitive 参数空间中坐标的属性（默认名 `sourceprimuv`，未勾选）；与 `Prim Num Attribute` 配合使用
+  - `Output Density Attribute`：输出每个点处密度值的属性（默认名 `density`，未勾选）
+  - `Output Radius Attribute`：输出每个点处松弛半径的属性（默认名 `pscale`，未勾选）
+  - `Output ID Attribute`：输出每个点唯一整数 id 的属性（默认名 `id`，未勾选）；后续删除部分点后 id 仍可追踪原始点
+  - `Output Radius and Density in Texture Space`：输出纹理空间而非物理空间的半径和密度（默认关闭）
+  - `Point Attributes`：从输入几何体插值并传递到生成点的点属性列表（默认 `*`，即全部）
+  - `Vertex Attributes`：从输入几何体插值并以点属性形式传递的顶点属性列表（默认 `N uv*`）
+  - `Primitive Attributes`：从输入几何体复制并以点属性形式传递的面属性列表（默认空）
+  - `Detail Attributes`：从输入几何体复制并以点属性形式传递的 detail 属性列表（默认空）
+  - `Detail as Detail`：从输入几何体复制并保持为 detail 属性传递的 detail 属性列表（默认空）
 
 **pointreplicate节点**
 

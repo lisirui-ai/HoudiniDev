@@ -1080,7 +1080,7 @@ copy and **transform节点**
 - 顶层参数
   - `Load from Disk`：勾选后节点从磁盘缓存文件读取输出，不再计算上游节点；点击 `Save to Disk` 或 `Save to Disk in Background` 后自动勾选
   - `Reload Geometry`：强制重新加载磁盘文件，同时清除 packed disk primitives 的缓存
-  - `File Path`：文件路径构建方式（默认 `Constructed`）；`Constructed` 模式下由 `Base Name`、`Base Folder`、`Version` 等参数自动拼接路径，默认生成格式为 `$HIP/geo/‹Base Name›/v‹Version›/‹Base Name›_v‹Version›.$F4.bgeo.sc`；`Explicit` 模式下需手动填写完整路径表达式
+  - `File Path`：文件路径构建方式（默认 `Constructed`）；`Constructed` 模式下由 `Base Name`、`Base Folder`、`Version` 等参数自动拼接路径，默认生成格式为 `$HIP/geo/‹Base Name›/v‹Version›/‹Base Name›_v‹Version›.$F4.bgeo.sc`；例如场景文件名 `ocean.hip`、节点名 `filecache1`、版本 `1`、帧号 `42`，则路径为 `$HIP/geo/ocean.filecache1/v1/ocean.filecache1_v1.0042.bgeo.sc`；`Explicit` 模式下需手动填写完整路径表达式
   - `Time Dependent Cache`：勾选后每帧写出一个独立文件（默认勾选）；输入几何体为静态时关闭，避免写出大量内容相同的文件
   - `Base Name`：缓存文件名前缀（默认 `$HIPNAME.$OS`，即场景文件名加节点名）；右侧下拉菜单可切换文件格式（默认 `bgeo.sc`，可改为 `.vdb` 用于纯 VDB 体积缓存）
   - `Base Folder`：缓存文件的根目录（默认 `$HIP/geo`）

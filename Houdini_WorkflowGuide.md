@@ -2381,8 +2381,9 @@ copy and **transform节点**
     - `Life Variance`：寿命方差（默认 0.5）；实际寿命在 `Life Expectancy ± Life Variance` 秒范围内随机，增加泡沫消散的随机感；设为 0 则所有粒子寿命完全一致
     - `Drift Rate`：施加给泡沫粒子的水平速度比例（默认 0.25）；值越大泡沫跟随海面流动越明显，同时泡沫簇的拉伸与压缩越强烈
     - `Preserve Foam`：勾选后启用密度保留逻辑（默认勾选）；根据周围粒子密度动态延长或缩短粒子寿命，使泡沫形成持久的团块与条纹
+      - 此处"密度"指模拟中每个粒子周围一定半径内的相邻粒子数（运行时实时计算，与发射参数 `Particle Density` 无关）
     - `Min Foam Density`：密度缩减阈值（默认 6）；当粒子周围密度低于此值时，每帧按 `Reduction Rate` 比例缩短寿命（稀疏区粒子快速消亡）
-    - `Max Foam Density`：密度保留阈值（默认 10）；当粒子周围密度处于 `Min Foam Density` 到此值之间时，每帧按 `Preservation Rate` 比例延长寿命（密集区粒子得到保留）
+    - `Max Foam Density`：密度保留上限（默认 10）；当粒子周围密度处于 `Min Foam Density` 到此值之间时，每帧按 `Preservation Rate` 比例延长寿命
     - `Preservation Rate`：寿命延长速率（默认 0.6）；单位为"每秒增加的秒数"，大于 1 时高密度区粒子的寿命增速超过流逝速度，泡沫团块可永久保留
     - `Reduction Rate`：寿命缩减速率（默认 0）；单位为"每秒缩减的秒数"，大于 0 时稀疏区粒子寿命被加速消耗，稀疏泡沫更快消散
     - `Keep Attributes`：模拟过程中需要保留的粒子属性列表（默认 `pscale rest age life`）；默认值中的四个属性是 **Ocean Surface shader** 正确渲染所必需的，不可删除；设为 `*` 可保留所有属性

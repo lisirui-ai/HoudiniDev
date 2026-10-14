@@ -2353,8 +2353,9 @@ copy and **transform节点**
 
 **oceanfoam节点**
 
-- 基于海洋曲率/速度/高度等条件在海面上发射并模拟泡沫粒子的 SOP 节点；输入为一个或多个合并后的 **oceanspectrum节点** 频谱层，可直接输出含 `pscale`、`age`、`life` 等属性的泡沫点云，供 **Ocean Surface shader** 渲染使用
-  - 默认输出 2D 点云：粒子坐标位于 `rest` 空间（XZ 平面），Y 分量为 0；**Ocean Surface shader** 在渲染时读取此 2D 坐标并叠加海洋位移，最终将泡沫贴合到海面上
+- 基于海洋曲率/速度/高度等条件在海面上发射并模拟泡沫粒子的 SOP 节点；输入为一个或多个合并后的 **oceanspectrum节点** 频谱层，可直接输出含 `pscale`、`age`、`life` 等属性的泡沫点云，供 **Ocean Surface** 渲染使用
+  - 默认输出 2D 点云：粒子坐标位于 `rest` 空间（XZ 平面），Y 分量为 0；**Ocean Surface** 在渲染时读取此 2D 坐标并叠加海洋位移，最终将泡沫贴合到海面上
+  - 传递给材质的流程：**oceanfoam节点** 的输出不能直接连入材质，需先用 **filecache节点** 将逐帧粒子缓存为磁盘序列（`.bgeo.sc`），再在 **Ocean Surface** 材质的 `Foam` 区域的 `Foam Particles` 参数中填写该序列路径（路径中使用 `$F4`逐帧加载）；shader 会对每个着色点查找周围粒子并根据 `pscale`、`age`、`life` 属性渲染泡沫图案
 - 顶层参数
   - `mode`：节点工作模式（默认 `Solver`）；两种模式共享 `Emission` 选项卡，`Solver` 模式额外显示 `Solver` 选项卡
     - `Emitter`：仅按发射条件创建粒子，不做模拟，粒子可接入自定义粒子模拟流程
@@ -2375,7 +2376,7 @@ copy and **transform节点**
   - Ocean Evaluation 区域：控制节点如何对海洋场求值以获得曲率/速度/高度等条件数据
     - `Time`：海洋场求值时间（默认 0）；通常连接 `$T` 表达式以跟随当前帧时间
     - `Downsample`：海洋场降采样级别（默认 0）；每增加 1 将频谱分辨率降低 2 的 1 次幂（例如原始分辨率 1024×1024，降采样 2 后变为 256×256），加速条件评估，适合泡沫预览
-    - `Displace Particles`：默认关闭，粒子以 2D `rest` 空间坐标输出（**Ocean Surface shader** 所需格式）；勾选后改用海洋波浪位移场对粒子重新定位，输出世界空间坐标，适合接入自定义模拟或后期处理
+    - `Displace Particles`：默认关闭，粒子以 2D `rest` 空间坐标输出（**Ocean Surface** 所需格式）；勾选后改用海洋波浪位移场对粒子重新定位，输出世界空间坐标，适合接入自定义模拟或后期处理
 - `Solver` 选项卡
   - Foam 区域：控制泡沫粒子的生命周期与密度保留逻辑
     - `Life Expectancy`：泡沫粒子的期望寿命，单位秒（默认 1）；到达寿命后粒子死亡
@@ -2387,7 +2388,7 @@ copy and **transform节点**
     - `Max Foam Density`：密度保留上限（默认 10）；当粒子周围密度处于 `Min Foam Density` 到此值之间时，每帧按 `Preservation Rate` 比例延长寿命
     - `Preservation Rate`：寿命延长速率（默认 0.6）；单位为"每秒增加的秒数"，大于 1 时高密度区粒子的寿命增速超过流逝速度，泡沫团块可永久保留
     - `Reduction Rate`：寿命缩减速率（默认 0）；单位为"每秒缩减的秒数"，大于 0 时稀疏区粒子寿命被加速消耗，稀疏泡沫更快消散
-    - `Keep Attributes`：模拟过程中需要保留的粒子属性列表（默认 `pscale rest age life`）；默认值中的四个属性是 **Ocean Surface shader** 正确渲染所必需的，不可删除；设为 `*` 可保留所有属性
+    - `Keep Attributes`：模拟过程中需要保留的粒子属性列表（默认 `pscale rest age life`）；默认值中的四个属性是 **Ocean Surface** 正确渲染所必需的，不可删除；设为 `*` 可保留所有属性
   - Simulation 区域：控制节点自身的迭代解算行为
     - `Reset Simulation`：点击按钮强制重置解算缓存，从第 1 帧重新开始计算
     - `Start Frame`：解算起始帧（默认 1）；可设置早于实际渲染起始帧，以便在渲染前预填充海面泡沫
@@ -4555,7 +4556,7 @@ importpoint/primitive/vertex/**detailattribute节点**
     - Reflections 子选项卡：反射设置（与 **basic liquid** 材质的 Reflect 选项卡参数含义相同）
     - Refractions 子选项卡：折射设置（与 **basic liquid** 材质的 Refract 选项卡参数含义相同）
   - Foam 子选项卡：泡沫渲染
-    - `foam particles`：泡沫粒子的 SOP 路径，将白水粒子几何体连接到此处
+    - `foam particles`：**oceanfoam节点** 经 **filecache节点** 缓存到磁盘的粒子序列文件路径
     - `particle radius scale`：泡沫粒子的渲染半径缩放（默认 1）
     - `particle alpha`：泡沫粒子整体透明度（默认 0.1）；数值小使泡沫半透明，叠加后形成自然的泡沫感
     - `particle alpha ramp`：每个泡沫粒子渲染为圆形精灵（Sprite），横轴为从该粒子自身圆心到边缘的归一化距离（0 = 圆心，1 = 由 `particle radius scale` 决定的边缘），纵轴为透明度；通过此曲线控制单个粒子从中心到边缘的透明度渐变，使粒子边缘柔化而非硬边
@@ -4578,6 +4579,7 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `time`：置换的时间偏移（默认 0，随 `$T` 自动驱动）
   - `add bump to ray traced displacements`：在光线追踪置换上叠加 bump，增强细节（默认关闭）
   - `displacement bound`：置换幅度上限（世界空间单位，默认 2）；需大于实际最大波高，否则会出现几何体被裁剪的渲染错误
+    - 实际最大波高由 **oceanspectrum节点** 的 `scale` 参数决定；调整 `scale` 后需同步更新此值，建议设为 `scale` 的 1.2～1.5 倍以留有余量
   - `displacement space`：置换边界的坐标空间（默认 `Bounds specified in world space`，即世界空间）
   - `re-dice displacements`：是否在置换后重新细分几何体（默认关闭）
   - `share displacements between instances`：实例间共享置换缓存（默认关闭）

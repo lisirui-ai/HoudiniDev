@@ -693,6 +693,7 @@ k帧
 **scatter节点**
 
 - 在表面或体积中随机散布点；对于 `fog` 体积，`@density` 为 0 的区域不会被撒点；基于密度属性撒点时属性为 0 的区域不撒点；撒点基于面（primitive），按组撒点也是按面的组操作
+- `Group`：指定只在其上撒点的 primitive 组；留空则对全部 primitive 撒点
 - `Options` 选项卡
   - `Generate`：撒点方式（默认 `By Density`）；可选：
     - `By Density`：按密度在每个 primitive 上独立分布点，密度为每单位长度（曲线）、单位面积（表面）或单位体积（体积）的期望点数

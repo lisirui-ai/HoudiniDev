@@ -4566,7 +4566,8 @@ importpoint/primitive/vertex/**detailattribute节点**
       - `whitecap intensity`：白浪帽（浪峰白色泡沫）的强度（默认 0.5）；`whitecap color`：白浪帽颜色（默认白色）
         - Whitecap：集中在波峰顶端的白色碎浪泡沫，范围小但亮度高，由 cusp 值（波峰曲率/尖锐度）驱动，只出现在最陡最尖的浪尖处
     - Whitecaps 子选项卡
-      - `Intensity Ramp`：cusp 值到白浪帽强度的映射曲线；横轴为海面的 cusp 值（由 **oceanevaluate节点** 计算），纵轴为白浪帽遮罩强度；通常将低值段压为 0，避免小波浪也出现白浪帽，只保留波峰处的白色泡沫
+      - `Intensity Ramp`：cusp 值到白浪帽强度的映射曲线；横轴为 cusp 值，纵轴为白浪帽遮罩强度；通常将低值段压为 0，避免小波浪也出现白浪帽，只保留波峰处的白色泡沫
+        - cusp 值由材质在渲染时从 `Displacement` 选项卡的 `spectrum geometry` 频谱文件中实时计算得出，与 **oceanevaluate节点** 在 SOP 层烘焙的 `@cusp` 属性无关
     - Bubbles 子选项卡：气泡纹理参数
       - `Filter Scale`：气泡图案的过滤缩放（默认 0.2）；防止远处观看时出现走样
       - `Frequency`：气泡图案的频率（默认 35，四轴分别设置）；值越大气泡越密集细小

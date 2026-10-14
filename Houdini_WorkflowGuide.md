@@ -4564,12 +4564,32 @@ importpoint/primitive/vertex/**detailattribute节点**
       - `streak intensity`：浪尖拖尾条纹的强度（默认 0.5）；`streak color`：条纹颜色（默认白色）
       - `whitecap intensity`：白浪帽（浪峰白色泡沫）的强度（默认 0.5）；`whitecap color`：白浪帽颜色（默认白色）
     - Whitecaps 子选项卡
-      - `foam sharpness`：泡沫边缘锐度（默认 0.8）；值越大泡沫边界越清晰，值越小边缘越柔和
-      - `filter scale`：泡沫纹理的过滤缩放（默认 0.5）
-      - `frequency`：泡沫噪波频率（默认 1.5，四轴 xyzw 可分别设置）；值越大纹理越细碎
-      - `offset`：泡沫纹理的偏移（四轴）
-      - `streak direction`：条纹方向偏移（默认 0）；`streak bias`：条纹偏置（默认 0）
-    - Bubbles / Foam Displacement 子选项卡：气泡与泡沫置换（进阶参数，控制泡沫的三维立体感）
+      - `Intensity Ramp`：cusp 值到白浪帽强度的映射曲线；横轴为海面的 cusp 值（由 **oceanevaluate节点** 计算），纵轴为白浪帽遮罩强度；通常将低值段压为 0，避免小波浪也出现白浪帽，只保留波峰处的白色泡沫
+    - Bubbles 子选项卡：气泡纹理参数
+      - `Filter Scale`：气泡图案的过滤缩放（默认 0.2）；防止远处观看时出现走样
+      - `Frequency`：气泡图案的频率（默认 35，四轴分别设置）；值越大气泡越密集细小
+      - `Offset`：气泡图案的偏移（四轴，默认 0）
+    - Foam Displacement 子选项卡：泡沫置换参数；各值会被泡沫整体可见度（`Streak Intensity` 与 `Whitecap Intensity`）同比缩放
+      - `Streak Amount`：条纹泡沫的置换量（默认 0.1）；远景可设为 0 以节省计算
+      - `Whitecap Amount`：白浪帽的置换量（默认 0.1）；远景可设为 0 以节省计算
+      - `Bump Only`：勾选后只修改法线（bump）而不做真实几何置换（默认关闭）；性能更高但效果较弱
+    - Streaks 子选项卡：条纹泡沫图案的纹理控制
+      - `Foam Sharpness`：泡沫边缘锐度（默认 0.8）；值越大生成更锐利的网状图案，值越小边缘越柔和圆润
+      - `Filter Scale`：条纹图案的过滤缩放（默认 0.5）；防止从远处观看时出现走样（aliasing）
+      - `Frequency`：条纹图案的频率（默认 1.5，四轴分别设置）；值越大纹理越细碎
+      - `Offset`：条纹图案的偏移（四轴）
+      - `Streak Direction`：条纹的拉伸方向（默认 0）；沿此方向将频率拉伸，使泡沫在该方向形成条纹；设为主风向或风向 ±90° 可产生自然效果
+      - `Streak Bias`：沿 `Streak Direction` 方向的频率拉伸量（默认 0）；值越大条纹越长
+    - Reflections 子选项卡：泡沫层的反射设置；各强度值会被泡沫整体可见度（`Streak Intensity` 与 `Whitecap Intensity`）同比缩放，颜色值除外
+      - `Reflect Intensity`：泡沫层的反射强度（默认 1）
+      - `Reflect Color`：泡沫反射的颜色染色（默认白色）
+      - `Reflect Roughness`：泡沫反射的模糊度（默认 0）；值越大反射越模糊
+      - `Reflect Minimum`：基于观察角度的最低反射量保底值（默认 0）；防止掠角时反射完全消失
+    - Refractions 子选项卡：泡沫层的折射设置；各强度值会被泡沫整体可见度（`Streak Intensity` 与 `Whitecap Intensity`）同比缩放，颜色值除外
+      - `Refract Intensity`：泡沫层的折射可见度（默认 0.25）；写实泡沫通常低于海浪本体的 `Refract Intensity`
+      - `Refract Color`：泡沫折射的颜色染色
+      - `Refract Roughness`：泡沫折射的模糊度（默认 0.05）；写实泡沫通常高于海浪本体的折射模糊度
+      - `Refract Minimum`：基于观察角度的最低折射量保底值（默认 0）
 - Displacement 选项卡（海面置换）
   - `spectrum geometry`：提供波谱数据的 SOP 路径（通常连接 **oceanspectrum节点** 的输出）
     - **oceanspectrum节点** 在频域中存储了海浪在不同频率下的振幅和相位（即"多大的浪、多密的浪、什么方向"）；Displacement 选项卡读取此频谱后，通过逆 FFT（快速傅里叶逆变换）将频域数据还原为每个顶点的实际位移向量，从而驱动网格顶点产生海浪起伏；海面的几何形态（平静/汹涌/碎浪）由 `spectrum geometry` 中的频谱数据决定；`oceansurface` 材质同时承担着色（颜色、反射、折射）和渲染时置换（读取频谱、执行逆 FFT、将顶点 `P` 实际移动）两项工作，频谱提供"波形的数学描述"，材质负责"执行"

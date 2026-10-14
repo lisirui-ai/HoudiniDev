@@ -414,7 +414,7 @@ int($FF)                       // 取整，返回 int
 abs(-5)                        // 取绝对值，返回 float
 ```
 
-几何数据查询函数（用于读取节点的属性，即gs中的属性）
+其他函数
 
 ```c
 // ── point 函数 ──────────────────────────────────────────────────────────────
@@ -458,6 +458,16 @@ detail("/obj/geo1/measure1", "mycount", 0)     // 读取 detail 属性 mycount�
 centroid("../center", D_X)   // 等价于 centroid("../center", 0)，返回包围盒中心 X 分量，float
 centroid("../center", D_Y)   // 等价于 centroid("../center", 1)，返回包围盒中心 Y 分量，float
 centroid("../center", D_Z)   // 等价于 centroid("../center", 2)，返回包围盒中心 Z 分量，float
+
+// ── opinputpath 函数 ─────────────────────────────────────────────────────────
+// 语法：opinputpath(name, index)
+// 功能：返回当前节点第 index 个输入端所连接节点的完整路径字符串，返回 string
+//   name  — 当前节点路径，固定填 "." 表示当前节点
+//   index — 输入端编号（int），从 0 开始；0 为第一个输入端，1 为第二个，依此类推
+// 注意：opinputpath 是 HScript 表达式函数，不是 VEX 函数；只能在参数字段中（用反引号包裹）或
+//       其他 HScript 表达式上下文中使用，无法直接在 wrangle 的 VEX 代码里调用
+opinputpath(".", 0)             // 返回连接到第一个输入端的节点路径，如 "/obj/geo1/grid1"，返回 string
+opinputpath(".", 1)             // 返回连接到第二个输入端的节点路径，返回 string
 ```
 
 # chramp

@@ -359,8 +359,8 @@ s@shop_materialpath                        //面层级的材质属性；类型�
 $调用固有变量
 
 ```c
-$F                                     //当前帧号；类型为int；常用于文件名编号，如 file.$F.bgeo
-$FF                                    //当前帧号；类型为float；精度更高；$FF/k可起到减缓时间的作用；文件名中补齐4位写法为 $F4（零填充语法，非独立变量）
+$F                                     //当前帧号；类型为int；常用于文件名编号，如 file.$F.bgeo；补齐4位零填充写法为 $F4（如 0001、0042），语法为 $F + 位数，非独立变量
+$FF                                    //当前帧号；类型为float；精度更高，可表示子步小数帧（如 1.5、2.333）；$FF/k可起到减缓时间的作用
 $T                                     //当前时间；类型为float；单位为秒；等于 ($F-1)/$FPS；精度优于$FF，推荐用于长动画
 $FPS                                   //播放帧率；类型为float；由时间轴控件设置
 $FSTART                                //动画起始帧号；由时间轴控件设置
@@ -1076,12 +1076,33 @@ copy and **transform节点**
 
 **filecache节点**
 
-- 将模型写入磁盘文件
-- 加快运行速度
-- 将模型读入
-- 解算和复杂运算的结果用缓存写入磁盘，后续直接从磁盘读取，而非重复计算，用IO换CPU，节省时间
-- `geometryfile`处指定输出文件的路径和名字
-  - 设置了`substeps`后，文件名中的$F必须改为$FF
+- 将输入几何体写出到磁盘后再从磁盘读回，用 IO 换 CPU：复杂运算或模拟的结果缓存为磁盘文件，后续直接读取而非重复计算，加快整体流程
+- 顶层参数
+  - `Load from Disk`：勾选后节点从磁盘缓存文件读取输出，不再计算上游节点；点击 `Save to Disk` 或 `Save to Disk in Background` 后自动勾选
+  - `Reload Geometry`：强制重新加载磁盘文件，同时清除 packed disk primitives 的缓存
+  - `File Path`：文件路径构建方式（默认 `Constructed`）；`Constructed` 模式下由 `Base Name`、`Base Folder`、`Version` 等参数自动拼接路径，默认生成格式为 `$HIP/geo/‹Base Name›/v‹Version›/‹Base Name›_v‹Version›.$F4.bgeo.sc`；`Explicit` 模式下需手动填写完整路径表达式
+  - `Time Dependent Cache`：勾选后每帧写出一个独立文件（默认勾选）；输入几何体为静态时关闭，避免写出大量内容相同的文件
+  - `Base Name`：缓存文件名前缀（默认 `$HIPNAME.$OS`，即场景文件名加节点名）；右侧下拉菜单可切换文件格式（默认 `bgeo.sc`，可改为 `.vdb` 用于纯 VDB 体积缓存）
+  - `Base Folder`：缓存文件的根目录（默认 `$HIP/geo`）
+  - `Version`：版本号（默认 1，已勾选）；勾选后路径中加入版本目录，便于保留多个版本对比；取消勾选则路径中不含版本信息
+- `Caching` 选项卡
+  - Cache 区域
+    - `Save to Disk`：立即在前台写出缓存（阻塞当前 Houdini 会话）
+    - `Save to Disk in Background`：在后台进程中写出缓存，不阻塞当前会话；帧完成后逐帧显示
+    - `Cancel Cook`：停止所有后台缓存进程
+  - Sequence 区域
+    - `Evaluate As`：写出方式（默认 `Frame Range`）；`Frame Range` 按帧范围逐帧写出；`Single Frame` 仅写出当前帧
+    - `Simulation`：勾选后按模拟顺序串行写出各帧（默认勾选）；模拟依赖上一帧结果时必须勾选；关闭后各帧并行写出速度更快
+    - `Start/End/Inc`：写出的起始帧、结束帧、步长（默认 1～240，步长 1）
+    - `Substeps`：每帧内的子步数（默认 1）；大于 1 时用于缓存高质量运动模糊；`Constructed` 模式下节点内部路径表达式自动处理小数帧号，无需手动干预；`Explicit` 模式下需将路径中的 `$F`（整数帧号）改为 `$FF`（小数帧号）或 `$T`（秒数）才能正确区分各子步文件
+      - `$F` / `$F4`：整数帧号；`$F` 输出无填充数字（如 `1`、`42`），`$F4` 输出零填充到 4 位（如 `0001`、`0042`）；两者生成的文件名字符串不同，写入和读取必须使用相同格式，否则读取时无法找到文件；官方文档描述 `Constructed` 模式的默认路径格式时使用了 `$F4`，但内部路径表达式不建议手动修改
+      - `$FF`：小数帧号（float），substeps > 1 时子步帧号为小数（如 `1.5`、`1.333`），必须用 `$FF` 才能区分各子步文件
+  - Load 区域
+    - `Clamp First Frame`：将早于此帧的请求夹到此帧（默认 1，未勾选）；防止帧范围外读取时返回空几何体
+    - `Clamp Last Frame`：将晚于此帧的请求夹到此帧（默认 240，未勾选）
+    - `Load`：读取方式（默认 `All Geometry`）；可选 `Packed Disk Primitive`（延迟加载，节省内存）等
+    - `Display Packed As`：视窗中 packed primitive 的显示方式（默认 `Use File Setting`）
+    - `Delay Load Geometry`：延迟加载几何体，仅在需要时才读取（默认关闭）；可减少大场景的打开时间
 
 - `sequence`选项
   - 设置输出帧的范围
@@ -2392,7 +2413,7 @@ copy and **transform节点**
 
 - 基于海洋曲率/速度/高度等条件在海面上发射并模拟泡沫粒子的 SOP 节点；输入为一个或多个合并后的 **oceanspectrum节点** 频谱层，可直接输出含 `pscale`、`age`、`life` 等属性的泡沫点云，供 **Ocean Surface** 渲染使用
   - 默认输出 2D 点云：粒子坐标位于 `rest` 空间（XZ 平面），Y 分量为 0；**Ocean Surface** 在渲染时读取此 2D 坐标并叠加海洋位移，最终将泡沫贴合到海面上
-  - 传递给材质的流程：**oceanfoam节点** 的输出不能直接连入材质，需先用 **filecache节点** 将逐帧粒子缓存为磁盘序列（`.bgeo.sc`），再在 **Ocean Surface** 材质的 `Foam` 区域的 `Foam Particles` 参数中填写该序列路径（路径中使用 `$F4`逐帧加载）；shader 会对每个着色点查找周围粒子并根据 `pscale`、`age`、`life` 属性渲染泡沫图案
+  - 传递给材质的流程：**oceanfoam节点** 的输出不能直接连入材质，需先用 **filecache节点** 将逐帧粒子缓存为磁盘序列（`.bgeo.sc`），再在 **Ocean Surface** 材质的 `Foam` 区域的 `Foam Particles` 参数中填写该序列路径；shader 会对每个着色点查找周围粒子并根据 `pscale`、`age`、`life` 属性渲染泡沫图案
 - 顶层参数
   - `mode`：节点工作模式（默认 `Solver`）；两种模式共享 `Emission` 选项卡，`Solver` 模式额外显示 `Solver` 选项卡
     - `Emitter`：仅按发射条件创建粒子，不做模拟，粒子可接入自定义粒子模拟流程

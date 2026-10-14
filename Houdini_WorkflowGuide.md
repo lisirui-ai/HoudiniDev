@@ -2354,6 +2354,7 @@ copy and **transform节点**
 **oceanfoam节点**
 
 - 基于海洋曲率/速度/高度等条件在海面上发射并模拟泡沫粒子的 SOP 节点；输入为一个或多个合并后的 **oceanspectrum节点** 频谱层，可直接输出含 `pscale`、`age`、`life` 等属性的泡沫点云，供 **Ocean Surface shader** 渲染使用
+  - 默认输出 2D 点云：粒子坐标位于 `rest` 空间（XZ 平面），Y 分量为 0；**Ocean Surface shader** 在渲染时读取此 2D 坐标并叠加海洋位移，最终将泡沫贴合到海面上
 - 顶层参数
   - `mode`：节点工作模式（默认 `Solver`）；两种模式共享 `Emission` 选项卡，`Solver` 模式额外显示 `Solver` 选项卡
     - `Emitter`：仅按发射条件创建粒子，不做模拟，粒子可接入自定义粒子模拟流程

@@ -1104,14 +1104,6 @@ copy and **transform节点**
     - `Display Packed As`：视窗中 packed primitive 的显示方式（默认 `Use File Setting`）
     - `Delay Load Geometry`：延迟加载几何体，仅在需要时才读取（默认关闭）；可减少大场景的打开时间
 
-- `sequence`选项
-  - 设置输出帧的范围
-  - `substeps`设置输出帧序列的步幅值（输出小数帧）
-    - 使得不丢失解算的小数帧
-    - 设置为1/时间轴的`step`（时间轴的最小单位）
-- 输出文件的格式是.sc
-- 将模型输出为.`sc`格式
-
 **pointsfromvolume节点**
 
 - 将模型转换为点云，不同于**add节点**和**scatter节点**生成的点云，模型内部也会生成点云

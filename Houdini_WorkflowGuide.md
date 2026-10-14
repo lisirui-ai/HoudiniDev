@@ -1159,7 +1159,27 @@ copy and **transform节点**
 
 **uvtransform节点**
 
-- 移动`uv`
+- 对几何体上的 UV 纹理坐标执行变换（平移、旋转、缩放、剪切）；与 **uvedit节点** 不同，支持 UV 动画；自动检测输入几何体使用的是点级别还是顶点级别的 UV 属性并对其操作
+- UV 坐标实际为三分量（U、V、W），因此支持三维变换；交互操作时平移/缩放沿 U/V 轴，旋转绕 W 轴
+- `Group`：指定只变换其上 UV 的子集；留空则对全部几何体操作
+- `Group Type`：`Group` 字段引用的元素类型（默认 `Guess from Group`）
+- `UV Attribute`：要变换的 UV 属性名（默认 `uv`）
+- `Transform Order`：变换的应用顺序（默认 `Scale Rot Trans`）
+- `Rotate Order`：旋转轴的应用顺序（默认 `Rx Ry Rz`）
+- `Translate`：沿 UVW 轴的平移量（默认 0, 0, 0）
+- `Rotate`：绕 UVW 轴的旋转量（默认 0, 0, 0）
+- `Scale`：沿 UVW 轴的非均匀缩放（默认 1, 1, 1）
+- `Shear`：剪切量（默认 0, 0, 0）；三个值分别代表 UV 平面上 U 方向、UW 平面上 U 方向、VW 平面上 V 方向的剪切
+- `Pivot`：变换的局部轴心点（默认 0, 0, 0）
+- Soft Settings 区域：软变换设置，控制变换在 `Group` 边界之外的衰减范围
+  - `Soft Radius`：软变换的影响半径（默认 0，即不做软变换）
+  - `Soft Type`：衰减函数类型（默认 `Cubic`）
+  - `Tangent Angles`：`Cubic` 衰减函数两端切线角度（默认 0, 0）；第一个值对应距离源点最远处的切线，第二个值对应最近处
+  - `Kernel Function`：软变换类型为 `Meta-ball` 时使用的 metaball kernel（默认 `wyv111`）
+  - `Metric`：软变换的距离度量方式（默认 `UV`）
+  - `Ignore Point Connectivity`：忽略点连接关系，对半径内所有点生效（默认关闭）
+  - `Ignore UV Connectivity`：忽略 UV 视窗中的顶点连接关系（默认关闭）
+  - `Visualize Falloff`：将软变换衰减值输出为 `vis_falloff` 属性的时机（默认 `When Viewport Tool Is Active`）
 
 **file节点**
 
@@ -4701,8 +4721,16 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `time`：频谱评估的时间偏移（默认 0）
   - `displacement bound`：置换幅度上限（默认 2）；需与 **oceansurface节点** 保持一致，否则体积边界与液面不匹配
 
+**constant节点**
 
-# 其他
+- 常量（无光照）材质：输出颜色完全由 `Color` 参数或贴图决定，不计算漫反射、高光、阴影等光照效果，无论场景灯光如何变化渲染结果始终一致；典型用途：将 HDRI 贴图作为 `Color Map` 赋予穹顶/球体几何体，通过几何体的形状和范围精确控制天空背景在画面中的可见区域（envlight 无法用几何体约束范围），在路径追踪渲染器（Karma/Mantra PBR）中，逃出场景的光线打到 Constant 穹顶后会将其颜色作为入射辐射带回，因此穹顶实际上也会照亮场景，效果类似 envlight（原理：路径追踪从摄像机发出射线 → 击中物体反弹 → 最终逃出场景边界 → 打到穹顶 → 穹顶返回 `Color`/`Color Map` 颜色作为该方向的入射辐射量 → 沿路径反向传播贡献像素颜色）
+- `Surface` 选项卡
+  - `Color`：无贴图时的颜色（默认白色 1, 1, 1）；有 `Color Map` 时与贴图颜色相乘，白色不染色，其他颜色会对贴图整体染色
+  - `Tint with Point Color`：勾选后将点属性 `@Cd` 乘入最终颜色（默认勾选）；若几何体无 `Cd` 属性则无影响
+  - `Color Map`：颜色贴图路径；提供后以贴图颜色代替 `Color` 参数
+  - `Opacity`：无贴图时的不透明度（默认白色 1, 1, 1，即完全不透明）
+  - `Use Point Alpha`：勾选后将点属性 `@Alpha` 乘入最终不透明度（默认勾选）；若几何体无 `Alpha` 属性则无影响
+  - `Opacity Map`：不透明度贴图路径；提供后以贴图值代替 `Opacity` 参数
 
 可视化
 

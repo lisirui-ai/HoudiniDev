@@ -4562,7 +4562,9 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `particle alpha ramp`：每个泡沫粒子渲染为圆形精灵（Sprite），横轴为从该粒子自身圆心到边缘的归一化距离（0 = 圆心，1 = 由 `particle radius scale` 决定的边缘），纵轴为透明度；通过此曲线控制单个粒子从中心到边缘的透明度渐变，使粒子边缘柔化而非硬边
     - Diffuse 子选项卡
       - `streak intensity`：浪尖拖尾条纹的强度（默认 0.5）；`streak color`：条纹颜色（默认白色）
+        - Streak：海浪破碎后泡沫随水流拉伸形成的细长白色条纹，沿海面铺展延伸、分布面积较大，由海洋速度场驱动方向
       - `whitecap intensity`：白浪帽（浪峰白色泡沫）的强度（默认 0.5）；`whitecap color`：白浪帽颜色（默认白色）
+        - Whitecap：集中在波峰顶端的白色碎浪泡沫，范围小但亮度高，由 cusp 值（波峰曲率/尖锐度）驱动，只出现在最陡最尖的浪尖处
     - Whitecaps 子选项卡
       - `Intensity Ramp`：cusp 值到白浪帽强度的映射曲线；横轴为海面的 cusp 值（由 **oceanevaluate节点** 计算），纵轴为白浪帽遮罩强度；通常将低值段压为 0，避免小波浪也出现白浪帽，只保留波峰处的白色泡沫
     - Bubbles 子选项卡：气泡纹理参数

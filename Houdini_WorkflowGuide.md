@@ -4556,7 +4556,7 @@ importpoint/primitive/vertex/**detailattribute节点**
     - Reflections 子选项卡：反射设置（与 **basic liquid** 材质的 Reflect 选项卡参数含义相同）
     - Refractions 子选项卡：折射设置（与 **basic liquid** 材质的 Refract 选项卡参数含义相同）
   - Foam 子选项卡：泡沫渲染
-    - `foam particles`：**oceanfoam节点** 经 **filecache节点** 缓存到磁盘的粒子序列文件路径
+    - `foam particles`：**oceanfoam节点** 经 **filecache节点** 缓存到磁盘的粒子序列文件路径；着色时对每个着色点查找周围（半径由 `Particle Radius Scale` 决定）的粒子并累加泡沫图案贡献，驱动 Diffuse 子选项卡的条纹/白浪帽分布、Streaks/Whitecaps 子选项卡的纹理叠加区域、以及 Foam Displacement 子选项卡的置换区域
     - `particle radius scale`：泡沫粒子的渲染半径缩放（默认 1）
     - `particle alpha`：泡沫粒子整体透明度（默认 0.1）；数值小使泡沫半透明，叠加后形成自然的泡沫感
     - `particle alpha ramp`：每个泡沫粒子渲染为圆形精灵（Sprite），横轴为从该粒子自身圆心到边缘的归一化距离（0 = 圆心，1 = 由 `particle radius scale` 决定的边缘），纵轴为透明度；通过此曲线控制单个粒子从中心到边缘的透明度渐变，使粒子边缘柔化而非硬边

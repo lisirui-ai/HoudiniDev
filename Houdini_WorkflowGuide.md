@@ -4546,7 +4546,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 
 **oceansurface节点**
 
-- 专用于海洋液面渲染的材质节点，包含 `Ocean Shader`、`Displacement`、`Settings` 三个顶层选项卡
+- 专用于海洋液面渲染的材质节点，赋予对象为平面 `polygon` grid；包含 `Ocean Shader`、`Displacement`、`Settings` 三个顶层选项卡
 - Ocean Shader 选项卡（着色）
   - Waves 子选项卡：控制浪花/水体整体着色
     - `wave min/max height`：将浪高（Min～Max 范围）映射到 `Diffuse Color` 颜色渐变和 `Diffuse Ramp` 亮度渐变的横轴；浪高低于 Min 对应渐变左端，高于 Max 对应右端；应与 **oceanspectrum节点** 的 `scale` 参数对齐，Min 设为 `-scale`，Max 设为 `+scale`（即波谷到波峰的实际振幅范围）
@@ -4591,7 +4591,7 @@ importpoint/primitive/vertex/**detailattribute节点**
       - `Refract Roughness`：泡沫折射的模糊度（默认 0.05）；写实泡沫通常高于海浪本体的折射模糊度
       - `Refract Minimum`：基于观察角度的最低折射量保底值（默认 0）
 - Displacement 选项卡（海面置换）
-  - `spectrum geometry`：提供波谱数据的 SOP 路径（通常连接 **oceanspectrum节点** 的输出）
+  - `spectrum geometry`：**oceanspectrum节点** 经 **filecache节点** 缓存到磁盘的单帧频谱文件路径；频谱只需缓存一帧，材质在渲染时会根据当前时间对相位求值，从单帧频谱重建出完整动画
     - **oceanspectrum节点** 在频域中存储了海浪在不同频率下的振幅和相位（即"多大的浪、多密的浪、什么方向"）；Displacement 选项卡读取此频谱后，通过逆 FFT（快速傅里叶逆变换）将频域数据还原为每个顶点的实际位移向量，从而驱动网格顶点产生海浪起伏；海面的几何形态（平静/汹涌/碎浪）由 `spectrum geometry` 中的频谱数据决定；`oceansurface` 材质同时承担着色（颜色、反射、折射）和渲染时置换（读取频谱、执行逆 FFT、将顶点 `P` 实际移动）两项工作，频谱提供"波形的数学描述"，材质负责"执行"
   - `mask geometry`：提供遮罩的 SOP 路径，限定置换生效区域
   - `anti-alias blur`：置换贴图的抗锯齿模糊量（默认 0.5）

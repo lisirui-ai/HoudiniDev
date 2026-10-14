@@ -4581,7 +4581,7 @@ importpoint/primitive/vertex/**detailattribute节点**
       - `Filter Scale`：条纹图案的过滤缩放（默认 0.5）；防止从远处观看时出现走样（aliasing）
       - `Frequency`：条纹图案的频率（默认 1.5，四轴分别设置）；值越大纹理越细碎
       - `Offset`：条纹图案的偏移（四轴）
-      - `Streak Direction`：条纹的拉伸方向（默认 0）；沿此方向将频率拉伸，使泡沫在该方向形成条纹；设为主风向或风向 ±90° 可产生自然效果
+      - `Streak Direction`：条纹的拉伸方向（默认 0）；沿此方向将频率拉伸，使泡沫在该方向形成条纹；应与 **oceanspectrum节点** `wind` 参数中的 `direction` 保持一致（或相差 ±90°），使条纹走向符合波浪传播方向
       - `Streak Bias`：沿 `Streak Direction` 方向的频率拉伸量（默认 0）；值越大条纹越长
     - Reflections 子选项卡：泡沫层的反射设置；各强度值会被泡沫整体可见度（`Streak Intensity` 与 `Whitecap Intensity`）同比缩放，颜色值除外
       - `Reflect Intensity`：泡沫层的反射强度（默认 1）

@@ -2385,7 +2385,7 @@ copy and **transform节点**
     - `Max Foam Density`：密度保留阈值（默认 10）；当粒子周围密度处于 `Min Foam Density` 到此值之间时，每帧按 `Preservation Rate` 比例延长寿命（密集区粒子得到保留）
     - `Preservation Rate`：寿命延长速率（默认 0.6）；单位为"每秒增加的秒数"，大于 1 时高密度区粒子的寿命增速超过流逝速度，泡沫团块可永久保留
     - `Reduction Rate`：寿命缩减速率（默认 0）；单位为"每秒缩减的秒数"，大于 0 时稀疏区粒子寿命被加速消耗，稀疏泡沫更快消散
-    - `Keep Attributes`：模拟过程中需要保留的粒子属性列表（默认 `pscale rest age life`）；默认值中的四个属性是 Ocean Surface shader 正确渲染所必需的，不可删除；设为 `*` 可保留所有属性
+    - `Keep Attributes`：模拟过程中需要保留的粒子属性列表（默认 `pscale rest age life`）；默认值中的四个属性是 **Ocean Surface shader** 正确渲染所必需的，不可删除；设为 `*` 可保留所有属性
   - Simulation 区域：控制节点自身的迭代解算行为
     - `Reset Simulation`：点击按钮强制重置解算缓存，从第 1 帧重新开始计算
     - `Start Frame`：解算起始帧（默认 1）；可设置早于实际渲染起始帧，以便在渲染前预填充海面泡沫

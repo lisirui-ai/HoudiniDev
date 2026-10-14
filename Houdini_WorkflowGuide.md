@@ -4212,6 +4212,13 @@ importpoint/primitive/vertex/**detailattribute节点**
 - `render light geometry`：勾选后灯光的几何体形状会作为可见对象出现在渲染中（如面积光的矩形、球形等直接可见）；用于调试高光强度、在 IPR 渲染中辅助灯光摆放
 - `sun`模式
   - distant light `options`中的`sun` `angle`越小，影子边界越锐利，反之影子边界越模糊
+- `Shadow` 选项卡
+  - `Shadow Type`：阴影计算方式；`Ray-Traced Shadows` 表示使用光线追踪计算阴影，效果精确，支持透明阴影和软阴影，是路径追踪渲染器（Karma/Mantra PBR）的标准选项
+  - `Shadow Mask`：遮罩表达式，控制哪些对象投射阴影到该灯光；默认 `*` 表示所有对象均投射阴影；可填写对象路径或通配符缩小范围；被排除的对象对该灯光不产生投影，等效于该对象对这盏灯透明（视觉外观不变，仅阴影消失）
+  - `Shadow Selection`：Category Expression，控制哪些对象接收来自该灯光的阴影；默认 `-noshadow` 表示排除拥有 `noshadow` 标签的对象，其余对象均接收阴影；语法与 `Light Selection` 相同
+  - `Shadow Intensity`：阴影强度倍率；`1` 为完整阴影，`0` 为无阴影，中间值产生半透明阴影效果
+  - `Shadow Color`：阴影颜色（默认黑色 0, 0, 0）；调整为非黑色可模拟彩色阴影或间接光填充效果
+  - `Transparent Shadows`：勾选后允许透明/半透明材质投射带颜色的透明阴影（如彩色玻璃）；取消勾选则透明对象按不透明处理，阴影全黑
 
 ## 体积雾
 

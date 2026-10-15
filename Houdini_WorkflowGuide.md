@@ -4009,58 +4009,47 @@ importpoint/primitive/vertex/**detailattribute节点**
 - 输出：`length`（`int`）：数组的元素数量
 - 典型用途：配合 **point cloud find节点** 使用，获取实际搜索到的点数（因为搜索结果可能少于 `max points`），再用于后续循环或条件判断
 
+**ocio_transform节点**
+
+- 基于 OpenColorIO（OCIO）配置，将颜色从一个色彩空间转换到另一个色彩空间
+- 连接方式
+  - 输入端 `from`：待转换的颜色值（`vector`）
+  - 输入端 `fromspace`：覆盖 `From Space` 参数的色彩空间字符串（可选，留空则使用参数面板设置）
+  - 输入端 `tospace`：覆盖 `To Space` 参数的色彩空间字符串（可选，留空则使用参数面板设置）
+  - 输出端 `to`：转换后的颜色值（`vector`）
+- 属性
+  - `Source Color`：直接在节点参数面板中输入源颜色（`vector`，默认 `0 0 0`）；当 `from` 输入端已连接上游节点时，此参数被上游值覆盖，不再生效
+  - `From Space`：源色彩空间，指定输入颜色所处的色彩空间（默认 `scene_linear`）；下拉列表来自当前 OCIO 配置，常用选项见下方说明
+  - `To Space`：目标色彩空间，指定输出颜色要转换到的色彩空间（默认 `scene_linear`）；下拉列表与 `From Space` 相同
+- `From Space` / `To Space` 下拉选项说明
+  - Role 类（语义角色，由 OCIO 配置映射到具体色彩空间）
+    - `Role: Aces Interchange`：ACES 交换色彩空间角色，用于在不同 ACES 流程间互通数据
+    - `Role: Cie Xyz D65 Interchange`：CIE XYZ D65 交换角色，适用于与绝对色度量标准的互转
+    - `Role: Color Picking`：拾色器角色，通常对应人眼感知友好的空间（如 sRGB）
+    - `Role: Color Timing`：调色角色，对应调色软件中使用的色彩空间
+    - `Role: Compositing Log`：合成 Log 角色，对应合成软件中使用的对数编码空间
+    - `Role: Data`：数据角色，不做任何色彩变换，适用于法线、粗糙度等非颜色数据
+    - `Role: Matte Paint`：遮罩绘制角色，对应数字绘景工作流中的色彩空间
+    - `Role: Scene Linear`：场景线性角色，对应线性光照计算空间（等同于 `Linear Rec.709 (sRGB)`）
+    - `Role: Texture Paint`：贴图绘制角色，对应贴图创作软件中的色彩空间
+  - 具体色彩空间（配置中明确定义的编码空间）
+    - `ACES2065-1`：ACES 标准线性色彩空间，色域最大，作为 ACES 流程的参考/存档格式
+    - `ACEScc`：ACES 对数编码空间，专为调色设计，类似 Log 曲线，调色师友好
+    - `ACEScct`：ACEScc 的改良版，暗部加入 toe 曲线，使暗区调整更线性自然
+    - `ACEScg`：ACES 线性色彩空间（计算级），用于 CG 渲染与合成计算
+    - `Gamma 1.8 Rec.709 - Texture`：Gamma 1.8 编码、Rec.709 色域的贴图空间，常见于旧版 Mac 工作流
+    - `Gamma 2.2 AP1 - Texture`：Gamma 2.2 编码、AP1（ACES）色域的贴图空间
+    - `Gamma 2.2 Rec.709 - Texture`：Gamma 2.2 编码、Rec.709 色域的贴图空间，与 sRGB 近似
+    - `Gamma 2.4 Rec.709 - Texture`：Gamma 2.4 编码（BT.1886 标准）、Rec.709 色域，对应广播电视标准
+    - `Linear P3-D65`：线性编码、DCI-P3 D65 色域，用于电影/宽色域显示流程
+    - `Linear Rec.2020`：线性编码、Rec.2020 色域，用于 HDR/超宽色域流程
+    - `Linear Rec.709 (sRGB)`：线性编码、Rec.709/sRGB 色域，Houdini 默认场景线性空间
+    - `Raw`：原始数据，不做任何色彩变换，与 `Role: Data` 等效
+    - `sRGB - Texture`：标准 sRGB 贴图空间，适用于美术在显示器上绘制的颜色贴图
+    - `sRGB Encoded AP1 - Texture`：sRGB 编码曲线、AP1 色域的贴图空间
+    - `sRGB Encoded P3-D65 - Texture`：sRGB 编码曲线、P3-D65 色域的贴图空间，用于 Display P3 设备的贴图
+
 ## 渲染
-
-在节点视窗的最外层单击上方可以选择切换节点层或通道：
-- `obj`：模型层
-- `mat`：负责材质的通道，在此层添加`principledshader`可以添加材质
-- 在**obj节点**层的模型节点后接**material节点**，在**material节点**属性视窗中选择路径为**mat节点**层的**principledshader节点**，即可载入材质贴图
-- 在`gs`视窗查看物体的面级别中的`shop_materialpath`属性就会显示贴图材质的路径
-
-一般使用**principledshader节点**的`surface`通道选项的`basecolor`导入贴图，一般与**texture节点**相连：
-- **texture节点**属性视窗中的`texture` `map`选项可以指定贴图所在路径
-- 若`uv`翻转，在**texture节点**属性视窗最下方选择`swap` u/v
-- **principledshader节点**的所有通道一般都与**texture节点**相连
-- 注意：材质贴图都是针对面级别的，`shop_materialpath`属性是`string`类型
-- 在**aw节点**的`vex`编程框在面级别运行，也可通过代码添加材质，如：
-
-  ```c
-  if(@primnum<10){
-      s@shop_materialpath="/mat/principledshader1";
-  }
-  ```
-
-- 在**ps节点**属性视窗中可以调节材质参数（如玻璃、金属等）
-- 在**ps节点**的`surface`通道连接的**texture节点**是渲染才能看到的；只有在**ps节点**属性视窗`textures`选项中`base` `color`添加的贴图才是直接可以看到的
-
-单击左侧工具架的渲染按钮可渲染框选的区域
-
-**Render Flipbook（拍平）**
-
-- 作用：将视窗内容逐帧截图并以全速在 mplay 中播放，是介于视窗实时预览和正式渲染之间的中间方案，适合复杂场景/解算的快速预览
-- 使用方式
-  - 首次使用：在视窗左侧工具架**右键**单击 Flipbook 工具 → 选择 `Flipbook with new settings` 打开设置对话框
-  - 再次使用：直接**左键**单击 Flipbook 工具，沿用上次设置直接拍平
-- `output`选项卡
-  - `frame range/inc`：设置起始帧、结束帧和帧步长，默认引用时间轴的 `$RFSTART` 和 `$RFEND`
-  - `flipbook to mplay`：勾选后将每帧写入 mplay 供交互预览（默认开启）
-  - `flipbook session label`：仅在 `flipbook to mplay` 开启时生效，指定接收帧的 mplay 会话名称；相同标签的帧会路由到同一个会话，不同标签可同时向多个 mplay 窗口发送拍平结果以便并排比较；若填写的标签对应一个已打开的 mplay 窗口，Houdini 会将新帧直接发送到该窗口
-  - `output files`：填写路径后将帧额外保存到磁盘；若关闭 `flipbook to mplay`，则只保存到磁盘
-    - 路径中必须包含 `$F` 变量作为帧号占位符，否则每帧会覆盖同一文件；`$F` 后跟数字表示零填充位数，例如 `$F4` 生成 `0001`、`0002` 等四位帧号
-    - 典型格式：`$HIP/flipbook/filename.$F4.jpg`（`$HIP` 为当前工程目录）
-    - 不可用连字符紧接帧号（如 `name-$F.jpg`），mplay 会将其解释为负帧号
-    - 若需要输出视频，在 mplay 中选择 `File → Export`：
-      - `Video For Windows 64-bit…`（Windows）：导出 `.avi` 视频
-      - `FFmpeg…`（跨平台）：导出 `.mp4`（MPEG-4）、`.mkv`（Matroska）、`.webm`（WebM）
-  - `initialize simulation OPs`：拍平前重置所有解算节点，确保解算从第0帧重新开始
-  - `render`：控制渲染视窗范围，`current viewport` 渲染当前视窗，`current beauty pass` 排除背景/网格/控制柄等只渲染几何体
-- `effects`选项卡
-  - `antialias`：抗锯齿质量
-  - `motion blur`：开启运动模糊及子帧采样数
-- `size`选项卡
-  - `zoom`：缩小输出图像尺寸以节省内存/磁盘
-  - `resolution`：自定义输出分辨率（默认跟随视窗大小）
-  - `crop out view mask overlay`：勾选后裁掉相机宽高比以外的区域
 
 **mantra节点**
 
@@ -5239,4 +5228,56 @@ flip渲染
   - `opinputpath(name, index)`：返回当前节点第 `index` 个输入端所连接节点的完整路径；`name` 填 `"."` 表示当前节点，`index` 从 0 开始
     - 例：`` `opinputpath(".", 0)` `` → 当前节点第一个输入端所连节点的路径
     - 例：`` 0-`npoints(opinputpath(".", 0))`-2 `` → 选取第一个输入端几何体中除最后一个点以外的所有点
+
+
+在节点视窗的最外层单击上方可以选择切换节点层或通道：
+- `obj`：模型层
+- `mat`：负责材质的通道，在此层添加`principledshader`可以添加材质
+- 在**obj节点**层的模型节点后接**material节点**，在**material节点**属性视窗中选择路径为**mat节点**层的**principledshader节点**，即可载入材质贴图
+- 在`gs`视窗查看物体的面级别中的`shop_materialpath`属性就会显示贴图材质的路径
+
+一般使用**principledshader节点**的`surface`通道选项的`basecolor`导入贴图，一般与**texture节点**相连：
+- **texture节点**属性视窗中的`texture` `map`选项可以指定贴图所在路径
+- 若`uv`翻转，在**texture节点**属性视窗最下方选择`swap` u/v
+- **principledshader节点**的所有通道一般都与**texture节点**相连
+- 注意：材质贴图都是针对面级别的，`shop_materialpath`属性是`string`类型
+- 在**aw节点**的`vex`编程框在面级别运行，也可通过代码添加材质，如：
+
+  ```c
+  if(@primnum<10){
+      s@shop_materialpath="/mat/principledshader1";
+  }
+  ```
+
+- 在**ps节点**属性视窗中可以调节材质参数（如玻璃、金属等）
+- 在**ps节点**的`surface`通道连接的**texture节点**是渲染才能看到的；只有在**ps节点**属性视窗`textures`选项中`base` `color`添加的贴图才是直接可以看到的
+
+单击左侧工具架的渲染按钮可渲染框选的区域
+
+Render Flipbook（拍平）
+
+- 作用：将视窗内容逐帧截图并以全速在 mplay 中播放，是介于视窗实时预览和正式渲染之间的中间方案，适合复杂场景/解算的快速预览
+- 使用方式
+  - 首次使用：在视窗左侧工具架**右键**单击 Flipbook 工具 → 选择 `Flipbook with new settings` 打开设置对话框
+  - 再次使用：直接**左键**单击 Flipbook 工具，沿用上次设置直接拍平
+- `output`选项卡
+  - `frame range/inc`：设置起始帧、结束帧和帧步长，默认引用时间轴的 `$RFSTART` 和 `$RFEND`
+  - `flipbook to mplay`：勾选后将每帧写入 mplay 供交互预览（默认开启）
+  - `flipbook session label`：仅在 `flipbook to mplay` 开启时生效，指定接收帧的 mplay 会话名称；相同标签的帧会路由到同一个会话，不同标签可同时向多个 mplay 窗口发送拍平结果以便并排比较；若填写的标签对应一个已打开的 mplay 窗口，Houdini 会将新帧直接发送到该窗口
+  - `output files`：填写路径后将帧额外保存到磁盘；若关闭 `flipbook to mplay`，则只保存到磁盘
+    - 路径中必须包含 `$F` 变量作为帧号占位符，否则每帧会覆盖同一文件；`$F` 后跟数字表示零填充位数，例如 `$F4` 生成 `0001`、`0002` 等四位帧号
+    - 典型格式：`$HIP/flipbook/filename.$F4.jpg`（`$HIP` 为当前工程目录）
+    - 不可用连字符紧接帧号（如 `name-$F.jpg`），mplay 会将其解释为负帧号
+    - 若需要输出视频，在 mplay 中选择 `File → Export`：
+      - `Video For Windows 64-bit…`（Windows）：导出 `.avi` 视频
+      - `FFmpeg…`（跨平台）：导出 `.mp4`（MPEG-4）、`.mkv`（Matroska）、`.webm`（WebM）
+  - `initialize simulation OPs`：拍平前重置所有解算节点，确保解算从第0帧重新开始
+  - `render`：控制渲染视窗范围，`current viewport` 渲染当前视窗，`current beauty pass` 排除背景/网格/控制柄等只渲染几何体
+- `effects`选项卡
+  - `antialias`：抗锯齿质量
+  - `motion blur`：开启运动模糊及子帧采样数
+- `size`选项卡
+  - `zoom`：缩小输出图像尺寸以节省内存/磁盘
+  - `resolution`：自定义输出分辨率（默认跟随视窗大小）
+  - `crop out view mask overlay`：勾选后裁掉相机宽高比以外的区域
 

@@ -3696,6 +3696,30 @@ copy and **transform节点**
     - `off velocity angle`：当粒子速度方向与液面法线夹角小于此值时，禁用吸附（防止沿表面运动的粒子被锁死）
     - `stiffness by depth`：吸附刚度随深度的变化曲线；值越低泡沫层越厚
 
+**gasguidingvolume节点**
+
+- 将来自 SOP 的引导体积（表面场、速度场、消融场）混入 FLIP Solver 的碰撞场，使 FLIP 模拟持续跟随外部海洋动态；需接在 **flipsolver节点** 的 `Volume Velocity` 输入端，并同步修改 **flipsolver节点** Solver 文件夹中的碰撞场名称
+- 连接方式
+  - 接入 **flipsolver节点** 的 `Volume Velocity` 输入端（第三输入端）；同时需将 **flipsolver节点** Solver 文件夹中的碰撞场字段替换：`Collision Surface` → `guidingcollision`、`Collision Weights` → `guidingweights`、`Collision Velocity` → `guidingvel`；`Source Surface` → `guidingsurface`、`Sink Surface` → `guidingsink`
+  - 注意：合并后的引导碰撞场仅作用于粘性和压力投影求解器，FLIP Solver 内其他操作仍使用原始碰撞场
+- `Guiding Volumes` 分组
+  - `Visualize Guiding Surface`：勾选后在视窗中可视化 `Guiding Surface` 生成的标量场，用于调试引导表面位置
+  - `Guiding Surface`：引导表面 SDF 的路径；填入 **oceansource节点** 第二输出端的 `guiding_surface` 体积路径；该 SDF 与现有碰撞场合并，在其内侧区域将粒子速度替换为引导速度；已有碰撞体优先级高于引导表面，碰撞体附近不会应用引导速度
+  - `Guiding Velocity`：引导速度场的路径；填入 `vel` 体积路径；液体在引导表面处将被赋予此速度，方式与碰撞对象相同
+  - `Guiding Sink`：消融 SDF 的路径；填入 `guiding_sink` 体积路径；进入此 SDF 内的粒子将被删除，即使该 SDF 在 `Guiding Surface` 外侧也生效
+- `Surface Weight Sampling` 分组（需与 **flipsolver节点** Collisions 文件夹中的设置保持一致）
+  - `Volume Fraction Method`：碰撞体积分数的估算方式；用于提高压力求解在弯曲/倾斜表面附近的精度；`Collision Supersampling` 为超采样模式
+  - `Samples Per Axis`：`Collision Supersampling` 模式下每轴的采样数；总采样数为该值的三次方，值越大越精确但计算越慢；默认 `0`
+- `Stick On Guiding Surface` 分组
+  - `Stick on Guide`：勾选后在靠近引导表面处将流体速度混入引导速度，使流体"粘"在引导表面上跟随运动
+  - `Stick Scale`：引导速度混入流体速度的比例；`1` 表示完全匹配引导速度；默认值见 **Gas Stick On Collision节点**
+  - `Max Distance`：世界空间中应用粘附效果的最大距离
+  - `Max Cells`：应用粘附效果的最大体素数
+  - `Stick Bias`：控制粘附效果在 `Max Distance` 范围内的衰减速率；越接近 1 效果在整个范围内越均匀
+  - `Normal Scale`：法线方向速度调整量的缩放系数
+  - `Tangent Scale`：切线方向速度调整量的缩放系数；提高此值可促使流体匹配切线方向的引导速度（压力求解默认只应用法线方向的碰撞速度）
+  - `Control Field`：空间变化控制场的名称，用于按场值缩放粘附效果；分辨率应与 `Guiding Surface` 匹配
+
 ## 时间
 
 **timeshift节点**

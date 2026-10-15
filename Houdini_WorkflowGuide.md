@@ -2489,7 +2489,8 @@ copy and **transform节点**
   - 第一输入端（`ocean spectrum`）：连接 **oceanspectrum节点** 输出，提供驱动海浪形态的频谱数据
   - 第二输入端（`collision geometry`）：连接碰撞体几何，用于 `Kill Inside Collision` 功能裁剪碰撞体内部的粒子
 - 输出端
-  - 输出端：输出包含 FLIP 粒子、SDF 表面场、速度场及边界层数据的几何体，送入 **flipobject节点** 或缓存节点
+  - 第一输出端（`Initial`）：输出 FLIP 粒子（携带初始速度属性），用于初始化 **flipobject节点** 的初始状态
+  - 第二输出端（`Maintain`）：输出海洋表面 SDF 体积场和速度场体积，在模拟过程中持续供给边界层以维持海洋动态
 - 顶层参数
   - `Initialize`：预设初始化模式；`Wave Tank` 为波浪水槽预设，自动配置适合封闭水槽模拟的参数组合
   - `Particle Separation`：粒子间距（场景单位）；控制生成粒子的密度，值越小粒子越密，模拟精度越高，计算越慢；默认 `0.1`
@@ -2524,7 +2525,7 @@ copy and **transform节点**
   - `Depth Falloff`：水深衰减模式；控制波浪幅度随水深的衰减方式；`None` 表示不做深度衰减
   - `Falloff Scale`：深度衰减的缩放系数；仅在 `Depth Falloff` 非 `None` 时生效；默认 `1`
   - `Depth Divisions`：深度方向的计算分层数；值越大深度衰减计算越精确；默认 `8`（复选框控制启用）
-  - `Max Displacement`：波浪最大位移量的限制值；超出此值的位移会被截断，防止极端波浪造成粒子飞散；默认 `1`（左侧复选框控制启用）
+  - `Max Displacement Frame`：勾选后仅在指定帧估算一次海洋最大水平/垂直位移量，而非每帧重新计算，可提升性能并保持粒子输出稳定；若波浪振幅随时间动画变化较大，需关闭此项以持续重算；默认 `1`（左侧复选框控制启用）
 
 ## dop
 

@@ -2489,7 +2489,7 @@ copy and **transform节点**
   - 第一输入端（`ocean spectrum`）：连接 **oceanspectrum节点** 输出，提供驱动海浪形态的频谱数据
   - 第二输入端（`collision geometry`）：连接碰撞体几何，用于 `Kill Inside Collision` 功能裁剪碰撞体内部的粒子
 - 输出端
-  - 第一输出端（`Initial`）：输出 FLIP 粒子（携带初始速度属性），用于初始化 **flipobject节点** 的初始状态
+  - 第一输出端（`Initial`）：输出 FLIP 粒子（携带初始速度属性，随时间动态更新），用于初始化 **flipobject节点** 的初始状态
   - 第二输出端（`Maintain`）：输出海洋表面 SDF 体积场和速度场体积，在模拟过程中持续供给边界层以维持海洋动态
 - 顶层参数
   - `Initialize`：预设初始化模式；`Wave Tank` 为波浪水槽预设，自动配置适合封闭水槽模拟的参数组合

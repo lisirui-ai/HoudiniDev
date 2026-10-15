@@ -2495,7 +2495,7 @@ copy and **transform节点**
   - `Initialize`：预设初始化模式；`Wave Tank` 为波浪水槽预设，自动配置适合封闭水槽模拟的参数组合
   - `Particle Separation`：粒子间距（场景单位）；控制生成粒子的密度，值越小粒子越密，模拟精度越高，计算越慢；默认 `0.1`
   - `Oversampling`：在 `Particle Separation` 基础上的粒子过采样倍率；值大于 1 时在相同体积内生成更多粒子以提高表面细节精度；默认 `2`（复选框控制启用）
-  - `Grid Scale`：体素网格相对于 `Particle Separation` 的缩放倍数；控制内部 SDF 和速度场的分辨率；默认 `2`
+  - `Grid Scale`：体素网格相对于 `Particle Separation` 的缩放倍数；`Particle Separation` × `Grid Scale` = 体素大小（`voxel size`），控制内部 SDF 和速度场的分辨率；默认 `2`
   - `Size`：模拟区域的尺寸（xyz 三分量，场景单位）；默认 `5 × 5 × 5`
   - `Center`：模拟区域中心点的世界空间坐标（xyz）；默认 `0 0 0`
 - `Particles` 选项卡

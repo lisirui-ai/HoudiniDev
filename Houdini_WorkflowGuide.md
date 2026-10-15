@@ -4208,6 +4208,54 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `Shadow Intensity`：阴影强度倍率；`1` 为完整阴影，`0` 为无阴影，中间值产生半透明阴影效果
   - `Shadow Color`：阴影颜色（默认黑色 0, 0, 0）；调整为非黑色可模拟彩色阴影或间接光填充效果
   - `Transparent Shadows`：勾选后允许透明/半透明材质投射带颜色的透明阴影（如彩色玻璃）；取消勾选则透明对象按不透明处理，阴影全黑
+- `Spot Light Options` 选项卡
+  - `Enable Spot Light`：勾选后将灯光切换为聚光灯模式，照射范围限定在锥形区域内；取消勾选则按面积光/点光等原始类型发光
+  - `Use cone angle for field of view`：勾选后以 `Cone Angle` 替代 `Projection Angle` 作为实际投影视角；取消勾选时投影视角由 `Projection Angle` 单独控制（默认勾选）
+  - `Projection Angle`：聚光灯的投影视锥半角（度），控制光锥整体张开范围；默认 `45`
+  - `Cone Angle`：光锥全亮区域的半角（度），该范围内光照均匀；仅在 `Use cone angle for field of view` 勾选时与 `Projection Angle` 联动；默认 `45`
+  - `Cone Delta`：从全亮区域边缘到完全衰减边缘的过渡宽度（度），值越大边缘越柔和；默认 `10`
+  - `Cone Rolloff`：边缘衰减曲线的幂次（gamma），控制衰减的快慢；值越大衰减越急促；默认 `1`
+  - `Projection Map`：投影贴图路径；将指定贴图作为光线的颜色/形状遮罩投射到场景中，类似幻灯机效果
+  - `Near Clipping`：光线投影的近裁剪距离；距灯光小于此值的区域不接收投影贴图；默认 `0.001`
+  - `Far Clipping`：光线投影的远裁剪距离；距灯光大于此值的区域不接收投影贴图；默认 `10000`
+  - `Environment/IES Map`：环境/IES 配光文件路径；加载 `.ies` 文件可模拟真实灯具的配光曲线，使灯光强度分布符合物理测量数据
+  - `Environment Space`：IES/环境贴图的坐标参考空间；`Object Space` 表示贴图随灯光对象的变换旋转
+  - `Environment Null`：额外的参考对象路径；IES 贴图的方向将跟随该对象的坐标系而非灯光本身
+  - `Map Blur Angle`：对 IES/环境贴图做模糊的角度范围；值越大贴图越模糊，光照分布越平滑；默认 `0`
+  - `Map Angle Scale`：对 IES 配光角度范围做缩放；值大于 1 展开配光范围，小于 1 收缩；默认 `1`
+- `Area Light Options` 选项卡
+  - `Area Size`：面积光的尺寸，两个数值分别对应宽和高（单位为场景单位）；默认 `1 × 1`
+  - `Normalize Light Intensity to Area`：勾选后当 `Area Size` 改变时自动补偿强度，保持场景总亮度不变；取消勾选则面积越大越亮（默认勾选）
+  - `Single Sided`：勾选后面积光只向单侧发光（法线正方向），背面不发光；默认不勾选（双面发光）
+  - `Reverse Emission Direction`：翻转发光方向，改为向法线反方向发光；仅在 `Single Sided` 勾选时可用
+  - `Sharp Spot Light`：勾选后面积光的聚光边缘锐利，无柔和过渡；与 `Cone Delta` 配合使用
+  - `Self Shadow`：勾选后灯光几何体自身会接收阴影；默认勾选
+  - `Material`：为面积光几何体指定渲染材质路径；可使灯光外观在渲染中呈现指定材质
+  - `Texture Map`：面积光的亮度/颜色贴图路径；贴图的亮度分布直接决定面积光各区域的发光强度
+  - `Enable Edge Falloff`：勾选后在面积光边缘添加额外的亮度衰减，使边缘更柔和
+  - `Edge Width`：边缘衰减区域的宽度（比例值，相对于灯光尺寸）；默认 `0.1`
+  - `Edge Rolloff`：边缘衰减的曲线幂次，控制衰减速率；默认 `1`
+  - `Geometry Object`：指定场景中的几何体对象路径，将其作为面积光的发光表面（Geometry Light 模式）；该对象的表面形状直接作为光源形状
+  - `Transform Into This Object`：单击后将灯光节点的变换对齐到 `Geometry Object` 指定对象的变换，便于快速定位
+  - `Enable Point Cloud`：勾选后为该几何体光源生成点云缓存，用于加速照明采样计算
+  - `Point Samples`：点云采样点数量；数值越大，照明细节越精确，计算越慢；默认 `16`
+  - `Point Cloud File`：点云缓存文件路径；默认 `temp:$OS.pc`（存于临时目录，以节点名称命名）
+  - `Auto-generate Point Cloud`：勾选后在渲染时自动生成并更新点云；取消勾选则使用已有的点云文件（默认勾选）
+  - `Shading Quality`：几何体光源表面的着色采样质量倍率；值越大噪点越少，渲染越慢；默认 `0.5`
+  - `Override Dicing Camera`：勾选后为该灯光几何体指定独立的 Dicing（细分）参考相机，用于控制置换细分精度
+  - `Dicing Camera`：`Override Dicing Camera` 勾选时生效，指定用于计算置换细分密度的相机路径
+- `Distant Light Options` 选项卡
+  - `Orthographic Width`：平行光（Distant Light）的正交投影宽度，单位为场景单位；控制 Mantra 阴影贴图的覆盖范围，对 Karma 路径追踪无影响；默认 `2`
+  - `Sun Angle`：模拟太阳圆盘的角直径（度）；值越小阴影边界越锐利（类似强直射光），值越大阴影边界越柔和（类似多云天气）；默认 `5`
+- `Attenuation Options` 选项卡
+  - `Attenuation`：灯光强度随距离衰减的计算方式；`Physically Correct` 表示按平方反比定律衰减（物理正确）；其他选项包括 `No Falloff`（不衰减）、`Linear`（线性衰减）、`Quadratic`（手动平方衰减）等
+  - `Half Distance`：在 `Physically Correct` 以外的衰减模式下，灯光强度衰减到一半时的距离；值越大衰减越慢；默认 `10`
+  - `Attenuation Start`：灯光强度开始衰减的起始距离；距灯光小于此值的区域保持全强度，不受衰减影响；默认 `0`
+  - `Active Radius`：勾选并设置数值后，超出该半径的区域灯光贡献被硬截断为零，强制限制灯光影响范围；可优化渲染性能；默认 `100`（勾选框默认关闭）
+  - `Use Attenuation Ramp Multiplier`：勾选后启用 `Attenuation Ramp Multiplier` 曲线，用自定义曲线乘入衰减结果，允许对任意距离区间做精细的亮度控制；默认不勾选
+  - `Ramp Start Distance`：`Attenuation Ramp Multiplier` 曲线的起始映射距离；曲线横轴左端对应该距离；默认 `0`
+  - `Ramp End Distance`：`Attenuation Ramp Multiplier` 曲线的结束映射距离；曲线横轴右端对应该距离；默认 `100`
+  - `Attenuation Ramp Multiplier`：自定义衰减曲线编辑器；横轴为归一化距离（由 `Ramp Start/End Distance` 映射），纵轴为亮度乘数（1 为不改变，0 为完全熄灭）；可在特定距离区间手动提亮或压暗灯光
 
 ## 体积雾
 

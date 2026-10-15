@@ -2512,7 +2512,7 @@ copy and **transform节点**
   - `Jitter Scale`：粒子位置抖动的幅度；值越大粒子排布越随机，可减少规则格栅感；默认 `1`
   - `Kill Inside Collision`：勾选后删除与碰撞体内部重叠的粒子，防止粒子穿透固体；默认勾选
 - `Surface` 选项卡
-  - `Depth`：`surface` SDF 体积的水面零交叉面相对于海洋参考平面的偏移距离（场景单位）；海洋参考平面由 **Ocean Spectrum** 的 `Grid Center` 决定，通常约定为 y=0，不随 `Water Level` 移动；正值向下移动，负值向上移动；`Water Level` 改变的是粒子层初始化高度而非海洋参考平面，官方示例中常关联为 `-Water Level`，使 `surface` SDF 零交叉面跟随粒子层顶部（`y = 0-Depth = Water Level`），而非固定在海洋参考平面上；零交叉面以上为正值（水面上方），以下为负值（水体内部）；由于使用 `Depth Falloff` 在指定深度处重新评估波浪位移而非直接偏移 SDF，波浪幅度会随深度自然衰减；默认 `0`
+  - `Depth`：`surface` SDF 体积的水面零交叉面相对于海洋参考平面的偏移距离（场景单位）；海洋参考平面由 **Ocean Spectrum** 的 `Grid Center` 决定，通常约定为 y=0，不随 `Water Level` 移动；正值向下移动，负值向上移动；`Water Level` 改变的是粒子层初始化高度而非海洋参考平面，官方示例中常关联为 `-Water Level`，使 `surface` SDF 零交叉面跟随粒子层顶部（`y = 0-Depth = Water Level`），而非固定在海洋参考平面上；零交叉面以上为正值（水面上方），以下为负值（水体内部）；`Depth Falloff` 会使波浪位移幅度从 SDF 零交叉面向下随深度逐渐衰减，而非直接平移 SDF；默认 `0`
   - `Smoothing`：对生成的水面 SDF 做平滑处理的强度；值越大表面越光滑，高频细节越少；默认 `0.5`
 - `Velocity` 选项卡
   - `Velocity Field`：勾选后根据海洋波浪运动生成速度场，赋予粒子和体积初始速度；默认勾选

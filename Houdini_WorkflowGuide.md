@@ -4739,6 +4739,8 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `Use Point Alpha`：勾选后将点属性 `@Alpha` 乘入最终不透明度（默认勾选）；若几何体无 `Alpha` 属性则无影响
   - `Opacity Map`：不透明度贴图路径；提供后以贴图值代替 `Opacity` 参数
 
+# 其他
+
 可视化
 
 - `marker`只能可视化@属性

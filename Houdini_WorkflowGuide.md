@@ -4009,7 +4009,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 - 输出：`length`（`int`）：数组的元素数量
 - 典型用途：配合 **point cloud find节点** 使用，获取实际搜索到的点数（因为搜索结果可能少于 `max points`），再用于后续循环或条件判断
 
-**ocio_transform节点**
+**ocio transform节点**
 
 - 基于 OpenColorIO（OCIO）配置，将颜色从一个色彩空间转换到另一个色彩空间
 - 连接方式

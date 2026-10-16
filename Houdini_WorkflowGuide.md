@@ -3556,6 +3556,8 @@ copy and **transform节点**
     - `box size`：解算范围的最大尺寸（三维）
     - `box center`：解算范围中心点位置
     - 勾选 `dynamically resize fields`：每帧根据粒子实际位置动态调整体积场大小以刚好包住所有粒子，节省内存；调整范围不超过 `box size` 所设上限
+      - 勾选 `Fill New Volume`：当体积场动态扩展后，对新增区域执行初始化填充（如填入背景速度或 SDF 默认值），防止扩展边缘出现未初始化的空白区域导致模拟异常
+      - 勾选 `Use Boundary Layer`：在动态调整后的体积场边缘保留一层边界缓冲区，避免粒子刚好处于场边界时因采样不足产生伪影或不稳定；建议与 `Fill New Volume` 同时启用
     - `use waterline`：在封闭边界上方设为开放边界，液面以上粒子可自由流出，减少边界反射；配合 `waterline`（水面高度）和 `waterline direction`（朝上方向）使用
   - `collisions` 子标签（解算器侧）
     - `velocity scale`：碰撞速度缩放，>1 产生更大飞溅效果；通常设为 1

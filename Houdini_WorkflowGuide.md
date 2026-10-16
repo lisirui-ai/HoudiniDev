@@ -3732,13 +3732,13 @@ copy and **transform节点**
   - `Samples Per Axis`：`Collision Supersampling` 模式下每轴的采样数；总采样数为该值的三次方，值越大越精确但计算越慢；默认 `0`
 - `Stick On Guiding Surface` 分组
   - `Stick on Guide`：勾选后在靠近引导表面处将流体速度混入引导速度，使流体"粘"在引导表面上跟随运动
-  - `Stick Scale`：引导速度混入流体速度的比例；`1` 表示完全匹配引导速度；默认值见 **Gas Stick On Collision节点**
-  - `Max Distance`：世界空间中应用粘附效果的最大距离
-  - `Max Cells`：应用粘附效果的最大体素数
-  - `Stick Bias`：控制粘附效果在 `Max Distance` 范围内的衰减速率；越接近 1 效果在整个范围内越均匀
-  - `Normal Scale`：法线方向速度调整量的缩放系数
-  - `Tangent Scale`：切线方向速度调整量的缩放系数；提高此值可促使流体匹配切线方向的引导速度（压力求解默认只应用法线方向的碰撞速度）
-  - `Control Field`：空间变化控制场的名称，用于按场值缩放粘附效果；分辨率应与 `Guiding Surface` 匹配
+  - `Stick Scale`：引导速度混入流体速度的比例；`1` 表示完全匹配引导速度；默认 `0.1`
+  - `Max Distance`：世界空间中应用粘附效果的最大距离；默认 `0`，值为 `0` 时表示不限制距离，此时该参数灰显不可编辑
+  - `Max Cells`：应用粘附效果的最大体素数；默认 `1`；当 `Max Distance` 为 `0` 时该参数同样灰显不可编辑
+  - `Stick Bias`：控制粘附效果在 `Max Distance` 范围内的衰减速率；越接近 `1` 效果在整个范围内越均匀；默认 `0.5`
+  - `Normal Scale`：法线方向速度调整量的缩放系数；默认 `1`
+  - `Tangent Scale`：切线方向速度调整量的缩放系数；提高此值可促使流体匹配切线方向的引导速度（压力求解默认只应用法线方向的碰撞速度）；默认 `1`
+  - `Control Field`：空间变化控制场的名称，用于按场值缩放粘附效果；分辨率应与 `Guiding Surface` 匹配；默认为空，灰显不可编辑
 
 ## 时间
 

@@ -2501,7 +2501,7 @@ copy and **transform节点**
   - `Oversampling`：在 `Particle Separation` 基础上的粒子过采样倍率；值大于 1 时在相同体积内生成更多粒子以提高表面细节精度；默认 `2`（复选框控制启用）
   - `Grid Scale`：体素网格相对于 `Particle Separation` 的缩放倍数；`Particle Separation` × `Grid Scale` = 体素大小（`voxel size`），控制内部 SDF 和速度场的分辨率；默认 `2`
   - `Size`：模拟区域的尺寸（xyz 三分量，场景单位）；默认 `5 × 5 × 5`
-  - `Center`：模拟区域中心点的世界空间坐标（xyz）；默认 `0 0 0`
+  - `Center`：模拟区域中心点的世界空间坐标（xyz）；默认 `0 0 0`；当模拟对象（如船只）在海洋上前进时，需对 `Center` 打关键帧使模拟区域随之向前移动，这样等价于在海洋频谱的不同空间位置采样，从而获得前进路径上的正确波浪分布
 - `Particles` 选项卡
   - `Create Particles`：勾选后在水面及水体内生成 FLIP 粒子，用于后续流体模拟；默认勾选
   - `Water Level`：水面高度（世界空间 Y 轴坐标）；低于此高度的区域视为水体，粒子在此高度附近生成；默认 `0`

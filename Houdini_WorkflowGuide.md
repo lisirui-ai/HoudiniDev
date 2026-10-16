@@ -2989,6 +2989,7 @@ copy and **transform节点**
 - **gravityforce节点**
   - 添加重力场，产生重力效果
   - 前连所有**solver节点**
+  - 对于 **flipsolver节点** 而言是必不可少的节点：与 **popsolver节点** 等不同，**flipsolver节点** 自身没有内置重力参数，必须将 **gravityforce节点** 后连于 **flipsolver节点** 之后才能为流体施加重力；若不连接，FLIP 粒子将完全缺少向下的驱动力，流体会向四周扩散而无法正常向下流动
 
 - **popreplicate节点**
   - 根据输入的粒子生成新的发射源，发射源随着粒子的运动而运动，是固定的

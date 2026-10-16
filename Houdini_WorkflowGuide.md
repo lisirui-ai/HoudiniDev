@@ -3586,8 +3586,8 @@ copy and **transform节点**
     - 勾选 `Use Boundary Layer`：从模拟域边界向内收缩划出一圈受控边界区域（实际自由模拟范围因此缩小），在该区域内根据提供的表面场和速度场强制管理粒子的删除与补种，使边界处的粒子持续跟随海洋运动，从而抑制波浪反射、模拟无限延伸的水域；与 **gasguidingvolume节点** 配合使用：`Use Boundary Layer` 负责边界环区域的粒子管理，**gasguidingvolume节点** 负责内部主模拟区的海洋速度引导，两者共同读取 **oceansource节点** 第二输出端的体积
       - 勾选 `Apply Boundary Velocities`：在边界层内根据 `Velocity Volume` 主动覆写粒子速度（关闭时新补种粒子从邻近粒子插值速度）
       - `Lower Padding` / `Upper Padding`：边界层从模拟域各方向边界向内挤入的厚度（三分量，场景单位）
-      - `Surface Volume`：边界层所用表面 SDF 的 SOP 路径；填入 **oceansource节点** 第二输出端的 `surface` 体积路径；高于此 SDF 的粒子将被删除，低于此 SDF 的区域将被补种粒子
-      - `Velocity Volume`：边界层所用速度场的 SOP 路径；填入 **oceansource节点** 第二输出端的 `vel.x` / `vel.y` / `vel.z` 三分量体积所在的路径；补种粒子的速度将与此速度场对齐，使边界粒子持续跟随海洋运动
+      - `Surface Volume`：边界层所用表面 SDF 的 SOP 路径；填入 **oceansource节点** 第二输出端的 `surface` 体积路径；高于此 SDF 的粒子将被删除，低于此 SDF 的区域将被补种粒子；注意：不可直接将 **oceansource节点** 第二输出端连入此处，该路径要求指向仅含单个图元的几何体，Houdini 无法自动识别对应场，需在其后接 **blast节点**，将 `Group` 设为 `surface`、`Group Type` 设为 `Primitives`，仅保留该原语后再连入
+      - `Velocity Volume`：边界层所用速度场的 SOP 路径；填入 **oceansource节点** 第二输出端的 `vel.x` 、 `vel.y` 、 `vel.z` 三分量体积所在的路径；补种粒子的速度将与此速度场对齐，使边界粒子持续跟随海洋运动；注意：不可直接将 **oceansource节点** 第二输出端连入此处，该路径要求指向仅含速度场图元的几何体，Houdini 无法自动识别对应场，需在其后接 **blast节点**，将 `Group` 设为 `vel.x` 、 `vel.y` 、 `vel.z`、`Group Type` 设为 `Primitives`，仅保留 `vel.x` 、 `vel.y` 、 `vel.z` 三个原语后再连入
   - `collisions` 子标签（解算器侧）
     - `velocity scale`：碰撞速度缩放，>1 产生更大飞溅效果；通常设为 1
     - `surface extrapolation`：当液面距碰撞体在此体素数以内时视为碰撞区域，使液体沿弯曲表面流动更平滑，但会产生轻微的粘附感；调小此值会减少粘附感，产生更有力的飞溅效果（尤其是物体进入液体时）；不建议设为 0

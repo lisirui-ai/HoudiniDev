@@ -3721,9 +3721,9 @@ copy and **transform节点**
   - 注意：合并后的引导碰撞场仅作用于粘性和压力投影求解器；其他操作（如粒子对流）仍使用原始碰撞场
 - `Guiding Volumes` 分组
   - `Visualize Guiding Surface`：勾选后在视窗中可视化 `Guiding Surface` 生成的标量场，用于调试引导表面位置
-  - `Guiding Surface`：引导表面 SDF 的路径；填入 **oceansource节点** 第二输出端的 `guiding_surface` 体积路径；该 SDF 与现有碰撞场合并，在其内侧区域将粒子速度替换为引导速度；已有碰撞体优先级高于引导表面，碰撞体附近不会应用引导速度
-  - `Guiding Velocity`：引导速度场的路径；填入 **oceansource节点** 第二输出端的 `vel` 体积路径；液体在引导表面处将被赋予此速度，方式与碰撞对象相同
-  - `Guiding Sink`：消融 SDF 的路径；填入 **oceansource节点** 第二输出端的 `guiding_sink` 体积路径；进入此 SDF 内的粒子将被删除，即使该 SDF 在 `Guiding Surface` 外侧也生效
+  - `Guiding Surface`：引导表面 SDF 的路径；填入 **oceansource节点** 第二输出端的 `guiding_surface` 体积路径；该 SDF 与现有碰撞场合并，在其内侧区域将粒子速度替换为引导速度；已有碰撞体优先级高于引导表面，碰撞体附近不会应用引导速度；注意：不可直接将 **oceansource节点** 第二输出端连入此处，Houdini 无法自动识别对应场，需在其后接 **blast节点**，将 `Group` 设为 `guiding_surface`、`Group Type` 设为 `Primitives`，仅保留该原语后再连入
+  - `Guiding Velocity`：引导速度场的路径；填入 **oceansource节点** 第二输出端的 `vel` 体积路径；液体在引导表面处将被赋予此速度，方式与碰撞对象相同；注意：不可直接将 **oceansource节点** 第二输出端连入此处，Houdini 无法自动识别对应场，需在其后接 **blast节点**，将 `Group` 设为 `vel`、`Group Type` 设为 `Primitives`，仅保留该原语后再连入
+  - `Guiding Sink`：消融 SDF 的路径；填入 **oceansource节点** 第二输出端的 `guiding_sink` 体积路径；进入此 SDF 内的粒子将被删除，即使该 SDF 在 `Guiding Surface` 外侧也生效；注意：不可直接将 **oceansource节点** 第二输出端连入此处，Houdini 无法自动识别对应场，需在其后接 **blast节点**，将 `Group` 设为 `guiding_sink`、`Group Type` 设为 `Primitives`，仅保留该原语后再连入
 - `Surface Weight Sampling` 分组（需与 **flipsolver节点** Collisions 文件夹中的设置保持一致）
   - `Volume Fraction Method`：碰撞体积分数的估算方式；用于提高压力求解在弯曲/倾斜表面附近的精度
     - `Voxel Face Area`：以体素面与碰撞 SDF 的交叉面积比估算体积分数，速度快，适合大多数场景；推荐

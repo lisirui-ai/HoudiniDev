@@ -3557,8 +3557,12 @@ copy and **transform节点**
     - `box center`：解算范围中心点位置
     - 勾选 `dynamically resize fields`：每帧根据粒子实际位置动态调整体积场大小以刚好包住所有粒子，节省内存；调整范围不超过 `box size` 所设上限
       - 勾选 `Fill New Volume`：当体积场动态扩展后，对新增区域执行初始化填充（如填入背景速度或 SDF 默认值），防止扩展边缘出现未初始化的空白区域导致模拟异常
-      - 勾选 `Use Boundary Layer`：在动态调整后的体积场边缘保留一层边界缓冲区，避免粒子刚好处于场边界时因采样不足产生伪影或不稳定；建议与 `Fill New Volume` 同时启用
     - `use waterline`：在封闭边界上方设为开放边界，液面以上粒子可自由流出，减少边界反射；配合 `waterline`（水面高度）和 `waterline direction`（朝上方向）使用
+    - 勾选 `Use Boundary Layer`：从模拟域边界向内收缩划出一圈受控边界区域（实际自由模拟范围因此缩小），在该区域内根据提供的表面场和速度场强制管理粒子的删除与补种，使边界处的粒子持续跟随海洋运动，从而抑制波浪反射、模拟无限延伸的水域；与 **gasguidingvolume节点** 配合使用：`Use Boundary Layer` 负责边界环区域的粒子管理，**gasguidingvolume节点** 负责内部主模拟区的海洋速度引导，两者共同读取 **oceansource节点** 第二输出端的体积
+      - 勾选 `Apply Boundary Velocities`：在边界层内根据 `Velocity Volume` 主动覆写粒子速度（关闭时新补种粒子从邻近粒子插值速度）
+      - `Lower Padding` / `Upper Padding`：边界层从模拟域各方向边界向内挤入的厚度（三分量，场景单位）
+      - `Surface Volume`：边界层所用表面 SDF 的 SOP 路径；填入 **oceansource节点** 第二输出端的 `surface` 体积路径；高于此 SDF 的粒子将被删除，低于此 SDF 的区域将被补种粒子
+      - `Velocity Volume`：边界层所用速度场的 SOP 路径；填入 **oceansource节点** 第二输出端的 `vel.x` / `vel.y` / `vel.z` 三分量体积所在的路径；补种粒子的速度将与此速度场对齐，使边界粒子持续跟随海洋运动
   - `collisions` 子标签（解算器侧）
     - `velocity scale`：碰撞速度缩放，>1 产生更大飞溅效果；通常设为 1
     - `surface extrapolation`：当液面距碰撞体在此体素数以内时视为碰撞区域，使液体沿弯曲表面流动更平滑，但会产生轻微的粘附感；调小此值会减少粘附感，产生更有力的飞溅效果（尤其是物体进入液体时）；不建议设为 0
@@ -3602,6 +3606,17 @@ copy and **transform节点**
     - 勾选 `use pressure to warm start solver`：将上一帧的压力场作为本帧压力解算的初始猜测值，加速收敛，对静态深水箱效果最明显
     - 勾选 `solve pressure with adaptivity`：对液面深处的压力使用自适应粗化近似，大幅减少深水箱的压力解算时间；**注意**：与 `enforce air incompressibility` 不兼容
     - 勾选 `use opencl`：使用 GPU（OpenCL）求解粘度和压力线性系统；对高分辨率含粘度模拟提升明显；启用时应关闭 `solve pressure with adaptivity`
+    - `Collision Fields For Solver` 分组（碰撞场名称；使用 **gasguidingvolume节点** 时必须替换为引导碰撞场名称，否则解算器仍读取原始碰撞场而忽略引导数据）
+      - `Collision Surface`：解算器读取的碰撞 SDF 场名称；默认 `collision`，使用引导体积时改为 `guidingcollision`
+      - `Collision Weights`：解算器读取的碰撞权重场名称；默认 `collisionweights`，使用引导体积时改为 `guidingweights`
+      - `Collision Velocity`：解算器读取的碰撞速度场名称；默认 `collisionvel`，使用引导体积时改为 `guidingvel`
+    - `Surface Fields For Solver` 分组（液面场名称）
+      - `Surface`：解算器读取的液面 SDF 场名称；默认 `surface`
+    - `Guiding Fields` 分组
+      - `Source Surface`：粒子补充源的 SDF 场名称；使用引导体积时改为 `guidingsurface`，解算器在此 SDF 范围内持续补充粒子以维持液面厚度
+      - `Sink Surface`：粒子消融区的 SDF 场名称；使用引导体积时改为 `guidingsink`，进入此 SDF 的粒子将被删除
+      - `Guiding Surface`：引导速度作用区域的 SDF 场名称；默认 `surface`，使用引导体积时保持默认值不变
+      - `Guiding Velocity`：引导速度场名称；默认 `vel`，使用引导体积时保持默认值不变
 
 **whitewaterobject节点**
 
@@ -3700,17 +3715,19 @@ copy and **transform节点**
 
 **gasguidingvolume节点**
 
-- 将来自 SOP 的引导体积（表面场、速度场、消融场）混入 FLIP Solver 的碰撞场，使 FLIP 模拟持续跟随外部海洋动态；需接在 **flipsolver节点** 的 `Volume Velocity` 输入端，并同步修改 **flipsolver节点** Solver 文件夹中的碰撞场名称
+- 将来自 SOP 的引导体积（表面场、速度场、消融场）混合写入新的引导碰撞场，使 FLIP 模拟持续跟随外部海洋动态；需接在 **flipsolver节点** 的 `Volume Velocity` 输入端，并将 **flipsolver节点** Solver 文件夹中的碰撞场名称替换为引导碰撞场名称
 - 连接方式
-  - 接入 **flipsolver节点** 的 `Volume Velocity` 输入端（第三输入端）；同时需将 **flipsolver节点** Solver 文件夹中的碰撞场字段替换：`Collision Surface` → `guidingcollision`、`Collision Weights` → `guidingweights`、`Collision Velocity` → `guidingvel`；`Source Surface` → `guidingsurface`、`Sink Surface` → `guidingsink`
-  - 注意：合并后的引导碰撞场仅作用于粘性和压力投影求解器，FLIP Solver 内其他操作仍使用原始碰撞场
+  - 接入 **flipsolver节点** 的 `Volume Velocity` 输入端（第三输入端）；同时必须将 **flipsolver节点** Solver 文件夹中的碰撞场字段替换：`Collision Surface` → `guidingcollision`、`Collision Weights` → `guidingweights`、`Collision Velocity` → `guidingvel`；`Source Surface` → `guidingsurface`、`Sink Surface` → `guidingsink`；`Guiding Surface` 和 `Guiding Velocity` 保持默认值 `surface` / `vel` 不变
+  - 注意：合并后的引导碰撞场仅作用于粘性和压力投影求解器；其他操作（如粒子对流）仍使用原始碰撞场
 - `Guiding Volumes` 分组
   - `Visualize Guiding Surface`：勾选后在视窗中可视化 `Guiding Surface` 生成的标量场，用于调试引导表面位置
   - `Guiding Surface`：引导表面 SDF 的路径；填入 **oceansource节点** 第二输出端的 `guiding_surface` 体积路径；该 SDF 与现有碰撞场合并，在其内侧区域将粒子速度替换为引导速度；已有碰撞体优先级高于引导表面，碰撞体附近不会应用引导速度
-  - `Guiding Velocity`：引导速度场的路径；填入 `vel` 体积路径；液体在引导表面处将被赋予此速度，方式与碰撞对象相同
-  - `Guiding Sink`：消融 SDF 的路径；填入 `guiding_sink` 体积路径；进入此 SDF 内的粒子将被删除，即使该 SDF 在 `Guiding Surface` 外侧也生效
+  - `Guiding Velocity`：引导速度场的路径；填入 **oceansource节点** 第二输出端的 `vel` 体积路径；液体在引导表面处将被赋予此速度，方式与碰撞对象相同
+  - `Guiding Sink`：消融 SDF 的路径；填入 **oceansource节点** 第二输出端的 `guiding_sink` 体积路径；进入此 SDF 内的粒子将被删除，即使该 SDF 在 `Guiding Surface` 外侧也生效
 - `Surface Weight Sampling` 分组（需与 **flipsolver节点** Collisions 文件夹中的设置保持一致）
-  - `Volume Fraction Method`：碰撞体积分数的估算方式；用于提高压力求解在弯曲/倾斜表面附近的精度；`Collision Supersampling` 为超采样模式
+  - `Volume Fraction Method`：碰撞体积分数的估算方式；用于提高压力求解在弯曲/倾斜表面附近的精度
+    - `Voxel Face Area`：以体素面与碰撞 SDF 的交叉面积比估算体积分数，速度快，适合大多数场景；推荐
+    - `Collision Supersampling`：对碰撞体进行超采样以更精确地估算体积分数，精度更高但计算更慢；配合下方 `Samples Per Axis` 调整超采样数量
   - `Samples Per Axis`：`Collision Supersampling` 模式下每轴的采样数；总采样数为该值的三次方，值越大越精确但计算越慢；默认 `0`
 - `Stick On Guiding Surface` 分组
   - `Stick on Guide`：勾选后在靠近引导表面处将流体速度混入引导速度，使流体"粘"在引导表面上跟随运动

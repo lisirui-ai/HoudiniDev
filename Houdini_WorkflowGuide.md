@@ -1288,8 +1288,10 @@ copy and **transform节点**
 
 **collisionsource节点**
 
-- 将`sop`模型转换为`VDB`有符号距离场体积，供`dop`碰撞解算使用，同时支持插值形变几何体和计算点速度
-- 第一个输出端输出的是原始几何体，第二个输出端输出的是`VDB`体积
+- 将`sop`模型转换为`VDB`有符号距离场体积，供`dop`碰撞解算使用，作为被动碰撞刚体参与解算，同时支持插值形变几何体和计算点速度
+- 第一个输出端输出原始几何体（携带速度 `v` 属性），第二个输出端输出`VDB`体积（用于碰撞检测）
+- 连接方式：将第一个输出端和第二个输出端 `merge` 在一起后连接到 **pyrosolver节点** / **flip解算器** 的第二个输入端（碰撞输入端）
+  - 多个 **collisionsource节点** 可分别 `merge` 后统一连入解算器第二输入端，使多个碰撞体同时参与碰撞解算
 - `voxelsize`控制体素精度，数值越小越精确
 - `fillinterior`将模型内部体素全部填充，启用时要求输入模型必须是封闭网格
 - `velocity approximation`控制点速度计算方式，`centraldifference`精度最高
@@ -2061,19 +2063,6 @@ copy and **transform节点**
   - 取消勾选`removeunreleased`可以配合`distancethreshold`调整激活点云生效的阈值
 - `distancethreshold`控制激活点云生效的阈值
 - `densityscale`控制激活点云的点的数量
-
-**collisionsource节点**
-
-- 将刚体转换为被动碰撞刚体
-- 会为输入端的物体计算速度v属性
-- 将第一个输出端和第二个输出端`merge`在一起后连**pyrosolver节点**的第二个输入端
-- 第一个输出端输出`geometry`，第二个输出端输出`vdb`
-- `volume`选项
-  - `voxelsize`设置输出的`vdb`精度，越小，碰撞精度越高
-  - 勾选`fillinterior`使得最内部也有属性
-- 不同的**collisionsource节点**可以`merge`后连到**pyrosolver节点**的第二个输入端
-  - 使得它们都与烟雾发生碰撞
-
 
 **reverse节点**
 

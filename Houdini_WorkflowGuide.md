@@ -3198,24 +3198,38 @@ copy and **transform节点**
 
 - **popadvectbyvolumes节点**
 
-  - 将外部体积的属性映射到粒子，不在外部体积范围内的粒子不受影响
-
-  - `parameters`选项
-    - `sop`处指定外部体积
-    - `fieldname`指定体积的属性
-      - 体积的`vel`速度属性
-
-    - `advectiontype`设置映射方式
-      - `updateforce`属性变为风场影响，间接映射
-        - 更加自然
-      - `updatevelocity`属性变为速度影响，直接影响
-        - 更加贴近体积
-      
-    - `velocityblend`控制映射的紧密程度
-      - 数值越大，粒子与体积的运动越拟合
-      - 默认0.5
-    
-  - 前连粒子流，体积速度映射后，不需要再加力场驱动粒子运动
+  - 将外部速度体积场映射到粒子，使粒子跟随体积场运动；不在体积范围内的粒子不受影响；修改粒子的 `force`、`vel`、`P` 属性；连接到 **flipsolver节点** / **popsolver节点** 的粒子速度输入端后，无需额外力场节点即可驱动粒子运动；本质上相当于将任意形态的速度体积作为自定义力场，可实现气流、漩涡、爆炸冲击波等复杂空间力场效果
+  - `Parameters` 标签页
+    - `Velocity Source`：速度体积的来源
+      - `SOP`：从 SOP 路径读取三通道体积（x/y/z 分量）作为速度场，常用于读取预制气流体积或离线缓存的流体速度场；也可直接填写活动 DOP 模拟的数据路径（如 `/obj/AutoDopNetwork:smoke/vel`）实现实时链接
+      - `DOP Object`：从同一 DOP 网络中另一个模拟对象读取速度场，适合粒子与烟雾/FLIP 的实时耦合
+    - `Field Name`：速度场的名称；`SOP` 模式下指定体积原语的命名前缀（如 `vel` → 读取 `vel.x`/`vel.y`/`vel.z` 三个体积）；`DOP Object` 模式下指定该模拟对象中速度场的名称；默认 `vel`
+    - `Velocity Scale`：对读取的速度场整体缩放，控制影响强度；默认 `1`
+    - `Advection Type`：粒子响应速度场的方式
+      - `Update Force`：将速度场转为加速度施加给粒子，效果类似 **popforce节点**；影响间接、过渡自然，运动感更柔和；默认值
+      - `Update Velocity`：直接将速度场值混入粒子速度，粒子迅速贴合体积运动；配合 `Velocity Blend` 控制每步混入比例
+        - `Velocity Blend`：每个时间步将速度场速度混入粒子速度的比例；值越大粒子与速度场越贴合；`Update Velocity` 模式下生效
+      - `Update Position`：直接移动粒子位置，类似 **gasadvect节点** 的平流方式；粒子自身速度与外部速度场相互独立，适合保留粒子本身的惯性同时受场驱动；可通过 `Velocity Update` 决定是否同步写入速度属性
+        - `Velocity Update`：勾选后在移动粒子位置的同时，将速度场的速度写入粒子 `vel` 属性；注意若同时启用粒子积分器，可能导致粒子被双重移动；`Update Position` 模式下生效
+    - `Treat as Wind`：将速度场视为目标风速而非直接力，以阻力方式驱使粒子趋向该风速，避免粒子速度超调；默认勾选
+    - `Force Scale`：对力的整体缩放系数；`Update Force` 模式下生效；默认 `1`
+    - `Air Resistance`：气流对粒子的影响强度；值越大粒子越快匹配风速；多个 **popadvectbyvolumes节点** 同时作用时，此值还用于计算各风场的加权平均；默认 `1`
+    - `Remap Force`：勾选后启用 `Force Ramp` 曲线，按粒子的 `forceramp` 属性值（范围 0~1）对力进行自定义缩放，实现空间变化的力强度；默认不勾选
+    - `Ignore Mass`：勾选后忽略粒子的 `mass` 属性，使所有粒子无论大小都以相同速度响应气流，适合 RBD 碎块受风时保持一致运动；默认勾选
+    - `Advection Method`：粒子在速度场中的采样方式
+      - `Single Step`：每步仅采样一次速度场，速度最快但精度最低；适合一般场景；默认值
+      - `Trace` 系列：在一个体素内分多步追踪粒子路径，遵循 CFL 条件，精度更高但计算更慢；适合速度梯度大或时间步较大的场景
+    - `CFL Condition`：`Trace` 模式下单次迭代允许跨越的最大体素数；值越大追踪越快但误差越大；默认 `1`
+    - `Use VEXpression`：勾选后可编写 VEX 表达式对粒子的力行为进行自定义控制（如按条件设置 `forceramp` 等属性）；默认不勾选
+  - `Guide` 标签页
+    - `Show Guide`：勾选后在视窗中显示速度场的可视化引导线；默认不勾选
+    - `Plane`：提取速度场截面的平面方向（`XY Plane` / `YZ Plane` / `XZ Plane`）；默认 `XY Plane`
+    - `Offset`：截面在法线方向上的偏移位置，范围 `-1`~`1`，`0` 为体积中心；默认 `0`
+    - `Resolution`：引导可视化相对于源速度场的分辨率缩放；默认 `0.5`
+    - `Range`：速度大小的显示映射范围（最小值到最大值），超出范围的值会被截断显示颜色；默认 `0` ~ `10`
+  - `Bindings` 标签页
+    - `Geometry`：此节点作用的模拟数据名称；通常为 `Geometry`，即粒子几何数据；默认 `Geometry`
+    - `Evaluation Node Path`：VEX 表达式中 `ch()` 等通道函数的求值基准路径；设为 `.` 表示相对于当前节点；HDA 中嵌入时建议设为顶层资产路径；默认 `.`
 
 - **popspin节点**
   - 为粒子流的粒子添加旋转运动

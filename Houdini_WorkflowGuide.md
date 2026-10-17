@@ -2592,6 +2592,17 @@ copy and **transform节点**
   - `Clamp Maximum`：勾选后将输出体素值限制在指定最大值以下；默认不勾选，灰显不可编辑（最大值默认 `1`）
   - `Expand VDB Active Region`：勾选后在混合时自动扩展 VDB 的激活区域以覆盖源体积的非零体素范围，防止源体积超出目标激活区域的部分被丢弃；默认勾选
 
+**null节点**（OBJ层级）
+
+- 空变换对象，不包含任何几何体，仅持有位移/旋转/缩放变换信息
+- 常用于作为其他 Object 的父级，统一控制子级的变换
+- 用于 rigging 中作为骨骼辅助控制器或参考点
+- 其他节点可通过引用其路径获取世界空间变换，而不依赖具体几何体
+- 参数面板有三个标签页：`Transform`、`Render`、`Misc`
+  - `Transform` 标签页：设置 `Translate`、`Rotate`、`Scale`、`Pivot` 等基础变换；底部的 `Enable Constraints` 勾选后可通过约束系统（CHOP Constraints）添加 `Look At`、`Follow Path` 等约束，支持权重混合
+    - 权重混合：同时施加多个约束时，每个约束有 0～1 的权重值，最终变换结果为各约束结果的加权平均；权重本身可 K 帧，实现对象在多个约束目标之间平滑切换，而无需手动 K 每帧的变换值
+  - `Misc` 标签页：控制视口显示相关选项，如 `Wireframe Color`、`Display`（显示图标类型）、`Control Type`（控制器形状）等
+
 ## dop
 
 **solver节点**

@@ -3838,6 +3838,32 @@ copy and **transform节点**
   - `Tangent Scale`：切线方向速度调整量的缩放系数；提高此值可促使流体匹配切线方向的引导速度（压力求解默认只应用法线方向的碰撞速度）；默认 `1`
   - `Control Field`：空间变化控制场的名称，用于按场值缩放粘附效果；分辨率应与 `Guiding Surface` 匹配；默认为空，灰显不可编辑
 
+**sopsolver节点**
+
+- 将 SOP 网络作为 DOP 解算器使用：每帧将 DOP 对象的几何体读入内部 SOP 网络进行处理，再将结果写回 DOP 对象，从而实现用 SOP 节点驱动 DOP 模拟的工作流；核心优势在于可以在 DOP 解算流程中直接使用全套 SOP 节点（如 **attributewrangle节点**、**blast节点**、**foreach节点** 等），无需为每种几何操作单独寻找对应的 DOP 节点，极大扩展了 DOP 模拟的可操作性
+- 参数
+  - `Use External SOP`：勾选后使用外部 SOP 网络（通过下方 `SOP Path` 指定路径）而非节点内部的 SOP 网络来执行解算
+  - `SOP Path`：外部 SOP 网络的路径；仅在 `Use External SOP` 勾选时可用
+  - `Data Name`：要读写的 DOP 几何体数据名称；默认 `Geometry`
+  - `Invoke Compiled Block`：勾选后在 SOP 网络中调用编译块以加速解算
+  - `SOP Output is in Simulation Space`：勾选后将 SOP 输出坐标视为模拟空间（世界空间）坐标；默认勾选
+  - `Solve Objects on Creation Frame`：勾选后在对象的创建帧也执行一次解算；默认不勾选
+  - `Stamps`：Stamp 变量数量；可向内部 SOP 网络传入自定义变量，用于参数化控制
+  - `Use Timestep`：勾选后将时间步长传入 SOP 网络，使解算与帧率挂钩；默认勾选
+  - `Time Scale`：时间缩放倍数；对传入 SOP 网络的时间步长进行缩放；默认 `1`
+  - `Default Operation`：对每个 DOP 对象应用的默认操作模式；`Set Initial` 表示在初始帧设置初始状态
+  - `Make Objects Mutual Affectors`：勾选后使同组对象互相影响；默认勾选
+  - `Group`：参与解算的 DOP 对象组；`*` 表示所有对象
+  - `Data Name`（Solver 数据）：该解算器数据在 DOP 对象上的名称；默认 `$OS`（自动使用节点名）
+  - `Unique Data Name`：勾选后保证该解算器数据名唯一，防止与其他解算器冲突；默认勾选
+  - `Solver Per Object`：勾选后为每个 DOP 对象单独创建一份解算器数据，而非共享
+- 内部结构（双击进入节点内部）
+  - **DOP Import** 节点 `dop_geometry`：将 DOP 对象的 `Geometry` 数据导入为 SOP 几何体，供内部节点读取和修改
+  - **DOP Import Records** 节点 `impacts`：导入当前帧的碰撞冲击记录（impact records），可在 SOP 中读取碰撞信息
+  - **DOP Import Records** 节点 `feedbacks`：导入约束反馈记录（feedback records），可在 SOP 中读取约束力信息
+  - **DOP Import** 节点 `relationship_geometry`：导入来自 DOP 关系（relationship）的几何体数据
+  - **Output** 节点 `OUT`：将 SOP 网络处理后的几何体输出，结果将写回 DOP 对象的 `Geometry` 数据，参与下一帧的解算迭代
+
 ## 时间
 
 **timeshift节点**

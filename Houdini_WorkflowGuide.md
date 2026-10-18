@@ -3579,7 +3579,7 @@ copy and **transform节点**
 
 - FLIP 流体解算器，驱动 **flipobject节点** 中粒子的运动与液面重建
 - 解算完成后同时输出粒子和体积两类数据
-  - 使用 **gasguidingvolume节点** 进行引导时，粒子不仅包含液面表面层的粒子，还包含由 `guidingsurface`（引导 SDF）填充生成的引导层粒子；引导层粒子被赋予来自 `guidingvel` 的速度，在压力/速度解算过程中将该速度传导给相邻的表面层粒子，从而带动表面层整体跟随外部海洋动态运动
+  - 使用 **gasguidingvolume节点** 进行引导时，输出的粒子从结果上看同时包含两部分：液面表面层的粒子，以及分布在整个 `guidingsurface` SDF 负值区域（内部）的边界层粒子（boundary layer particles）；边界层粒子的发射与删除均由 **flipsolver节点** 内置参数封装处理——`Source Surface`（= `guidingsurface`）负责向该 SDF 内部持续补充粒子，`Sink Surface`（= `guidingsink`，更深处的 SDF）负责删除过深的粒子，两者配合形成进出平衡；`guidingsurface` 同时承担双重角色：作为粒子补充区域维持边界层体积，以及通过 `guidingcollision` 碰撞场在压力投影和粘性求解阶段为 SDF 负值区域内的粒子赋予 `guidingvel` 引导速度，带动表面层粒子整体跟随外部海洋动态；注意引导碰撞场约束仅影响压力/粘性求解器，粒子对流等其他操作仍使用原始碰撞场
 - FLIP 是粒子与网格的混合解算机制，每帧流程：① 粒子速度传入网格 → ② 网格上做压力解算（使速度场无散度，保证流体不可压缩）→ ③ 网格速度变化量传回粒子 → ④ 粒子按网格速度移动；因此参数分为两类：
   - `particle motion`：控制粒子层面——外力响应、碰撞交互、粒子补充/删除（reseeding）等
   - `volume motion`：控制网格/体积场层面——粒子与网格的速度传递方式（FLIP/APIC）、解算范围等

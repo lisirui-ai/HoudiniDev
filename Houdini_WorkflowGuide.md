@@ -2620,6 +2620,24 @@ copy and **transform节点**
     - 权重混合：同时施加多个约束时，每个约束有 0～1 的权重值，最终变换结果为各约束结果的加权平均；权重本身可 K 帧，实现对象在多个约束目标之间平滑切换，而无需手动 K 每帧的变换值
   - `Misc` 标签页：控制视口显示相关选项，如 `Wireframe Color`、`Display`（显示图标类型）、`Control Type`（控制器形状）等
 
+**volumesdf节点**
+
+- 从体积的等值面（isocontour）重建有符号距离场（SDF）；输出分辨率与原始体积相同
+- 典型用途
+  - 将 fog 体积转换为 SDF，以获得快速的距离计算能力
+  - 对因拉伸等操作而失真的 SDF 进行重新归一化（renormalize）
+  - 通过调整 `Iso Surface` 的值对 SDF 表面进行偏移：设为正值时以原 SDF 外部某层为新零轮廓，表面向外扩张（膨胀 dilate）；设为负值时以内部某层为新零轮廓，表面向内收缩（侵蚀 erode）
+- 注意：仅支持标准 Houdini volume，不支持 VDB
+- 参数
+  - `Source Group`：指定要处理的体积原语组；留空则处理所有体积
+  - `Iso Surface`：作为重建基准的等值面值；该等值面将成为新 SDF 的 0 轮廓；fog 体积通常设为 `0.5`，SDF 源通常设为 `0`；默认 `0`
+  - `Invert`：勾选后反转生成 SDF 的符号方向；默认不勾选；对 fog 体积通常需要勾选，使高密度（白色）区域变为负值（内部）
+  - `Use Maximum Distance`：勾选后仅计算距等值面一定距离范围内的 SDF 值，超出部分直接截断为 ±`Maximum Distance`；适用于只关心表面附近窄带的场景，可大幅减少计算量；默认不勾选
+  - `Maximum Distance`：对象空间中计算 SDF 的最大距离；超出此距离的体素值被截断为 ±该值；`Use Maximum Distance` 关闭时灰显不可编辑；默认 `0.1`
+  - `Rebuild With Fast Iterative Method`：勾选后使用快速迭代法（FIM）代替默认的快速推进法（Fast Marching Method）进行重建；FIM 速度更快但精度稍低，适合性能优先的场景；默认不勾选
+  - `FIM Tolerance (Fraction of Voxel Size)`：FIM 每次迭代的收敛容差，以最小体素大小的分数表示；例如体素大小为 `0.05`、容差为 `0.001`，则每个体素的 SDF 值变化小于 `0.00005` 时视为收敛；`Rebuild With Fast Iterative Method` 关闭时灰显不可编辑；默认 `0.01`
+  - `Max FIM Iterations`：FIM 的最大迭代次数上限；在极少数情况下体素未收敛时，迭代到此次数后强制退出，避免无限循环；该值应设为带宽大小的数倍以确保所有体素完成重建；`Rebuild With Fast Iterative Method` 关闭时灰显不可编辑；默认 `100`
+
 ## dop
 
 **solver节点**

@@ -806,14 +806,17 @@ k帧
 
 **blast节点**
 
-- 删除点线面体积或者选择
-  - 根据组属性或者`@name`选择不同的碎块
-
-- 配合**assemble节点**使用
-- 勾选`deletenonselected`并在`group`处指定组选择显示组属性对应的部分
-- 勾选`deletenonselected`并在`group`处指定属性名，选择显示属性一致的部分
-  - **assemble节点**生成的`@name`属性和**rbdmaterialfracture节点**生成的`@name`属性
-- 选择显示`vdb`
+- 按组或属性从几何体中删除或保留指定的元素（点、边、面、体积原语均可操作）
+- 参数
+  - `Group`：要操作的组名或属性表达式；支持直接填写组名、`@name` 属性值等
+  - `Group Type`：操作的元素类型（`Guess from Group` / `Points` / `Edges` / `Primitives` / `Any`）
+  - `Delete Non Selected`：勾选后反转逻辑——保留 `Group` 中的元素、删除其余部分；不勾选则删除 `Group` 中的元素
+  - `Recompute Point Normals`：删除后重新计算点法线
+  - `Remove Unused Groups`：删除操作完成后移除变为空的组定义
+- 典型用法
+  - 配合**assemble节点**或**rbdmaterialfracture节点**：在 `Group` 处填入 `@name` 属性值，选择或剔除特定碎块
+  - 删除组定义对应的元素：在 `Group` 处填入组名，直接删除该组内的所有元素（注意：与**groupdelete节点**不同，**blast节点**会删除元素本身，而非仅移除组定义）
+  - 提取特定 VDB 体积场：将 `Group Type` 设为 `Primitives`，在 `Group` 处填入体积的 `@name` 值（如 `density`、`vel`），勾选 `Delete Non Selected` 仅保留该体积场，常用于从多场输出中分离单个 VDB 传入下游节点
 
 **delete节点**
 
@@ -1069,10 +1072,6 @@ copy and **transform节点**
 - 在`sv`视窗完成操作后按回车键退出
 - 在`ps`切割节点的属性视窗的`path` `type`选项将模式选为循环切割（`loop`）
 - 在下方的`numberofloops`可调整切割数量
-
-**blast节点**
-
-- 删除组
 
 **filecache节点**
 
@@ -4499,10 +4498,6 @@ importpoint/primitive/vertex/**detailattribute节点**
 - 修改体素的个数`uniform` sampling `divs`和大小`size`
 - 基于相机产生体积雾
 - initial `value`设置为1使得体积雾可见
-
-**blast节点**
-
-- 删除体积雾
 
 **name节点**
 

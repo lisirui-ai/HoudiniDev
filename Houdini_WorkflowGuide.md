@@ -5126,6 +5126,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 **oceanvolume节点**
 
 - 专用于海洋水体内部体积渲染的材质节点；配合 **oceansurface节点** 使用——**oceansurface**负责液面表面的反射/折射着色，**oceanvolume** 负责水体内部的散射/颜色/透光性；参数与 **uniformvolume节点** 高度相似，额外增加了与海洋频谱联动的 `Displacement` 选项卡
+  - 此材质对海洋整体质感至关重要：水体的颜色深浅、浑浊程度、光线在水中的散射与衰减（焦散感、水下光柱等视觉效果）均由此节点控制，直接决定海洋渲染的真实感和视觉层次
 - 顶层选项卡（体积着色）
   - `smoke color`：水体散射颜色（默认绿蓝色 ~0.45, 0.65, 0.54）；控制光在水体内部散射呈现的颜色，模拟水的自然色调
   - `use point color`：将几何体 `Cd` 属性与 `smoke color` 相乘（默认勾选）；可通过 VDB 中的 `Cd` 字段驱动局部水色变化

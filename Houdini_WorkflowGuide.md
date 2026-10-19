@@ -2240,7 +2240,7 @@ copy and **transform节点**
     - `shape`：展平区域的轮廓形状，`rectangle` 为矩形，`circle` 为圆形
     - `water level`：目标水平面的 Y 轴高度（展平后液面将趋向此高度）
     - `max height`：在过渡区域内，液面高于 `water level` 的最大展平范围；只有在 `water level` 到 `water level + max height` 之间的液面才会被展平，超出此范围的部分保持仿真原样；若仿真边缘存在较高的浪峰或飞溅，需将此值调高以覆盖最高液面，否则超出范围的部分不会展平，在包围盒边缘产生硬切断（abrupt cutoff）artifact
-    - `flatten distance`：从包围盒边缘向外多远完成从仿真液面到平坦水面的过渡混合距离；值越大过渡越柔和
+    - `flatten distance`：从包围盒边缘向内延伸的过渡混合距离；在此距离范围内仿真液面逐渐混合至平坦水面，到达包围盒边缘时液面已趋于平坦；值越大过渡越柔和
     - `pad bounds`：在包围盒四周额外扩展的展平缓冲区宽度，防止过渡区域被包围盒边界截断
     - `extrude polygons`：是否在水面边界向下挤出侧面多边形以封堵底部；`none` 不挤出，`along normal` 沿法线挤出，`along y` 沿 Y 轴向下挤出
   - `camera`子选项：以摄影机视锥体为范围限制液面重建，仅重建摄影机可见区域以节省计算量

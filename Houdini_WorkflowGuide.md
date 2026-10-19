@@ -5100,12 +5100,12 @@ importpoint/primitive/vertex/**detailattribute节点**
       - `Refract Roughness`：泡沫折射的模糊度（默认 0.05）；写实泡沫通常高于海浪本体的折射模糊度
       - `Refract Minimum`：基于观察角度的最低折射量保底值（默认 0）
 - Displacement 选项卡（海面置换）
-  - `spectrum geometry`：**oceanspectrum节点** 经 **filecache节点** 缓存到磁盘的单帧频谱文件路径；频谱只需缓存一帧，材质在渲染时会根据当前时间对相位求值，从单帧频谱重建出完整动画
+  - `spectrum geometry`：**oceanspectrum节点** 输出的频谱缓存到磁盘的文件路径；频谱只需缓存一帧，材质在渲染时会根据当前时间对相位求值，从单帧频谱重建出完整动画
     - **oceanspectrum节点** 在频域中存储了海浪在不同频率下的振幅和相位（即"多大的浪、多密的浪、什么方向"）；Displacement 选项卡读取此频谱后，通过逆 FFT（快速傅里叶逆变换）将频域数据还原为每个顶点的实际位移向量，从而驱动网格顶点产生海浪起伏；海面的几何形态（平静/汹涌/碎浪）由 `spectrum geometry` 中的频谱数据决定；`oceansurface` 材质同时承担着色（颜色、反射、折射）和渲染时置换（读取频谱、执行逆 FFT、将顶点 `P` 实际移动）两项工作，频谱提供"波形的数学描述"，材质负责"执行"
   - `mask geometry`：提供遮罩的 SOP 路径，限定置换生效区域；该路径应指向遮罩体积几何体，通常由 **particlefluidmask节点** 生成——**particlefluidmask节点** 将粒子流体模拟的范围转换为 VDB 遮罩体积，遮罩区域内（如船体周围的扰动区、粒子流体模拟覆盖的区域）禁用程序化频谱置换，改由实际模拟结果驱动，从而实现程序化开阔海面与粒子模拟局部细节的无缝衔接
   - `anti-alias blur`：置换贴图的抗锯齿模糊量（默认 0.5）
   - `downsample`：置换计算前对频谱降采样级别（默认 0，不降采样）；增大可提速，代价是损失高频波浪细节
-  - `time`：置换的时间偏移（默认 0，随 `$T` 自动驱动）
+  - `time`：置换的时间偏移（默认`$T`）
   - `add bump to ray traced displacements`：在光线追踪置换上叠加 bump，增强细节（默认关闭）
   - `displacement bound`：置换幅度上限（世界空间单位，默认 2）；需大于实际最大波高，否则会出现几何体被裁剪的渲染错误
     - 实际最大波高由 **oceanspectrum节点** 的 `scale` 参数决定；调整 `scale` 后需同步更新此值，建议设为 `scale` 的 1.2～1.5 倍以留有余量

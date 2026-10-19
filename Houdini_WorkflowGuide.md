@@ -2195,7 +2195,7 @@ copy and **transform节点**
     - `average position`：基于粒子平均位置生成平滑液面，效果好但开销较高
     - `spherical`：每个粒子生成球形体积后合并，速度快但液面粗糙，通常需要配合滤波平滑
     - `neural point surface`：使用预训练神经网络生成液面，实验性功能；`model` 可选 `balanced`（默认）/ `smooth`（平滑）/ `liquid`（液体优化）/ `granular`（颗粒物）
-  - `particle separation`：粒子间距，应与 **flipobject节点** 的同名参数保持一致
+  - `particle separation`：粒子间距；值越小重建的液面越精细，计算量也越大
   - `voxel scale`：生成 VDB 的体素尺寸相对粒子间距的比例；值越小网格越精细，开销越高
   - `influence scale`：粒子相互影响的最大距离（以粒子间距为单位）；适当增大可使液面更平滑，但开销显著增加
   - `droplet scale`：粒子表面到液面的目标距离（以粒子间距为单位）；决定孤立水滴的球形半径

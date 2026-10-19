@@ -5081,7 +5081,7 @@ importpoint/primitive/vertex/**detailattribute节点**
 - Displacement 选项卡（海面置换）
   - `spectrum geometry`：**oceanspectrum节点** 经 **filecache节点** 缓存到磁盘的单帧频谱文件路径；频谱只需缓存一帧，材质在渲染时会根据当前时间对相位求值，从单帧频谱重建出完整动画
     - **oceanspectrum节点** 在频域中存储了海浪在不同频率下的振幅和相位（即"多大的浪、多密的浪、什么方向"）；Displacement 选项卡读取此频谱后，通过逆 FFT（快速傅里叶逆变换）将频域数据还原为每个顶点的实际位移向量，从而驱动网格顶点产生海浪起伏；海面的几何形态（平静/汹涌/碎浪）由 `spectrum geometry` 中的频谱数据决定；`oceansurface` 材质同时承担着色（颜色、反射、折射）和渲染时置换（读取频谱、执行逆 FFT、将顶点 `P` 实际移动）两项工作，频谱提供"波形的数学描述"，材质负责"执行"
-  - `mask geometry`：提供遮罩的 SOP 路径，限定置换生效区域
+  - `mask geometry`：提供遮罩的 SOP 路径，限定置换生效区域；该路径应指向遮罩体积几何体，通常由 **particlefluidmask节点** 生成——**particlefluidmask节点** 将粒子流体模拟的范围转换为 VDB 遮罩体积，遮罩区域内（如船体周围的扰动区、粒子流体模拟覆盖的区域）禁用程序化频谱置换，改由实际模拟结果驱动，从而实现程序化开阔海面与粒子模拟局部细节的无缝衔接
   - `anti-alias blur`：置换贴图的抗锯齿模糊量（默认 0.5）
   - `downsample`：置换计算前对频谱降采样级别（默认 0，不降采样）；增大可提速，代价是损失高频波浪细节
   - `time`：置换的时间偏移（默认 0，随 `$T` 自动驱动）
@@ -5114,6 +5114,7 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `volume samples`：体积采样次数（默认 1）；值越高渲染越细腻但越慢
 - Displacement 选项卡（与海洋频谱联动，参数含义与 **oceansurface节点** 的 Displacement 选项卡完全相同）
   - `spectrum geometry`：提供波谱数据的 SOP 路径；必须与 **oceansurface节点** 的 `spectrum geometry` 填写相同的频谱路径，两者使用同一频谱才能产生相同的位移，否则液面网格与水体体积的置换结果不一致，波峰处液面与体积之间出现缝隙或穿插
+    - **oceanvolume节点** 的置换目的与 **oceansurface节点** 不同：**oceansurface** 的置换是在渲染时将原本平坦的液面网格顶点按频谱位移成波浪形态；而 **oceanvolume** 的置换并非在水体内部制造额外的波动细节，而是驱动 VDB 体积的顶部边界同步跟随液面网格的形变——由于 **oceansurface** 的置换发生在渲染阶段而非 SOP 阶段，SOP 层的液面网格与体积边界原本都是平坦的，渲染时液面网格被频谱推高/拉低后，体积顶部若不做同等置换，其边界仍停留在原始平坦位置，波峰处网格与体积之间出现空洞，波谷处体积顶部穿出液面；两者读取相同频谱相当于在渲染时对两套几何体执行完全相同的变换，确保体积顶部边界与置换后的液面网格始终贴合
   - `mask geometry`：遮罩 SOP 路径，限定置换生效区域
   - `anti-alias blur`：抗锯齿模糊量（默认 0.5）
   - `downsample`：频谱降采样级别（默认 0）

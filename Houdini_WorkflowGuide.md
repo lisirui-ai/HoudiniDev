@@ -2197,8 +2197,9 @@ copy and **transform节点**
     - `neural point surface`：使用预训练神经网络生成液面，实验性功能；`model` 可选 `balanced`（默认）/ `smooth`（平滑）/ `liquid`（液体优化）/ `granular`（颗粒物）
   - `particle separation`：粒子间距；值越小重建的液面越精细，计算量也越大；此值不应小于 **flipobject节点** 的同名参数，否则底层粒子数据没有对应精度，无法增加实际细节，只会浪费计算量
   - `voxel scale`：生成 VDB 的体素尺寸相对粒子间距的比例；值越小网格越精细，开销越高
-  - `influence scale`：粒子相互影响的最大距离（以粒子间距为单位）；适当增大可使液面更平滑，但减少细节
-  - `droplet scale`：粒子表面到液面的目标距离（以粒子间距为单位）；决定孤立水滴的球形半径
+  - `influence scale` 与 `droplet scale` 共同决定液面的整体形态：前者控制每个粒子的最大影响半径（平滑程度），后者控制粒子到液面的目标距离（液面的膨胀/收缩程度），两者配合决定液面的厚度、圆润度和细节保留；调整这两个参数的标准是液面能否完美包裹粒子（无孔洞、无穿插、贴合粒子分布），同时孤立粒子能形成独立的水滴形态
+  - `influence scale`：粒子能影响液面重建的最大距离（以粒子间距为单位）；值越大每个粒子的影响范围越宽，液面越平滑但细节越少；值过小时相邻粒子影响区域无法充分重叠，液面在粒子稀疏处产生孔洞或碎裂
+  - `droplet scale`：每个粒子到生成液面之间的目标距离的缩放系数，始终生效；实际距离 = `droplet scale × particle separation`；若粒子携带 `pscale` 属性，则缩放基数改为逐粒子的 `pscale`，即实际距离 = `droplet scale × pscale`，可实现逐粒子控制液面距离，但 `droplet scale` 本身仍然参与计算；调大则液面整体向外膨胀，调小则液面向内收缩贴近粒子；对孤立粒子（周围无其他粒子影响）时该值精确等于水滴球半径，故名 droplet scale；此值必须小于 `influence scale`，否则两者物理意义矛盾
   - 勾选 `union compressed fluid surface`：将压缩的 `surface` VDB 合并填充液面深层区域
   - `erosion scale`：仅在 `union compressed fluid surface` 开启时生效；对合并的压缩液面场进行腐蚀，使其与粒子层衔接更自然；若粒子层与深层场之间出现可见接缝，可适当减小此值
   - `convert to`：输出格式

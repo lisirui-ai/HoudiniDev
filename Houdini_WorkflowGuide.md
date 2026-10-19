@@ -2666,6 +2666,73 @@ copy and **transform节点**
   - `FIM Tolerance (Fraction of Voxel Size)`：FIM 每次迭代的收敛容差，以最小体素大小的分数表示；例如体素大小为 `0.05`、容差为 `0.001`，则每个体素的 SDF 值变化小于 `0.00005` 时视为收敛；`Rebuild With Fast Iterative Method` 关闭时灰显不可编辑；默认 `0.01`
   - `Max FIM Iterations`：FIM 的最大迭代次数上限；在极少数情况下体素未收敛时，迭代到此次数后强制退出，避免无限循环；该值应设为带宽大小的数倍以确保所有体素完成重建；`Rebuild With Fast Iterative Method` 关闭时灰显不可编辑；默认 `100`
 
+**particlefluidmask节点**
+
+- 根据粒子流体（FLIP）模拟的粒子或速度场，按多种条件（速度、涡度、碰撞偏移、高度等）生成一个体积遮罩（Volume mask）；生成的遮罩可直接合成进连接在第三输入端的 Ocean Spectrum 层，并可选择对频谱做频率过滤；常用于海洋白沫区域的遮罩生成、局部波浪抑制或增强等工作流
+- 三个输入端
+  - 第一输入端（`particles and volumes`）：来自 FLIP 模拟的粒子几何体和/或速度场体积
+  - 第二输入端（`collision objects and volumes`）：碰撞体几何体及 SDF 体积，用于 `collision offset` 条件计算
+  - 第三输入端（`ocean spectrum`）：一个或多个 **oceanspectrum节点** 输出的频谱层；遮罩可合成进这些频谱层
+- 两个输出端
+  - 第一输出端（`mask`）：生成的体积遮罩
+  - 第二输出端（`ocean spectrum`）：经过遮罩合成和/或频率过滤后的 Ocean Spectrum 层透传输出
+- `mask`选项卡
+  - `particle separation`：输入 FLIP 模拟的粒子间距；应与 **flipobject节点** 的同名参数保持一致，确保遮罩分辨率与粒子密度匹配
+  - `resolution scale`：相对于输入粒子/速度场对输出遮罩体积进行分辨率缩放；通常可设为小于 1 的值，因为遮罩本身会经过滤波平滑，过高分辨率性价比低；默认 `0.5`
+  - 勾选 `use input volumes only`：忽略粒子输入，仅从输入速度体积生成遮罩；速度比使用粒子快，适合预览，但精度较低，粒子稀疏区域可能产生遗漏
+  - `spectrum mask type`：控制遮罩是否合成进第三输入端的 Ocean Spectrum 层，以及合成方式；`suppression` 抑制波浪，`contribution` 增强波浪
+  - `conditions`子区：按条件生成遮罩，多个条件通过 `conditions combine` 运算合并
+    - 勾选 `velocity range`：对速度低于最小值的区域不生成遮罩，高于最大值的区域全量生成遮罩，中间线性过渡；右侧 `invert` 可反转该条件结果
+    - 勾选 `vorticity range`：基于涡度的遮罩条件，逻辑与速度范围相同
+    - 勾选 `collision offset`：在碰撞体（第二输入端）表面指定世界空间偏移距离内生成遮罩；右侧 `invert` 可反转
+    - 勾选 `height range`：基于高度的遮罩条件，低于最小高度不生成遮罩，高于最大高度全量生成；右侧 `invert` 可反转
+    - `conditions combine`：多个条件的合并运算方式；`over` 取并集（任一条件满足即生成遮罩）
+  - `regions`子区：通过包围盒对遮罩进行空间淡出（fade out）
+    - 勾选 `use bounding box`：在指定包围盒边缘按 `falloff shape` 和 `falloff distance` 淡出遮罩
+    - `size` / `center`：包围盒的尺寸和中心坐标
+    - `falloff shape`：淡出轮廓形状（`rectangle` / `circle`）；若下游接 **particlefluidsurface节点** 的 `flatten` 功能，应与其 `shape` 保持一致
+    - `falloff distance`：从包围盒边缘向内的淡出距离；应与 **particlefluidsurface节点** 的 `flatten distance` 保持一致
+    - `plane`：高度测量和淡出所在平面（默认 `ZX Plane`，即水平面）
+    - 勾选 `invert bounding box`：反转包围盒遮罩
+    - `regions combine`：`regions` 条件与 `conditions` 结果的合并运算方式
+  - `mapping`子区：对生成的遮罩做平滑和重映射
+    - `filter`：平滑滤波类型（`mean value` 均值滤波等）
+    - 勾选 `use world space radius units`：以世界空间单位而非体素单位指定滤波半径
+    - `voxel radius`：滤波半径（体素单位）
+    - `iterations`：平滑迭代次数；默认 `2`
+    - 勾选 `remap mask`：按 `remap ramp` 曲线重映射遮罩值；可将线性遮罩转换为更锐利或更柔和的过渡
+- `spectrum`选项卡（`amplitude`子区）：对第三输入端的 Ocean Spectrum 做频率过滤，再将遮罩合成进去
+  - `filter above resolution`：压制频谱中高于指定分辨率的频率成分（高频波浪）
+  - `filter below resolution`：压制频谱中低于指定分辨率的频率成分（低频波浪）
+  - `filter above wavelength`：压制波长长于指定值的波浪
+  - `filter below wavelength`：压制波长短于指定值的波浪
+  - 勾选 `remove non-spectral waves`：移除非频谱实例化波浪（通常来自 **oceanwaves节点** 生成的低频波浪）；常与 `filter below resolution` 配合使用，清除所有低频成分
+
+**attributefromvolume节点**
+
+- 从第二输入端的体积（Volume/VDB）中采样数值，写入第一输入端几何体的点属性；支持对采样值做范围重映射和 ramp 曲线映射；常用于将烟雾密度场、速度场等体积数据转移到点云或网格的点属性上
+- 两个输入端
+  - 第一输入端（目标几何体）：需要写入属性的几何体，节点将对其点进行采样并添加/更新属性
+  - 第二输入端（源体积）：提供采样数据的体积原语（标准 Volume 或 VDB 均可）
+- 一个输出端：携带新点属性的第一输入端几何体
+- 顶层参数
+  - `group`：指定第一输入端中参与属性赋值的点子集；留空则对所有点操作
+  - `volume`：指定第二输入端中用于采样的体积；可填体积原语组名，也可直接填体积的 `name` 属性值（如 `density` 或 `vel.*`）；若体积数量不足属性分量数，体积将被循环复用
+- `attribute`选项卡：控制要创建/写入的点属性
+  - `attribute name`：写入目标属性的名称（如 `Cd`、`density`）；若该属性已存在于第一输入端，则忽略以下创建参数直接覆写值
+  - 勾选 `local variable`（截图中标为复选框）：是否为该属性创建局部变量映射，供表达式和脚本引用
+  - `local variable`：局部变量的引用名称；留空时 Houdini 自动使用属性名的全大写形式
+  - `attribute type`：要创建的属性数据类型（`float`、`integer`、`vector` 等）；`vector` 类型与三分量 float 的区别在于前者会随几何变换自动变换
+  - `attribute size`：属性的分量数；例如 `attribute type` 为 `float`、`attribute size` 为 `3` 时创建三分量 float 属性（等价于 vector3）
+  - `default`：属性的默认值；UI 始终显示四个分量输入框，但实际生效的分量数由 `attribute size` 决定；若 `attribute size` 大于 4，则循环复用这四个值
+- `mapping`选项卡：对采样到的体积值做范围重映射和 ramp 曲线变换，不启用时直接透传原始采样值
+  - `input range`：将体积的原始采样值范围（最小值～最大值）线性映射到 0～1 区间，作为后续 ramp 的输入；默认 `0, 1`
+  - 勾选 `map volume to value`：启用标量 ramp 对所有通道均等映射；`mode` 控制超出范围时的处理方式（`clamped ramp` 钳制 / `wrapped ramp` 循环）；第二个下拉框为预设选项（如 `density`）
+  - `scalar ramp`：横轴为 0～1 的输入值，纵轴为 0～1 的输出值；用于将体积值非线性地映射到目标属性
+  - 勾选 `map volume to vector`：启用颜色 ramp，将体积值映射为向量属性；ramp 的 R/G/B 通道分别应用于第一/二/三个体积，若只有单个体积则用三通道共同为其着色；`mode` 同样控制超出范围的处理方式（如 `diffuse` 预设）
+  - `vector ramp`：颜色渐变条，输出为 RGB 三通道向量值
+  - `output range`：将 ramp 输出的 0～1 区间重新映射到目标属性的最终值域（最小值～最大值）；默认 `0, 1`
+
 ## dop
 
 **solver节点**

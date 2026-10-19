@@ -2688,7 +2688,7 @@ copy and **transform节点**
     - 勾选 `collision offset`：在碰撞体（第二输入端）表面指定世界空间偏移距离内生成遮罩；右侧 `invert` 可反转
     - 勾选 `height range`：基于高度的遮罩条件，低于最小高度不生成遮罩，高于最大高度全量生成；右侧 `invert` 可反转
     - `conditions combine`：多个条件的合并运算方式；`over` 取并集（任一条件满足即生成遮罩）
-  - `regions`子区：通过包围盒对遮罩进行空间淡出（fade out）
+  - `regions`子区：通过包围盒生成遮罩，在包围盒边缘按指定形状和距离淡出
     - 勾选 `use bounding box`：在指定包围盒边缘按 `falloff shape` 和 `falloff distance` 淡出遮罩
     - `size` / `center`：包围盒的尺寸和中心坐标
     - `falloff shape`：淡出轮廓形状（`rectangle` / `circle`）；若下游接 **particlefluidsurface节点** 的 `flatten` 功能，应与其 `shape` 保持一致

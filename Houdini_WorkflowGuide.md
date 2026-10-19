@@ -1183,7 +1183,26 @@ copy and **transform节点**
 
 **file节点**
 
-- 将模型读入
+- 从磁盘读取、写入或缓存几何体；支持 `.bgeo`、`.bgeo.sc`、`.geo`、`.obj` 等常见格式，也支持读取（不支持写入）`.sim` / `.simdata` 文件
+- 两种工作模式
+  - 无输入端连接：直接从磁盘读取指定文件，将几何体送出输出端
+  - 有输入端连接：根据 `file mode` 参数决定行为
+    - `automatic`：文件不存在时自动写出，文件已存在时直接读入；适合缓存工作流——首次烹饪写入缓存，后续直接复用；需要刷新时手动删除磁盘文件即可
+    - `read files`：强制从磁盘读取，忽略输入端的几何体
+    - `write files`：将输入端几何体写出到磁盘
+    - `no operation`：不访问磁盘，直接透传输入端几何体，等同于 **null节点**
+- 常用参数
+  - `geometry file`：读写的文件路径；支持 `$F`、`$F4` 等帧号变量实现逐帧序列
+  - `reload geometry`：强制重新从磁盘加载，同时清除 packed disk primitive 的共享缓存
+  - `object mask`：加载 `.sim` 文件时，指定要载入的对象名称匹配模式（支持通配符 `*`）；仅匹配的对象会被加载
+  - `geometry data path`：加载 `.sim` 文件时，指定每个对象下要载入的数据路径；留空则只加载 Geometry 数据，填 `*` 可加载所有附属数据
+  - `missing frame`：读取模式下文件不存在时的处理方式；`report error` 报错（默认），`no geometry` 仅发出警告，若有输入端则透传输入几何体
+  - `load`：加载方式；`all geometry` 完整加载；`packed disk primitive` 不载入内存，创建轻量的延迟加载图元，多份引用共享几何数据节省内存；`packed disk sequence` 存储文件序列列表并在渲染时按索引解包，支持拓扑匹配时的子帧混合用于运动模糊；`points only` 仅加载点，速度更快内存更少；`metadata` 仅读取文件头元数据（如创建时间、Houdini 版本、烹饪耗时等）而不加载几何体
+  - `display packed as`：当以 packed 方式加载时，在视窗中的显示精度；`use file setting` 沿用文件内保存的显示设置，其他选项可强制为 `full geometry`、`points`、`bounding box`、`centroid`、`hidden` 等
+  - 勾选 `delay load geometry`：延迟加载，packed primitive 和共享数据不立即载入内存，仅在实际需要时才加载；适合大场景减少打开时的等待时间
+  - `cache frames`：在内存中缓存的最大帧数（默认 0）；值为 1 时在加载新帧前保留上一帧数据（避免 agent 形状缓存被意外释放）；值更大时可配合 `pre-fetch geometry` 使用
+  - 勾选 `pre-fetch geometry`：在后台预测并提前加载下一帧，使文件 IO 与计算并行，减少逐帧播放时的等待；需要 `cache frames` 足够大，否则预加载逻辑会失效
+  - `save/load retries`：文件读写失败时的重试次数（默认 0）；在网络存储不稳定的环境中可适当调高
 
 **attributepaint节点**
 

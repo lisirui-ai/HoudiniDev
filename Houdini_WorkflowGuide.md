@@ -2197,7 +2197,7 @@ copy and **transform节点**
     - `neural point surface`：使用预训练神经网络生成液面，实验性功能；`model` 可选 `balanced`（默认）/ `smooth`（平滑）/ `liquid`（液体优化）/ `granular`（颗粒物）
   - `particle separation`：粒子间距；值越小重建的液面越精细，计算量也越大
   - `voxel scale`：生成 VDB 的体素尺寸相对粒子间距的比例；值越小网格越精细，开销越高
-  - `influence scale`：粒子相互影响的最大距离（以粒子间距为单位）；适当增大可使液面更平滑，但开销显著增加
+  - `influence scale`：粒子相互影响的最大距离（以粒子间距为单位）；适当增大可使液面更平滑，但减少细节
   - `droplet scale`：粒子表面到液面的目标距离（以粒子间距为单位）；决定孤立水滴的球形半径
   - 勾选 `union compressed fluid surface`：将压缩的 `surface` VDB 合并填充液面深层区域
   - `erosion scale`：仅在 `union compressed fluid surface` 开启时生效；对合并的压缩液面场进行腐蚀，使其与粒子层衔接更自然；若粒子层与深层场之间出现可见接缝，可适当减小此值

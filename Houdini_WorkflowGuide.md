@@ -2220,9 +2220,36 @@ copy and **transform节点**
   - `final smooth`：最终二次平滑；`gaussian` 可使静止液面极为平整，但会模糊飞溅细节——可配合 `mask` 只对低速区域生效
   - `mask` 子选项：可使用速度范围（`velocity range`）、涡度范围（`vorticity range`）或第三输入端的 fog 体积来遮罩滤波区域，仅对平静区域平滑，保留飞溅细节
 - `regions`选项卡
-  - 勾选 `subtract collision volumes`：从液面中减去第二输入端的碰撞体，防止液面穿入碰撞几何体
-  - 勾选 `use bounding box`：将液面重建限制在指定包围盒内（用于局部预览或边界裁剪）；勾选 `close boundaries` 可在包围盒边界封口
-  - `flatten`子选项：将包围盒边缘区域的液面向水平面平滑过渡，便于与周围海洋曲面无缝拼接
+  - `region voxel scale`：区域遮罩的体素缩放倍率；值越大区域分辨率越低但计算越快，值越小区域边界越精确
+  - `container`子选项：将液面重建范围限制在 FLIP 解算容器内
+    - 勾选 `container`：启用容器限制，液面仅在解算容器内部重建，超出部分丢弃
+    - 勾选 `closed boundaries`：在容器边界处对液面封口，防止容器边缘出现开放边
+  - `collisions`子选项：处理碰撞体与液面的交叉关系
+    - 勾选 `subtract collision volumes`：从液面 SDF 中减去碰撞体体积，防止液面穿入碰撞几何体
+    - `collision offset`：碰撞体减去时额外向外偏移的距离（默认 0.001）；避免液面与碰撞体表面紧贴产生 z-fighting 闪烁
+  - `bounding box`子选项：以自定义包围盒进一步裁剪液面重建区域（常用于局部渲染预览）
+    - 勾选 `use bounding box`：启用包围盒限制
+    - `size`：包围盒的三轴尺寸（X/Y/Z）
+    - `center`：包围盒中心坐标
+    - `closed boundaries`：在包围盒边界处封口
+  - `flatten outside bounding box`子选项：将包围盒外侧的液面平滑过渡到一个平坦水面，便于与周围海洋曲面无缝拼接
+    - `rebuild sdf`：包围盒外侧 SDF 的重建精度，`full resolution` 保持完整精度
+    - 勾选 `output flattened attribute`：在输出几何体上写入顶点属性，标记已被展平的区域，可供着色器识别
+    - 勾选 `suppress near collisions`：在碰撞体附近禁止展平，避免碰撞边缘出现不自然的水平切断
+    - `plane`：展平目标平面方向；`ZX Plane` 即水平面，适用于标准竖轴场景
+    - `shape`：展平区域的轮廓形状，`rectangle` 为矩形，`circle` 为圆形
+    - `water level`：目标水平面的 Y 轴高度（展平后液面将趋向此高度）
+    - `max height`：液面高于水平面多少以内才参与展平；超过此高度的飞溅保持原样，避免飞溅被强制压平
+    - `flatten distance`：从包围盒边缘向外多远完成从仿真液面到平坦水面的过渡混合距离；值越大过渡越柔和
+    - `pad bounds`：在包围盒四周额外扩展的展平缓冲区宽度，防止过渡区域被包围盒边界截断
+    - `extrude polygons`：是否在水面边界向下挤出侧面多边形以封堵底部；`none` 不挤出，`along normal` 沿法线挤出，`along y` 沿 Y 轴向下挤出
+  - `camera`子选项：以摄影机视锥体为范围限制液面重建，仅重建摄影机可见区域以节省计算量
+    - 勾选 `camera`：启用摄影机视锥限制
+    - `camera`：指定摄影机节点路径
+    - `z near` / `z far`：视锥体的近/远裁剪距离，只在此范围内的液面才会重建
+    - 勾选 `use camera's window`：直接沿用摄影机自身的画幅窗口设置
+    - `window x` / `window y`：关闭 `use camera's window` 后可自定义窗口的水平/垂直范围（NDC 坐标，默认各为 −0.1 ～ 1.1，略宽于画幅以避免边缘裁切）
+    - 勾选 `closed frustum`：在视锥体边界处封口
 
 **whitewatersource节点**
 

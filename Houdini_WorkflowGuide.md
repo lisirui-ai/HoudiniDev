@@ -2556,9 +2556,10 @@ copy and **transform节点**
   - `Velocity Field`：勾选后根据海洋波浪运动生成速度场，赋予粒子和体积初始速度；默认勾选
   - `Max Extrap Cells`：速度场向外外推的最大体素格数；控制速度场在水面以外区域的延伸范围，值越大速度外推越远；默认 `2`（左侧复选框控制启用）
 - `Boundary Layer` 选项卡
-  - `Create Boundary Layer`：勾选后在模拟区域四周生成一圈缓冲区，用于在边界处持续维持海洋表面和速度状态，使 FLIP 模拟在边界处与外部海洋动态平滑衔接、抑制边界反射；启用后会从总模拟区域中扣除边界层宽度，使实际有效的模拟区域相应缩小（缩小量由 `Lower/Upper Padding` 决定）；默认不勾选
-  - `Lower Padding`：边界层在 xyz 各轴负方向的厚度（三分量，场景单位）；值越大边界层越厚，对边界的约束越强；默认 `0.75 0.75 0`
-  - `Upper Padding`：边界层在 xyz 各轴正方向的厚度（三分量，场景单位）；默认 `0.75 0.75 0`
+  - `Create Boundary Layer`：勾选后在模拟区域四周生成一圈缓冲区，用于在边界处持续维持海洋表面和速度状态，使 FLIP 模拟在边界处与外部海洋动态平滑衔接、抑制边界反射；启用后会从总模拟区域中扣除边界层宽度，使实际有效的模拟区域相应缩小（缩小量由内部隐藏参数 `boundary` 与 `Lower/Upper Padding` 的乘积决定）；默认不勾选
+  - `Lower Padding`（通道名 `lowerpaddingx/y/z`）：各轴负方向边界层相对于内部隐藏参数 `boundary` 的缩放乘数（三分量，无量纲）；各轴实际负方向边界层厚度 = `boundary × lowerpadding`；对应轴设为 0 则禁用该轴边界层；值越大边界层越厚，对边界的约束越强
+  - `Upper Padding`（通道名 `upperpaddingx/y/z`）：各轴正方向边界层相对于 `boundary` 的缩放乘数（三分量，无量纲）；各轴实际正方向边界层厚度 = `boundary × upperpadding`；对应轴设为 0 则禁用该轴边界层
+  - `boundary`：节点内部隐藏参数（UI 不可见），边界层的基础厚度（场景单位）；可通过 `ch("oceansource节点路径/boundary")` 访问
 - `Surface Evaluation` 选项卡
   - `Type`：海洋表面评估类型；`Ocean` 表示使用标准海洋谱位移评估水面形态
   - `Time`：评估海洋表面所用的时间值；通常连接 `$T`（当前场景时间）使海浪随时间运动；默认 `0`

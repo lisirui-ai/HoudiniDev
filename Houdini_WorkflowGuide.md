@@ -2675,8 +2675,8 @@ copy and **transform节点**
   - 第二输入端（`collision objects and volumes`）：碰撞体几何体及 SDF 体积，用于 `collision offset` 条件计算
   - 第三输入端（`ocean spectrum`）：一个或多个 **oceanspectrum节点** 输出的频谱层；遮罩可合成进这些频谱层
 - 两个输出端
-  - 第一输出端（`mask`）：生成的体积遮罩
-  - 第二输出端（`ocean spectrum`）：经过遮罩合成和/或频率过滤后的 Ocean Spectrum 层透传输出
+  - 第一输出端（`mask`）：仅输出生成的遮罩体积，第一输入端的粒子、几何体及其他属性均不透传
+  - 第二输出端（`ocean spectrum`）：将第三输入端的所有 Ocean Spectrum 层连同其属性一并透传输出；其中被选中参与处理的层会经过遮罩合成和/或频率过滤，其余未被处理的层及所有属性原样透传
 - `mask`选项卡
   - `particle separation`：输入 FLIP 模拟的粒子间距；应与 **flipobject节点** 的同名参数保持一致，确保遮罩分辨率与粒子密度匹配
   - `resolution scale`：相对于输入粒子/速度场对输出遮罩体积进行分辨率缩放；通常可设为小于 1 的值，因为遮罩本身会经过滤波平滑，过高分辨率性价比低；默认 `0.5`

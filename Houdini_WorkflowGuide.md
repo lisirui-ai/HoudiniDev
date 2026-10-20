@@ -2725,7 +2725,7 @@ copy and **transform节点**
       - `maximum`：取两者较大值，等效逻辑 OR——任一遮罩有值即保留，用于宽松合并两个独立来源
       - `average`：取两者均值，结果介于 AND 与 OR 之间，过渡更柔和
       - `multiply`：将两者相乘（`A × B`），效果类似 `minimum` 但对非二值遮罩（含渐变区域）更平滑，常用于两张带渐变的遮罩相交
-      - `over`：以 `regions` 遮罩为主层叠加在 `conditions` 遮罩之上（标准 Alpha Over 合成），`regions` 有值的区域直接覆盖 `conditions` 的结果
+      - `over`：以 `regions` 遮罩为主层叠加在 `conditions` 遮罩之上（标准 Alpha Over 合成，`A + B×(1−A)`，其中 `A` 为 `regions` 空间遮罩，`B` 为 `conditions` 条件遮罩）；`regions` 有值的区域直接覆盖 `conditions` 的结果，`regions` 为 0 处完全透出 `conditions` 的值
   - `mapping`子区：对生成的遮罩做平滑和重映射
     - `filter`：平滑滤波类型（`mean value` 均值滤波等）
     - 勾选 `use world space radius units`：以世界空间单位而非体素单位指定滤波半径

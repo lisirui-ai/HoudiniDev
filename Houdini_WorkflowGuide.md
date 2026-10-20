@@ -2715,11 +2715,11 @@ copy and **transform节点**
       - `suppression`：遮罩值为 1 的位置，海洋波浪被完全压制/移除；遮罩值为 0 的位置，波浪保持原样不受影响；典型用途：将 FLIP 仿真活跃区域（速度高的浪花破碎处）的程序化波浪压掉，避免仿真与程序波叠加穿帮
       - `contribution`：遮罩值为 1 的位置，海洋波浪被完全保留/增强；遮罩值为 0 的位置，波浪被移除；典型用途：在仿真边界外侧平静区将海洋波浪贡献加回，与程序化海面衔接
   - `conditions`子区：按条件生成遮罩，多个条件通过 `conditions combine` 运算合并
-    - 勾选 `velocity range`：对速度低于最小值的区域不生成遮罩，高于最大值的区域全量生成遮罩，中间线性过渡；右侧 `invert` 可反转该条件结果
+    - 勾选 `velocity range`：对速度低于最小值的区域不生成遮罩，高于最大值的区域全量生成遮罩，中间线性过渡；`suppression`模式下，右侧 `invert` 将该条件遮罩逐点取反（`1 - value`）使低速区域变为全量遮罩、高速区域变为无遮罩
     - 勾选 `vorticity range`：基于涡度的遮罩条件，逻辑与速度范围相同
     - 勾选 `collision offset`：在碰撞体（第二输入端）表面指定世界空间偏移距离内生成遮罩；右侧 `invert` 可反转
     - 勾选 `height range`：基于高度的遮罩条件，低于最小高度不生成遮罩，高于最大高度全量生成；右侧 `invert` 可反转
-    - `conditions combine`：多个条件的合并运算方式；`over` 取并集（任一条件满足即生成遮罩）
+    - `conditions combine`：多个条件遮罩的合并运算方式；`over` 以软并集方式（公式 `A + (1 - A) × B`）合并，相比直接取最大值可避免灰度遮罩叠加超过 1.0，过渡更平滑；效果上近似并集，但对中间灰度区域更友好
   - `regions`子区：通过包围盒生成空间遮罩；包围盒内部（距边缘超过 `falloff distance` 的区域）遮罩值为 1（完全遮罩），在距边缘 `falloff distance` 范围内按 `falloff shape` 指定的形状淡出至 0，包围盒外部遮罩值为 0
     - 勾选 `use bounding box`：在指定包围盒边缘按 `falloff shape` 和 `falloff distance` 淡出遮罩
     - `size` / `center`：包围盒的尺寸和中心坐标

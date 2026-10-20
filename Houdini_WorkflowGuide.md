@@ -4020,6 +4020,18 @@ copy and **transform节点**
   - **DOP Import** 节点 `relationship_geometry`：导入来自 DOP 关系（relationship）的几何体数据
   - **Output** 节点 `OUT`：将 SOP 网络处理后的几何体输出，结果将写回 DOP 对象的 `Geometry` 数据，参与下一帧的解算迭代
 
+**popspeedlimit节点**
+
+- 对粒子的线速度和自旋速度进行限幅，将其钳制在指定的最小值和最大值范围内；常用于防止粒子在模拟过程中速度无限增长导致解算爆炸，或强制粒子保持在合理的运动范围内
+- 参数
+  - `Activation`：节点激活开关，值为 `1` 时启用，`0` 时禁用；支持表达式
+  - `Group`：要限速的粒子组；留空表示作用于所有粒子
+  - `Minimum Speed`：线速度下限；粒子速度低于此值时被提升至该值（默认 `0`，即不设下限）
+  - `Maximum Speed`：线速度上限；粒子速度高于此值时被钳制至该值（默认 `1`）
+  - `Minimum Spin`：自旋角速度下限（默认 `0`）
+  - `Maximum Spin`：自旋角速度上限（默认 `1`）
+  - 勾选 `Use VEXpression`：启用自定义 VEX 表达式覆盖内置的限速逻辑，可按粒子属性动态计算限速范围
+
 ## 时间
 
 **timeshift节点**

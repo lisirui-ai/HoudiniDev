@@ -2733,6 +2733,7 @@ copy and **transform节点**
     - `iterations`：平滑迭代次数；默认 `2`
     - 勾选 `remap mask`：按 `remap ramp` 曲线重映射遮罩值；可将线性遮罩转换为更锐利或更柔和的过渡
 - `spectrum`选项卡（`amplitude`子区）：对第三输入端的 Ocean Spectrum 做频率过滤，再将遮罩合成进去
+  - 调节指南：分辨率值越高对应越细碎的细节（高频小波纹），分辨率值越低对应越大尺度的波浪形态（低频大涌浪）
   - `filter above resolution`：压制频谱中高于指定分辨率的频率成分（高频波浪）
   - `filter below resolution`：压制频谱中低于指定分辨率的频率成分（低频波浪）
   - `filter above wavelength`：压制波长长于指定值的波浪

@@ -2253,8 +2253,7 @@ copy and **transform节点**
     - 勾选 `subtract collision volumes`：从液面 SDF 中减去碰撞体体积，防止液面穿入碰撞几何体
     - `collision offset`：碰撞体减去时额外向外偏移的距离（默认 0.001）；避免液面与碰撞体表面紧贴产生 z-fighting 闪烁
   - `bounding box`子选项：以自定义包围盒进一步裁剪液面重建区域（常用于局部渲染预览）
-    - 勾选 `use bounding box`：启用包围盒限制
-      - 若包围盒尺寸小于原始仿真容器范围，`container → closed boundaries` 所生成的侧面和底面封口几何将被裁剪在盒外而丢弃，盒内只剩 isosurface 本体，输出退化为单面；需启用包围盒自身的 `closed boundaries` 以补回封口，或在下游用 **extrudevolume** 手动挤出厚度
+    - 勾选 `use bounding box`：启用包围盒限制；启用后才可勾选 `flatten outside bounding box`，该选项开启后输出的是液面单面（仅表层网格），而非有厚度的封闭液面模型
     - `size`：包围盒的三轴尺寸（X/Y/Z）
     - `center`：包围盒中心坐标
     - `closed boundaries`：在包围盒边界处封口
@@ -2268,7 +2267,7 @@ copy and **transform节点**
     - `max height`：在过渡区域内，液面高于 `water level` 的最大展平范围；只有在 `water level` 到 `water level + max height` 之间的液面才会被展平，超出此范围的部分保持仿真原样；若仿真边缘存在较高的浪峰或飞溅，需将此值调高以覆盖最高液面，否则超出范围的部分不会展平，在包围盒边缘产生硬切断（abrupt cutoff）artifact
     - `flatten distance`：从包围盒边缘向内延伸的过渡混合距离；在此距离范围内仿真液面逐渐混合至平坦水面，到达包围盒边缘时液面已趋于平坦；值越大过渡越柔和
     - `pad bounds`：在包围盒四周向外额外扩展平坦海面的范围；值越大生成的平坦海面区域越大，用于在仿真容器外侧产生更大面积的过渡海面，与周围无限海洋衔接
-    - `extrude polygons`：在平坦海面边界处向外挤出多边形以进一步扩展海面覆盖范围；共三种模式：`none` 不挤出，`planar` 沿水平面向外挤出（保持平坦），`along each axis` 沿各轴方向分别挤出
+    - `extrude polygons`：在平坦海面边界处向外挤出多边形以进一步扩展海面覆盖范围；共三种模式：`none` 不挤出，`planar` 沿各边界边自身的朝向水平挤出，转角处以斜向三角形过渡面衔接（会产生非轴对齐的斜向布线），`along each axis` 分别沿 X 轴和 Z 轴独立挤出，转角处形成整齐的矩形网格（无斜向三角形，布线更规整）
   - `camera`子选项：以摄影机视锥体为范围限制液面重建，仅重建摄影机可见区域以节省计算量
     - 勾选 `camera`：启用摄影机视锥限制
     - `camera`：指定摄影机节点路径

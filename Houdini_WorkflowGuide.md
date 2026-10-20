@@ -870,10 +870,14 @@ copy and **transform节点**
 
 **group节点**
 
-- 分组
-- 基于整体分组
-- 基于`bounding`区域分组
-- 给分组命名
+- 根据多种条件（模式/包围体/法线/边/随机概率）在几何体上创建点、面、边或顶点的组，组在各节点参数中用于指定操作的作用范围，同一元素可同时属于多个组
+- 第一个输入端连源几何体（目标几何体），第二个输入端连包围体几何体（可选，配合 `Keep in Bounding Regions` 中的 `Bounding Object` 模式使用）
+- `Group Name`：组的名称；`Group Type`：组的元素类型（`Points`/`Primitives`/`Edges`/`Vertices`）；`Initial Merge`：新组与已有同名组的合并策略，`Replace Existing` 替换、`Union With Existing` 取并集、`Intersect With Existing` 取交集、`Subtract From Existing` 取差集
+- `Base Group`：`Enable` 启用按模式筛选；`Base Group` 输入 pattern 或 `@属性` 语法指定初始元素集（如 `@P.y>0`），`Keep` 类区块在此基础上进一步筛选（AND），`Include by Edges` 中的条件和 `Non-Planar Polys` 则无论其他区块结果如何都会将满足条件的元素加入组（OR）；`Create Ordered` 保持输入顺序（常用于 skinning）；`Geometry Filter` 限定允许进入组的面的类型
+- `Keep in Bounding Regions`：`Enable` 启用包围体筛选，将位于指定包围体内的元素加入组；`Bounding Type` 可选包围盒/球体/输入几何体/体积 VDB/凸包；`Size`/`Center` 设置包围盒尺寸与中心；`Initialize to Input Bounds` 将包围盒自动初始化为几何体边界；`Include Partially Contained Entities` 控制是否纳入仅部分在包围体内的元素
+- `Keep by Normals`：`Enable` 启用法线筛选；`Backface from` 特殊行为：若其他区块已产生组则从中移除背对指定对象的面，若无其他条件则将背面元素加入组；`Non-Planar Polys` 将超过容差的非平面多边形加入组（不受其他区块影响，始终添加）；`Direction` 指定目标法线方向；`Spread Angle` 控制允许偏离的角度范围；`Include Normals Matching Opposite Direction` 同时纳入与 `Direction` 反方向夹角在 `Spread Angle` 内的元素
+- `Include by Edges`：`Enable` 启用边条件筛选，满足条件的元素无论其他区块如何设置都会被加入组；`Min/Max Edge Angle` 按相邻面法线夹角（对面组）或共享该边的两个面的夹角（对边组）筛选；勾选 `Edge Angle Uses Angle Between Edges` 后（仅对边组有效）改为按该边与所有共点的其他边之间的夹角筛选；`Min/Max Edge Length` 按边长范围筛选；`Edge Depth` 从 `Point Group` 指定的点组出发按边数扩展纳入周围元素；`Unshared Edges` 将含有非共享边的点/面/边加入组（对边组：该边只有一个相邻面则纳入）；`Create Boundary Groups` 额外创建表面边界点组
+- `Keep by Random Chance`：`Enable` 启用随机概率筛选；`Global Seed` 控制随机种子；`Seed Attribute` 启用后以元素上指定整数属性值代替元素编号参与随机计算；`Percent` 设置大约多少比例的元素被纳入组（0–100）
 
 **groupcombine节点**
 

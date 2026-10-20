@@ -2250,6 +2250,7 @@ copy and **transform节点**
     - `collision offset`：碰撞体减去时额外向外偏移的距离（默认 0.001）；避免液面与碰撞体表面紧贴产生 z-fighting 闪烁
   - `bounding box`子选项：以自定义包围盒进一步裁剪液面重建区域（常用于局部渲染预览）
     - 勾选 `use bounding box`：启用包围盒限制
+      - 若包围盒尺寸小于原始仿真容器范围，`container → closed boundaries` 所生成的侧面和底面封口几何将被裁剪在盒外而丢弃，盒内只剩 isosurface 本体，输出退化为单面；需启用包围盒自身的 `closed boundaries` 以补回封口，或在下游用 **extrudevolume** 手动挤出厚度
     - `size`：包围盒的三轴尺寸（X/Y/Z）
     - `center`：包围盒中心坐标
     - `closed boundaries`：在包围盒边界处封口
@@ -2719,7 +2720,12 @@ copy and **transform节点**
     - `falloff distance`：从包围盒边缘向内的淡出距离；应与 **particlefluidsurface节点** 的 `flatten distance` 保持一致
     - `plane`：高度测量和淡出所在平面（默认 `ZX Plane`，即水平面）
     - 勾选 `invert bounding box`：反转包围盒遮罩
-    - `regions combine`：`regions` 条件与 `conditions` 结果的合并运算方式
+    - `regions combine`：`regions` 空间遮罩与 `conditions` 条件遮罩的合并运算方式；两张遮罩均为 0–1 浮点值，逐体素进行运算
+      - `minimum`：取两者较小值，等效逻辑 AND——只有两张遮罩同时有值的区域才保留，用于严格限制"必须同时满足空间和条件"
+      - `maximum`：取两者较大值，等效逻辑 OR——任一遮罩有值即保留，用于宽松合并两个独立来源
+      - `average`：取两者均值，结果介于 AND 与 OR 之间，过渡更柔和
+      - `multiply`：将两者相乘（`A × B`），效果类似 `minimum` 但对非二值遮罩（含渐变区域）更平滑，常用于两张带渐变的遮罩相交
+      - `over`：以 `regions` 遮罩为主层叠加在 `conditions` 遮罩之上（标准 Alpha Over 合成），`regions` 有值的区域直接覆盖 `conditions` 的结果
   - `mapping`子区：对生成的遮罩做平滑和重映射
     - `filter`：平滑滤波类型（`mean value` 均值滤波等）
     - 勾选 `use world space radius units`：以世界空间单位而非体素单位指定滤波半径

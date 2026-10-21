@@ -2214,6 +2214,7 @@ copy and **transform节点**
   - 第三输入端（`collision objects and volumes`）：碰撞体几何体或 SDF 体积，用于从液面中减去碰撞区域
   - 第四输入端（`mask volumes`）：fog 体积，用于遮罩滤波操作
 - 若输入来自 **fluidcompress节点**，节点会自动识别压缩标记，用 `surface` VDB 补全被剔除的深层粒子区域，并从 `vel` VDB 中读取速度数据
+- 可以不输入任何粒子，**fluidsurface节点**仅凭 `surface` 和 `vel` 两个 VDB 即可完成液面重建；与有粒子输入的重建相比，`surface` VDB 的分辨率受体素大小限制，缺少粒子带来的亚格子细节，液面更平滑但高频细节（小波纹、飞溅等）较少，适合远景背景水体或快速预览
 - `surfacing`选项卡
   - `method`：液面初始 SDF 的生成算法
     - `average position`：基于粒子平均位置生成平滑液面，效果好但开销较高

@@ -2253,7 +2253,7 @@ copy and **transform节点**
     - 勾选 `subtract collision volumes`：从液面 SDF 中减去碰撞体体积，防止液面穿入碰撞几何体
     - `collision offset`：碰撞体减去时额外向外偏移的距离（默认 0.001）；避免液面与碰撞体表面紧贴产生 z-fighting 闪烁
   - `bounding box`子选项：以自定义包围盒进一步裁剪液面重建区域（常用于局部渲染预览）
-    - 勾选 `use bounding box`：启用包围盒限制；启用后才可勾选 `flatten outside bounding box`，该选项开启后输出的是液面单面（仅表层网格），而非有厚度的封闭液面模型
+    - 勾选 `use bounding box`：启用包围盒限制；启用后可进一步勾选 `flatten outside bounding box`——开启后液面仅输出表层单面网格，而非封闭的有厚度液面模型，后续可通过**extrudevolume**节点挤压出所需厚度
     - `size`：包围盒的三轴尺寸（X/Y/Z）
     - `center`：包围盒中心坐标
     - `closed boundaries`：在包围盒边界处封口

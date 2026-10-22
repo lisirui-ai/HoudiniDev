@@ -4593,6 +4593,12 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `any non-diffuse`：所有非漫反射类分量
   - `direct lighting`：直接照明
   - `indirect lighting`：间接照明（GI）
+  - 支持 Category Expression 语法，可对分量进行组合过滤：
+    - `*`：所有分量（默认）
+    - `-reflect`：排除镜面反射，其余分量均受影响
+    - `diffuse | sss`：仅影响漫反射或次表面散射（OR）
+    - `diffuse & direct lighting`：仅影响直接漫反射（AND，同时满足两个标签的分量）
+    - `-*`：不影响任何分量（相当于关闭该灯光的贡献）
 - `categories`：灯光所属的类别标签，名称自定义，多个类别用空格或逗号分隔；用于灯光链接（Light Linking）——在几何体节点的Render 选项卡 → Shading 子选项卡中，`Light Selection` 字段（默认 `*` 表示接受所有灯光）填写允许照射该物体的灯光类别名称，即可实现灯光与物体的选择性关联；**必须两端同时配置**：灯光侧填写 `categories`，几何体侧填写对应的 `Light Selection`，两端标签匹配才生效
   - `Light Selection` 语法（Category Expression）：
     - `sun | env`：拥有 `sun` 标签的灯光或拥有 `env` 标签的灯光会照射该物体（OR，两盏灯均生效）

@@ -2774,6 +2774,37 @@ copy and **transform节点**
   - `vector ramp`：颜色渐变条，输出为 RGB 三通道向量值
   - `output range`：将 ramp 输出的 0～1 区间重新映射到目标属性的最终值域（最小值～最大值）；默认 `0, 1`
 
+**bend节点**
+
+- 对几何体施加弯曲、扭转、缩放、锥化等形变；形变仅作用于 `Capture Region`（捕获区域）内的点，区域外的点完全不受影响
+- 顶部公共参数
+  - `Group` / `Group Type`：指定参与形变的元素子集及其类型；留空则对所有元素操作
+  - `Mask`：遮罩属性名（截图中默认为 `bend_attrib`），用浮点属性的值（0～1）按权重调制形变强度；`Mask Off` 关闭遮罩，全权重生效
+- `Deformation` 选项卡
+  - `Enable Deformation`：总开关，取消勾选则节点直通输入不做任何形变
+  - `Limit Deformation to Capture Region`：勾选后仅对位于 `Capture Region` 内的点施加形变，区域外点保持原位；取消勾选则对所有点均应用形变
+  - `Deform in Both Directions`：勾选后形变从捕获区域**中心**向两端对称展开；取消勾选则从 `Capture Origin` 单向展开
+  - Bend 折叠组
+    - `Mode`：弯曲量的度量方式；`Angle` 以角度指定总弯曲量，`Curvature` 以曲率指定
+    - `Bend Angle`：总弯曲角度（度）；`No Scaling`下拉框控制拉伸补偿策略，`No Scaling` 不做补偿，`Scale to Preserve Length` 沿弯曲方向缩放以保持弧长
+  - Twist 折叠组（勾选启用）：沿捕获方向轴旋转扭曲
+  - Length Scale 折叠组（勾选启用）：沿捕获方向轴做非均匀缩放（拉伸/压缩）
+  - Taper 折叠组（勾选启用）：沿捕获方向轴做锥化（截面渐变放大或缩小）
+  - Capture 折叠组：定义形变作用的捕获区域
+    - `Up Vector Control`：Up 轴的指定方式；`Custom` 手动填写，也可选 `Attribute` 从点属性读取
+    - `Up Vector`：捕获坐标系的 Up 轴方向（三分量向量），决定弯曲/扭转的参考平面
+    - `Up Vector Angle`：在 Up 平面内额外旋转的角度（度），用于微调形变朝向
+    - `Set Capture Region`：点击后在视口交互地拖拽设置捕获区域，自动回填以下三个参数
+    - `Capture Origin`：捕获区域的起始点坐标（世界空间）
+    - `Capture Direction`：捕获区域的延伸方向向量（单位向量）
+    - `Capture Length`：捕获区域沿 `Capture Direction` 的长度
+    - `Output Attribute`：输出的捕获权重属性名（默认 `capture`），存储每个点在区域内的权重值（0～1），可供下游节点或 `Mask` 字段引用
+- `Attributes` 选项卡
+  - `Use Rest Positions`：勾选后以点的 `rest` 属性作为形变计算的参考位置（而非当前 `P`），适用于需要基于原始形状重复施加形变的场景
+  - `Attributes to Transform`：需要随形变一起变换的属性列表（默认 `*` 表示所有向量/法线类属性）；通常保持默认以确保法线、切线等属性同步更新
+  - `Recompute Affected Normals`：形变后重新计算受影响点的法线，而非仅做变换；适用于大角度弯曲导致法线失真的情况
+  - `Preserve Normal Length`：重新计算法线后保持原有法线向量的长度不变
+
 ## dop
 
 **solver节点**

@@ -7,6 +7,11 @@ VEX
   - 支持字符串使用`+`进行拼接
 - 层级
   - 代码在哪个层级上运行或运行几次
+  - 在 Wrangle SOP 的 `Run Over` 下拉菜单中设置，决定代码以哪个元素为单位循环执行
+    - `Points`：每个点执行一次，可用 `@ptnum` 获取当前点序号，共执行 npoints 次；最常用
+    - `Primitives`：每个面执行一次，可用 `@primnum` 获取当前面序号，共执行 nprimitives 次
+    - `Vertices`：每个顶点执行一次，可用 `@vtxnum` 获取当前顶点线性序号，共执行 nvertices 次
+    - `Detail (only once)`：整个几何体只执行一次，无循环变量，适合做全局计算或生成单一结果
 
 ## 数据类型
 

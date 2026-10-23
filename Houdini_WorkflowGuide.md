@@ -1086,7 +1086,23 @@ copy and **transform节点**
 
 **divide节点**
 
-- 将模型的四边面转换为三角面
+- 将多边形面细分或三角化；核心功能分两类：凸化/三角化（将N边面拆分为三角面或更少边的面）和砖格化（将面按规则网格切割）
+- `Group`：指定要处理的面组，留空表示全部
+- `Convex Polygons`：将所有面转换为凸多边形（默认勾选）；勾选后激活以下选项
+  - `Maximum Edges`：每个输出面的最大边数，默认为 `3`（即三角化）；设为更大值可保留四边形等低面数面
+  - `Triangulate Non-Planar`：对不平整（非共面）的面强制三角化；值为平面度容差，超过该阈值的面会被三角化，默认 `0.0001`
+  - `Don't Generate Slivers`：避免生成狭长的退化三角面（sliver），提高三角化质量
+  - `Avoid Small Angles`：尽量避免生成小角度三角面，使三角化结果更均匀
+  - `Smooth Polygons`：对细分后的面进行平滑处理
+  - `Weight`：平滑权重，控制平滑程度；`Divisions` 为细分次数
+- `Bricker Polygons`：将面按砖格图案切割，激活后可设置
+  - `Size`：砖格的三维尺寸
+  - `Offset`：砖格的偏移量
+  - `Angle`：砖格的旋转角度
+  - `Bricker Shared Edges`：在砖格切割时保留共享边（默认勾选）
+  - `Remove Shared Edges`：移除切割产生的内部共享边
+- `Compute Dual`：计算对偶多边形（将原面的中心作为新顶点、原顶点区域作为新面），生成拓扑互换的对偶网格
+- `Attributes to Swap`：在计算对偶时需要在点/面层级之间互换的属性，默认 `* ^P`（除位置外的所有属性）
 
 **subdivide节点**
 
@@ -2863,6 +2879,23 @@ copy and **transform节点**
 - `Make Planar`：将每个面的所有顶点强制拉平到同一平面上
 - `Post-Compute Normals`：在所有操作执行完毕后重新计算法线
 - `Reverse Normals`：反转所有法线方向
+
+**clip节点**
+
+- 用一个平面裁切几何体，保留平面一侧的部分
+- `Group`：指定要裁切的面组，留空表示全部
+- `Clip Attribute`：用于裁切的属性，默认 `P`（即按位置裁切）
+- `Keep`：保留哪一侧，可选 `Primitives Above the Plane`（保留平面上方）、`Primitives Below the Plane`（保留平面下方）、`All Primitives`（保留两侧所有面，即只在截面处切开但不丢弃任何部分）
+- `Orient Plane with`：定义裁切平面的方式，可选 `Direction`（通过原点+方向定义）或其他方式
+- `Origin`：裁切平面上的一点（平面经过该点），三维向量，默认 `0 0 0`
+- `Direction`：裁切平面的法线方向，三维向量，默认 `1 0 0`（即 YZ 平面）
+- `Distance`：将裁切平面沿法线方向平移的距离，默认 `0`
+- `Snapping Tolerance`：将极近于裁切平面的点吸附到平面上的容差，避免产生极小的退化面，默认 `1e-05`
+- `Fill Polygons along Clipping Plane`：在裁切截面处填充封口多边形，使裁切后的几何体封闭
+- `Output Groups`：输出组设置
+  - `Replace Existing`：勾选后用新组名覆盖已有同名组（默认勾选）
+  - `Clipped Edges`：将裁切产生的新边写入指定组，默认组名 `clippededges`
+  - `Clipped Primitives`：将被裁切影响到的面写入指定组，默认组名 `clipped`
 
 ## dop
 

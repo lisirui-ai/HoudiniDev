@@ -308,9 +308,10 @@ for (int i = 0; i < 10; i++) {
 
 # @型变量
 
-固有的或者可继承的变量
-  - `point`和`vertex`的区别：`point`（点）是被多个面共享的几何点，存储位置等共享数据；`vertex`（顶点）是每个面私有的，不跨面共享，存储`uv`等面特有数据；同一个`point`可对应多个`vertex`，因此`nvertices()`≥`npoints()`
+内置变量
   - <img src="./image-20250221215557446.png" width="600" />
+  - `point`和`vertex`的区别：`point`（点）是被多个面共享的几何点，存储位置等共享数据；`vertex`（顶点）是每个面私有的，不跨面共享，存储`uv`等面特有数据；同一个`point`可对应多个`vertex`，因此`nvertices()`≥`npoints()`
+  - `@vtxnum` 是随着面编号线性递增、全局无重复的整型序号，范围为 `0` 到 `nvertices()-1`；顶点按面的顺序依次编号，同一面内的顶点序号连续（如 Prim 0 有 4 个顶点则占用 `@vtxnum` 0~3，Prim 1 紧接着从 4 开始）
 
 @调用变量
 

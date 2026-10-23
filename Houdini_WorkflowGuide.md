@@ -12,6 +12,7 @@ VEX
     - `Primitives`：每个面执行一次，可用 `@primnum` 获取当前面序号，共执行 nprimitives 次
     - `Vertices`：每个顶点执行一次，可用 `@vtxnum` 获取当前顶点线性序号，共执行 nvertices 次
     - `Detail (only once)`：整个几何体只执行一次，无循环变量，适合做全局计算或生成单一结果
+  - 跨层级的属性不能直接用 `@属性名` 读写，必须使用 `point()`/`prim()`/`vertex()`/`detail()` 读取、`setpointattrib()`/`setprimattrib()`/`setvertexattrib()`/`setdetailattrib()` 写入；例如在 Points 层级中无法直接用 `@primnum` 读取其他面的属性，只能通过 `prim()` 跨层查询
 
 ## 数据类型
 

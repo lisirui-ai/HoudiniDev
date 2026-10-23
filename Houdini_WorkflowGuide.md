@@ -309,8 +309,8 @@ for (int i = 0; i < 10; i++) {
 # @型变量
 
 固有的或者可继承的变量
-
-<img src="./image-20250221215557446.png" width="600" />
+  - point和vertex的区别：point（点）是被多个面共享的几何点，存储位置等共享数据；vertex（顶点）是每个面私有的，不跨面共享，存储uv等面特有数据；同一个point可对应多个vertex，因此nvertices()≥npoints()
+  - <img src="./image-20250221215557446.png" width="600" />
 
 @调用变量
 

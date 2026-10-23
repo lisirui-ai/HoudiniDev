@@ -2822,6 +2822,24 @@ copy and **transform节点**
   - `Recompute Affected Normals`：形变后重新计算受影响点的法线，而非仅做变换；适用于大角度弯曲导致法线失真的情况
   - `Preserve Normal Length`：重新计算法线后保持原有法线向量的长度不变
 
+**facet节点**
+
+- 处理几何体的点共享关系和法线；核心功能分两类：拆点/合点（`Unique Points` 将共享点拆为各面独立点，`Consolidate` 将邻近点合并为共享点，二者互逆）和法线处理（计算、单位化、统一朝向、折痕、翻转）
+- `Group`：指定要处理的元素组，留空表示处理全部
+- `Group Type`：组的类型，默认 `Guess from Group`（自动判断）
+- `Pre-Compute Normals`：在执行其他操作前预先计算法线
+- `Make Normals Unit Length`：将法线向量单位化（长度归一为1）
+- `Unique Points`：将共享点拆分为各面独立的点（断开共享），使每个面拥有私有的点，vertex属性可转化为point属性；切断面与面之间的拓扑连接，使每个面成为几何上完全独立的孤立体，下游节点才能以面为单位独立操作（如 **explodedview节点** 的爆炸分离依赖于此，不勾选时共享点被多个面同时拥有无法向不同方向移动导致面无法分离）
+- `Consolidate`：合并距离在阈值内的点，将多个邻近点合并为一个共享点；`No Consolidate` 表示不合并；下方 `Distance` 为合并距离阈值
+  - `Use Accurate Distance`：使用精确距离计算（而非快速近似）进行点合并判断
+  - `Remove Inline Points`：移除共线排列的冗余点（即位于线段中间、不影响形状的点）；下方 `Distance` 为判定共线的容差
+- `Orient Polygons`：统一面的法线朝向，使所有面朝向一致
+- `Cusp Polygons`：在超过 `Cusp Angle` 角度的硬边处断开法线（使硬边两侧法线不共享，产生折痕效果）；`Cusp Angle` 为触发折痕的边角度阈值，默认 `20` 度
+- `Remove Degenerate`：移除退化面（面积为零的面，如三点共线的三角形）
+- `Make Planar`：将每个面的所有顶点强制拉平到同一平面上
+- `Post-Compute Normals`：在所有操作执行完毕后重新计算法线
+- `Reverse Normals`：反转所有法线方向
+
 ## dop
 
 **solver节点**

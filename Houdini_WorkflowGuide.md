@@ -1018,9 +1018,25 @@ copy and **transform节点**
 
 **sort节点**
 
-- 改变点的序号
-- `shift`模式
-  - 可由时间驱动不断变化点的序号
+- 对点（Points）和面（Primitives）的序号进行重新排序，不改变几何形状，只改变 `@ptnum`/`@primnum` 的编号顺序；Points 和 Primitives 各自独立设置
+- `Point Group` / `Primitive Group`：指定要重排序的组，留空表示全部
+- `Point Sort` / `Primitive Sort`：排序方式，可选项如下
+  - `No Change`：不改变顺序
+  - `By Vertex Order`：按顶点顺序排列（仅 Point Sort 可用）
+  - `By X` / `By Y` / `By Z`：按坐标轴方向从小到大排序
+  - `Reverse`：反转当前序号顺序
+  - `Random`：随机打乱序号
+  - `Shift`：循环偏移序号；可由时间驱动不断变化点的序号，常用于粒子轨迹循环等效果
+  - `Proximity to Point`：按距离指定点由近到远排序
+  - `Along Vector`：按投影到指定向量上的距离排序
+  - `By Expression`：按自定义表达式的计算结果排序
+  - `Spatial Locality`：按空间局部性排序（使空间上相邻的点/面序号也相邻，提升缓存效率）
+  - `By Attribute`：按指定属性的值从小到大排序
+  - `By Primitive Index`：按所属面的序号排序（仅 Point Sort 可用）
+  - `Reorder by Index Attribute`：按指定属性中存储的目标序号直接重排
+- `Reverse Point Sort` / `Reverse Primitive Sort`：将排序结果反转
+- `Sort Indices`：指定用于排序的属性通道，`Combine Sort Indices` 可将多个属性组合为复合排序键
+- `Optimize Internal Vertex Order`（仅 Primitives）：重排面序号后同步优化面内顶点的内部顺序，提升渲染和处理性能
 
 **enumerate节点**
 

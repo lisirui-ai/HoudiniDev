@@ -316,6 +316,7 @@ for (int i = 0; i < 10; i++) {
   - 同一面内顶点的局部编号顺序遵循左手规则——从法线正面观察，局部序号 0→1→2→... 为顺时针方向；半边（hedge）编号与 `@vtxnum` 一一对应，因此面内半边的方向也遵循同样的顺时针规律
   - 半边的序号等于其起点顶点的 `@vtxnum`，即 `hedge编号 == 起点顶点的@vtxnum`；因此 `vertexhedge(0, @vtxnum)` 的返回值就等于 `@vtxnum` 本身
   - 每条 `edge` 在其所有等价半边中恰好有且只有一条主半边（primary half-edge），可用 `hedge_isprimary()` 判断；利用此特性可在遍历所有半边时通过过滤主半边来不重不漏地遍历所有 `edge`（每条 edge 只被处理一次）
+  - `Primitive`（基元）不等于“面”，而是更广义的概念——凡是能放入几何体基元层级的完整几何单元都是 Primitive，包括封闭多边形 `poly`、开放折线 `polyline`、体积 `volume`/VDB、二次曲面（sphere/circle/tube）、打包几何体等；`polyline` 视觉上像一条线/边，但本质是一个拥有顶点列表和基元属性的 `Primitive`，与 `edge` 不同（`edge` 没有独立存在，是由 Primitive 内部相邻顶点隐式推导出的）
 
 @调用变量
 
@@ -588,6 +589,7 @@ hedge_nextequiv(输入端序号, 半边序号);                         //返回
 vertexhedge(输入端序号, 顶点线性序号);                         //返回以指定顶点为起点的半边序号（即起点为该顶点所在点、终点为该顶点在所属面中下一个顶点所在点的那条半边）；返回值为int型，半边序号；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；顶点线性序号为int型（@vtxnum，全局线性顶点序号）；找不到对应顶点时返回-1；与pointhedge的区别：pointhedge以点为入口可能返回多条半边之一，vertexhedge以顶点为入口精确对应唯一一条半边（因为每个顶点恰好对应一条出发半边）
 hedge_isprimary(输入端序号, 半边序号);                         //判断给定半边是否为主半边（primary half-edge）；返回值为int型，是主半边返回1，否则返回0；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；半边序号为int型；每条edge在其所有等价半边中恰好有且只有一条主半边；常用于遍历所有半边时过滤主半边，以不重不漏地处理每条edge
 vertexprim(输入端序号, 顶点线性序号);                          //返回包含指定顶点的面序号；返回值为int型（@primnum），顶点无所属面时返回-1；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；顶点线性序号为int型（@vtxnum）；与vertexprimindex配合可将@vtxnum完整还原为（面序号, 面内局部顶点序号）二元组
+primvertices(输入端序号, 面序号);                              //返回指定面上所有顶点的线性序号数组；返回值为int[]型（元素为@vtxnum），顺序与该面内部存储顺序一致；面序号无效时返回空数组；与primpoints的区别：primpoints返回@ptnum数组（点序号），primvertices返回@vtxnum数组（顶点线性序号），两者顺序相同但语义不同（点是共享的，顶点是面私有的）
 vertexprimindex(输入端序号, 顶点线性序号);                     //返回指定顶点在其所属面内的局部序号；返回值为int型，顶点无所属面时返回-1；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；顶点线性序号为int型（@vtxnum）；注意：首次调用时需遍历所有面建立查找表，有一次性性能开销，之后调用会被摊销；与vertexindex互为逆运算（vertexindex将(面序号,局部序号)→@vtxnum，vertexprim/vertexprimindex将@vtxnum→(面序号,局部序号)）
 ```
 

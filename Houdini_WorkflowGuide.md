@@ -1202,6 +1202,7 @@ copy and **transform节点**
 
 - 可视化显示属性，如法线N、**aw节点**添加的属性等
 - 在**visualize节点**属性视窗的`visualizers`选项中单击加号新建一层可视化效果
+- 可以有多层`visualizers`一起显示
 - 在每一层的`visualizer`中单击铅笔按钮显示可视化效果
 - 在每一层下方的`attribute`处写想要可视化显示的属性，如法线N
 - 在上方的`style`选项选择想要显示的方式即可可视化显示

@@ -317,6 +317,7 @@ for (int i = 0; i < 10; i++) {
   - 半边的序号等于其起点顶点的 `@vtxnum`，即 `hedge编号 == 起点顶点的@vtxnum`；因此 `vertexhedge(0, @vtxnum)` 的返回值就等于 `@vtxnum` 本身
   - 每条 `edge` 在其所有等价半边中恰好有且只有一条主半边（primary half-edge），可用 `hedge_isprimary()` 判断；利用此特性可在遍历所有半边时通过过滤主半边来不重不漏地遍历所有 `edge`（每条 edge 只被处理一次）
   - `Primitive`（基元）不等于“面”，而是更广义的概念——凡是能放入几何体基元层级的完整几何单元都是 Primitive，包括封闭多边形 `poly`、开放折线 `polyline`、体积 `volume`/VDB、二次曲面（sphere/circle/tube）、打包几何体等；`polyline` 视觉上像一条线/边，但本质是一个拥有顶点列表和基元属性的 `Primitive`，与 `edge` 不同（`edge` 没有独立存在，是由 Primitive 内部相邻顶点隐式推导出的）
+  - 概念上的 `edge`（边）在 VEX 中没有独立实体，真正能操作的“边”有两种：一是 `half-edge`（通过 `hedge_*` 函数操作，属于拓扑结构），二是 `polyline`（通过 `addprim(0, "polyline", p0, p1)` 创建，属于 Primitive 层级）；两者用途不同：`half-edge` 用于查询和遍历拓扑关系，`polyline` 用于创建可视化、可带属性的几何导线
 
 @调用变量
 
@@ -591,6 +592,7 @@ hedge_isprimary(输入端序号, 半边序号);                         //判断
 vertexprim(输入端序号, 顶点线性序号);                          //返回包含指定顶点的面序号；返回值为int型（@primnum），顶点无所属面时返回-1；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；顶点线性序号为int型（@vtxnum）；与vertexprimindex配合可将@vtxnum完整还原为（面序号, 面内局部顶点序号）二元组
 primvertices(输入端序号, 面序号);                              //返回指定面上所有顶点的线性序号数组；返回值为int[]型（元素为@vtxnum），顺序与该面内部存储顺序一致；面序号无效时返回空数组；与primpoints的区别：primpoints返回@ptnum数组（点序号），primvertices返回@vtxnum数组（顶点线性序号），两者顺序相同但语义不同（点是共享的，顶点是面私有的）
 vertexprimindex(输入端序号, 顶点线性序号);                     //返回指定顶点在其所属面内的局部序号；返回值为int型，顶点无所属面时返回-1；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；顶点线性序号为int型（@vtxnum）；注意：首次调用时需遍历所有面建立查找表，有一次性性能开销，之后调用会被摊销；与vertexindex互为逆运算（vertexindex将(面序号,局部序号)→@vtxnum，vertexprim/vertexprimindex将@vtxnum→(面序号,局部序号)）
+primintrinsic(输入端序号, 内参名, 面序号);                     //读取指定面的内参（intrinsic）值；内参类似属性但由 Houdini 实时计算而非存储，在 Geometry Spreadsheet 中不可见；返回值类型由内参决定，内参不存在时返回0；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；内参名为string型，常用内参："typename"（返回string型，Primitive的类型名称，常见值："Poly"（封闭多边形和开放折线均为此值，typeid=1）、"NURBCurve"（typeid=2）、"BezierCurve"（typeid=3）、"Circle"（typeid=8）、"Sphere"（typeid=9）、"Tube"（typeid=10）、"Volume"（typeid=20）、"VDB"（typeid=23）、"PackedGeometry"（typeid=24）等；注意开放折线与封闭多边形的typename均为"Poly"，需通过内参"closed"区分（1为封闭，0为开放））、"typeid"（返回int型，对应类型的数字编号）、"pointcount"（返回int型，面上点的数量）、"bounds"（返回float[]型，面的包围盒）；面序号为int型（@primnum）
 ```
 
 # 快捷键

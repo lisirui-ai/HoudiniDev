@@ -587,6 +587,8 @@ hedge_dstpoint(输入端序号, 半边序号);                          //返回
 hedge_nextequiv(输入端序号, 半边序号);                         //返回与给定半边等价（共享同一条edge）的下一条半边的序号；返回值为int型；若该edge只有一条等价半边（边界边）则返回自身；连续调用可循环遍历所有等价半边；半边无效时返回-1；配合hedge_equivcount可遍历共享同一条edge的所有半边（用于处理非流形边）
 vertexhedge(输入端序号, 顶点线性序号);                         //返回以指定顶点为起点的半边序号（即起点为该顶点所在点、终点为该顶点在所属面中下一个顶点所在点的那条半边）；返回值为int型，半边序号；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；顶点线性序号为int型（@vtxnum，全局线性顶点序号）；找不到对应顶点时返回-1；与pointhedge的区别：pointhedge以点为入口可能返回多条半边之一，vertexhedge以顶点为入口精确对应唯一一条半边（因为每个顶点恰好对应一条出发半边）
 hedge_isprimary(输入端序号, 半边序号);                         //判断给定半边是否为主半边（primary half-edge）；返回值为int型，是主半边返回1，否则返回0；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；半边序号为int型；每条edge在其所有等价半边中恰好有且只有一条主半边；常用于遍历所有半边时过滤主半边，以不重不漏地处理每条edge
+vertexprim(输入端序号, 顶点线性序号);                          //返回包含指定顶点的面序号；返回值为int型（@primnum），顶点无所属面时返回-1；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；顶点线性序号为int型（@vtxnum）；与vertexprimindex配合可将@vtxnum完整还原为（面序号, 面内局部顶点序号）二元组
+vertexprimindex(输入端序号, 顶点线性序号);                     //返回指定顶点在其所属面内的局部序号；返回值为int型，顶点无所属面时返回-1；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；顶点线性序号为int型（@vtxnum）；注意：首次调用时需遍历所有面建立查找表，有一次性性能开销，之后调用会被摊销；与vertexindex互为逆运算（vertexindex将(面序号,局部序号)→@vtxnum，vertexprim/vertexprimindex将@vtxnum→(面序号,局部序号)）
 ```
 
 # 快捷键

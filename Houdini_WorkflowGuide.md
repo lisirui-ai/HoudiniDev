@@ -799,12 +799,6 @@ k帧
   - 目标点的属性值与源几何体的属性值**相同**时，该部分源几何体会被拷贝到对应目标点上
 - 物体必须位于世界原点
 
-**add节点**
-
-- 添加点
-- 将模型转换为点云
-  - 点的分布遵循原模型，有规律
-
 **clusterpoints节点**
 
 - 将物体按空间位置分组
@@ -1029,13 +1023,25 @@ copy and **transform节点**
 
 **add节点**
 
-- 选择点云中的点连接成线
-  - 序号连续的点的缩写形式
-    - a-b：按序连接序号从a开始到b的点
-  - 按照属性连线
-- 将连接成的线转变为封闭的面
-  - 注意连接成的线的连续性，不要有相交
-- 连接成线后删除没有用到的点
+- 在场景中手动创建点或面，或向已有输入几何体追加点/面；有三个标签页：`Points`、`Polygons`、`Particles`
+- Points 标签页：手动添加指定位置的点
+  - `Delete Geometry But Keep the Points`：删除输入中所有面/曲线/体积等 Primitive，只保留点（常用于将模型转换为点云）
+  - `Number of Points`：要添加的点的数量，每个点可单独指定坐标
+  - 每个点有四个分量：X、Y、Z（世界空间坐标）和 W（样条权重，仅影响 NURBS/Bezier 曲线形状，对多边形和 metaball 无效）
+- Polygons 标签页：将已有点按指定规则连接成面
+  - `Remove Unused Points`：只保留参与连接的点，删除孤立点
+  - `By Pattern`（按模式）：手动填写点序号模式来指定每个面的连接方式，语法如下
+    - `a b c ...`：直接列出点序号，按顺序连接
+    - `a-b`：按序连接序号从 a 到 b 的点
+    - `a-b:every`：从 a 到 b 每隔 `every` 个取一个点，如 `0-15:2` 表示取 0、2、4…14
+    - `a-b:every,of`：在长度为 `of` 的窗口中每 `every` 个取一个
+    - 多段可用空格分隔，如 `1 3-15 16 8`
+    - `Closed`：勾选后将该面封闭（首尾点额外连边形成回路），输出为封闭多边形（`poly`，`primintrinsic "closed"==1`）；不勾选则首尾不相连，输出为开放折线（`polyline`，`primintrinsic "closed"==0`）
+  - `By Group`（按组）：按点组连接，组内同属性值的点被连接在一起，连接顺序遵循点序号顺序；`N` 指定子组跨度
+- Particles 标签页：将点集标记为粒子系统
+  - `Add Particle System`：是否创建粒子系统 Primitive
+  - `Particle Group`：加入粒子系统的点组，留空表示全部点
+  - `Append Unused Points to Particle System`：将不属于任何 Primitive 的孤立点追加到第一个粒子系统中
 
 **sort节点**
 

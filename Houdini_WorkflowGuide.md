@@ -2911,6 +2911,24 @@ copy and **transform节点**
   - `Clipped Edges`：将裁切产生的新边写入指定组，默认组名 `clippededges`
   - `Clipped Primitives`：将被裁切影响到的面写入指定组，默认组名 `clipped`
 
+**polypath节点**
+
+- 清理多边形曲线的拓扑结构；输出结果中所有面（`poly`）均被拆解为边，仅保留 `polyline`；将所有连续的边合并为完整的折线路径（`polyline`），路径在分叉点（连接了三条或以上边的点）处截断；默认去除重复边（同一条边出现多次时只保留一条），并移除自环边（起终点为同一个点的边）
+- `Connect End Points`：启用后，将两端悬空的端点（仅连接了一条边的点）与距离在 `Max Distance` 以内的其他点合并（通过重新绑定顶点到编号最小的点实现）；常用于连接断开的曲线末端
+- `Max Distance`：`Connect End Points` 启用时，端点的最大连接距离阈值
+- `Connect Only To Other End Points`：启用后，端点只与其他端点连接，不与中间点（非端点）连接；适用于只想把悬空末端互相接合、而不影响已有路径中间点的情况
+- `Make Isolated Loops Closed`：启用后，对于完全孤立的环形路径（无分叉、无连接其他曲线的闭合回路），将其从开放折线（`polyline`）转换为封闭多边形（`poly`）
+
+**convertline节点**
+
+- 将输入几何体的所有连接关系转换为两点线段（`polyline`）；每条原始边对应一条仅含两个端点的独立 `polyline`，输出结果中所有面均被替换为线段；与 **polypath节点** 的区别在于：polypath 将连续边合并为完整路径，convertline 始终保持每段为独立的两点线段；注意：面属性（`prim` attribute）和面组不会被保留
+- `Group`：指定要转换的边组，留空表示全部
+- `Keep Group Order`：启用后，线段按 `Group` 中指定的顺序排列，而非按点序号排列
+- `Connect Path`：启用后，将悬空端点（仅连接了一条边的点）与距离在 `Max Distance` 以内的其他点合并连接
+- `Make Isolated Loops Closed`：启用后，将完全孤立的环形开放折线转换为封闭多边形（`poly`）
+- `Remove Unused Points`：仅保留有连接关系的点，删除孤立点
+- `Compute Length`：启用后，计算每条线段的长度并存入指定属性
+
 ## dop
 
 **solver节点**

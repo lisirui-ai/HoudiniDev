@@ -897,7 +897,7 @@ k帧
 
 - 测量数据并返回属性
 
-copy and **transform节点**
+**copy and transform节点**
 
 **group节点**
 

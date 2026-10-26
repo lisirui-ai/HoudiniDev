@@ -5981,3 +5981,7 @@ Render Flipbook（拍平）
   - 调低 **oceansurface节点** `waves` 选项卡下的 `refractintensity`：降低折射强度，减少透过水面折射出的天空/环境颜色对表面颜色的干扰，使海面色调更纯净饱和
   - 调低 **oceansurface节点** `waves` 选项卡下的 `diffuseintensity`：降低漫反射强度，减少水面漫散射带来的泛白雾感，使海面颜色更深、更饱和
 
+`Display Group and Attribute List`
+
+- 位于视窗工具栏右侧的切换按钮，点击后在视窗右侧展开一个面板，列出当前显示节点的所有点/面/顶点/detail 组（Groups）和属性（Attributes）；相比打开 Geometry Spreadsheet 更轻量直观，适合快速确认几何体上存在哪些属性和组
+

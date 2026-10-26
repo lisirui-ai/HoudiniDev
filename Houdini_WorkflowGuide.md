@@ -869,6 +869,14 @@ k帧
 
 `foreach`系列节点
 - 对每个元素单独进行计算，最后合并输出
+- **begin节点** 的 `Method`：决定每次迭代的输入来源
+  - `Fetch Input`：直接将输入几何体的拷贝作为每次迭代的输入，各次迭代相互独立，等同于绕过 begin 节点直接连线，语义上更清晰
+  - `Fetch Feedback`：第一次迭代使用节点的输入几何体，后续每次迭代使用上一次迭代的输出结果，形成反馈回路，可将同一组节点反复作用于几何体；与 **end节点** 的 `Feedback Each Iteration` 配合使用
+  - `Extract Piece or Point`：每次迭代只输出输入中的一个 piece（由 `piece`/`name` 等分区属性定义，属性名在 **end节点** 的 `Piece Attribute` 中设置）；若无分区属性则逐点或逐面迭代；与 **end节点** 的 `Merge Each Iteration` 配合使用
+  - `Fetch Metadata`：输出一个仅含 `detail` 属性（记录当前循环信息如 `iteration`、`numiterations` 等）的空几何体，用于在另一个外层循环内部通过 `detail()` 读取循环状态
+- **end节点** 的 `Gather Method`：决定每次迭代结果的收集方式
+  - `Merge Each Iteration`：记录每次迭代的输出，循环结束后将所有迭代结果合并（Merge）为一个整体；适用于逐件处理（每次迭代只修改一个 piece）后将所有 piece 拼回的场景；与 **begin节点** 的 `Extract Piece or Point` 模式配合使用
+  - `Feedback Each Iteration`：每次迭代的输出作为下一次迭代的输入，循环结束后只输出最后一次迭代的结果；适用于需要逐步累积或反复修改同一几何体的场景；与 **begin节点** 的 `Fetch Feedback` 模式配合使用
 - 监视节点metadata
   - `detail`层级属性
     - `iteration`循环序号

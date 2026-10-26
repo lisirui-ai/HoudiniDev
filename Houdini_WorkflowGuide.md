@@ -878,11 +878,11 @@ k帧
   - `Merge Each Iteration`：记录每次迭代的输出，循环结束后将所有迭代结果合并（Merge）为一个整体；适用于逐件处理（每次迭代只修改一个 piece）后将所有 piece 拼回的场景；与 **begin节点** 的 `Extract Piece or Point` 模式配合使用
   - `Feedback Each Iteration`：每次迭代的输出作为下一次迭代的输入，循环结束后只输出最后一次迭代的结果；适用于需要逐步累积或反复修改同一几何体的场景；与 **begin节点** 的 `Fetch Feedback` 模式配合使用
 - 监视节点metadata
-  - `detail`层级属性
-    - `iteration`循环序号
-    - `numiterations`循环总次数
-    - value
-      - **end节点**的`piece` `attribute`属性，区分不同的物体
+  - `detail`层级属性（可通过 `detail(0, "iteration", 0)` 等方式在循环内读取）
+    - `iteration`：int 型，当前迭代的序号，从 0 开始
+    - `numiterations`：int 型，总迭代次数
+    - `ivalue`：int 型，`value` 的整数版本（对 `value` 取整）
+    - `value`：float 型，由 **end节点** 的 `Start Value` 和 `Increment` 参数控制的计数器，第一次迭代为 `Start Value`，此后每次迭代增加 `Increment`
 
 **forloopwithfeedback节点**
 

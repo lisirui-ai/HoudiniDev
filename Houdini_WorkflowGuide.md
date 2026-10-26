@@ -1123,7 +1123,7 @@ k帧
   - `Avoid Small Angles`：尽量避免生成小角度三角面，使三角化结果更均匀
   - `Smooth Polygons`：对细分后的面进行平滑处理
   - `Weight`：平滑权重，控制平滑程度；`Divisions` 为细分次数
-- `Bricker Polygons`：将面按砖格图案切割，激活后可设置
+- `Bricker Polygons`：在面上按砖格图案加线细分，激活后可设置
   - `Size`：砖格的三维尺寸
   - `Offset`：砖格的偏移量
   - `Angle`：砖格的旋转角度

@@ -597,6 +597,7 @@ primvertices(输入端序号, 面序号);                              //返回�
 vertexprimindex(输入端序号, 顶点线性序号);                     //返回指定顶点在其所属面内的局部序号；返回值为int型，顶点无所属面时返回-1；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；顶点线性序号为int型（@vtxnum）；注意：首次调用时需遍历所有面建立查找表，有一次性性能开销，之后调用会被摊销；与vertexindex互为逆运算（vertexindex将(面序号,局部序号)→@vtxnum，vertexprim/vertexprimindex将@vtxnum→(面序号,局部序号)）
 primintrinsic(输入端序号, 内参名, 面序号);                     //读取指定面的内参（intrinsic）值；内参类似属性但由 Houdini 实时计算而非存储，在 Geometry Spreadsheet 中不可见；返回值类型由内参决定，内参不存在时返回0；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；内参名为string型，常用内参："typename"（返回string型，Primitive的类型名称，常见值："Poly"（封闭多边形和开放折线均为此值，typeid=1）、"NURBCurve"（typeid=2）、"BezierCurve"（typeid=3）、"Circle"（typeid=8）、"Sphere"（typeid=9）、"Tube"（typeid=10）、"Volume"（typeid=20）、"VDB"（typeid=23）、"PackedGeometry"（typeid=24）等；注意开放折线与封闭多边形的typename均为"Poly"，需通过内参"closed"区分（1为封闭，0为开放））、"typeid"（返回int型，对应类型的数字编号）、"pointcount"（返回int型，面上点的数量）、"bounds"（返回float[]型，面的包围盒）；面序号为int型（@primnum）
 hedge_prim(输入端序号, 半边序号);                              //返回包含指定半边的面序号；返回值为int型（@primnum），即该半边（源顶点与目标顶点所在的面）所归属的面的编号；半边无效时返回-1；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；半边序号为int型
+setvertexpoint(geohandle, 面序号, 面内局部顶点序号, 点序号);   //将指定顶点重新连接（rewire）到另一个点；返回值为int型，成功返回0，失败返回-1；geohandle为int型，通常传0（当前几何体）；面序号为int型（@primnum），传-1时面内局部顶点序号改为全局线性顶点序号（@vtxnum）直接定位顶点；面内局部顶点序号为int型，与面序号配合用于定位顶点（面序号为-1时视为@vtxnum）；点序号为int型（@ptnum），传-1时不执行任何重连操作；此函数是setprimvertex的新名称，两者等价，官方推荐使用setvertexpoint以提升可读性
 ```
 
 # 快捷键

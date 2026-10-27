@@ -318,6 +318,14 @@ for (int i = 0; i < 10; i++) {
   - 每条 `edge` 在其所有等价半边中恰好有且只有一条主半边（primary half-edge），可用 `hedge_isprimary()` 判断；利用此特性可在遍历所有半边时通过过滤主半边来不重不漏地遍历所有 `edge`（每条 edge 只被处理一次）
   - `Primitive`（基元）不等于“面”，而是更广义的概念——凡是能放入几何体基元层级的完整几何单元都是 Primitive，包括封闭多边形 `poly`、开放折线 `polyline`、体积 `volume`/VDB、二次曲面（sphere/circle/tube）、打包几何体等；`polyline` 视觉上像一条线/边，但本质是一个拥有顶点列表和基元属性的 `Primitive`，与 `edge` 不同（`edge` 没有独立存在，是由 Primitive 内部相邻顶点隐式推导出的）
   - 概念上的 `edge`（边）在 VEX 中没有独立实体，真正能操作的“边”有两种：一是 `half-edge`（通过 `hedge_*` 函数操作，属于拓扑结构），二是 `polyline`（通过 `addprim(0, "polyline", p0, p1)` 创建，属于 Primitive 层级）；两者用途不同：`half-edge` 用于查询和遍历拓扑关系，`polyline` 用于创建可视化、可带属性的几何导线
+  - 点/顶点/面三者的存在依赖关系：
+
+    | 元素 | 依赖什么存在 | 删除时影响什么 |
+    |---|---|---|
+    | `point`（点） | 独立存在，不依赖顶点或面 | 仅删除点本身；原本引用它的顶点引用断开，但顶点不自动删除；孤立点（orphaned point）需手动删除或调用 `removeunusedpoints` 清理 |
+    | `vertex`（顶点） | 依赖所属面存在 | 面删除时其所有顶点一并删除，但顶点所引用的点仍然保留 |
+    | `primitive`（面） | 独立存在 | 删除时其所有顶点一并删除，但顶点所引用的点仍然保留 |
+
 
 @调用变量
 

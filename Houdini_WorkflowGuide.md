@@ -587,6 +587,8 @@ neighbours(输入端序号, 点序号);                                //返回�
 hedge_equivcount(输入端序号, 半边序号);                        //返回与给定半边等价（共享同一条edge）的半边总数，包含自身；返回值为int型；边界边返回1，内部流形边返回2，非流形边返回≥3；半边无效时返回-1；可用于判断边类型（等于1为边界边，等于2为普通内部边，≥3为非流形边）
 hedge_srcpoint(输入端序号, 半边序号);                          //返回给定半边的起点的点序号；返回值为int型（@ptnum）；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；半边序号为int型；半边无效时返回-1
 hedge_dstpoint(输入端序号, 半边序号);                          //返回给定半边的终点的点序号（与hedge_srcpoint同理，方向相反）；返回值为int型（@ptnum）；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；半边序号为int型；半边无效时返回-1
+hedge_srcvertex(输入端序号, 半边序号);                         //返回给定半边的起始顶点的线性序号；返回值为int型（@vtxnum）；与hedge_srcpoint的区别：srcpoint返回共享的点序号（@ptnum），srcvertex返回面私有的顶点序号（@vtxnum），可用于查询顶点级属性（如UV）；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；半边序号为int型；半边无效时返回-1
+hedge_dstvertex(输入端序号, 半边序号);                         //返回给定半边的目标顶点的线性序号；返回值为int型（@vtxnum）；与hedge_dstpoint的区别：dstpoint返回共享的点序号（@ptnum），dstvertex返回面私有的顶点序号（@vtxnum），可用于查询顶点级属性（如UV）；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；半边序号为int型；半边无效时返回-1
 hedge_nextequiv(输入端序号, 半边序号);                         //返回与给定半边等价（共享同一条edge）的下一条半边的序号；返回值为int型；若该edge只有一条等价半边（边界边）则返回自身；连续调用可循环遍历所有等价半边；半边无效时返回-1；配合hedge_equivcount可遍历共享同一条edge的所有半边（用于处理非流形边）
 vertexhedge(输入端序号, 顶点线性序号);                         //返回以指定顶点为起点的半边序号（即起点为该顶点所在点、终点为该顶点在所属面中下一个顶点所在点的那条半边）；返回值为int型，半边序号；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；顶点线性序号为int型（@vtxnum，全局线性顶点序号）；找不到对应顶点时返回-1；与pointhedge的区别：pointhedge以点为入口可能返回多条半边之一，vertexhedge以顶点为入口精确对应唯一一条半边（因为每个顶点恰好对应一条出发半边）
 hedge_isprimary(输入端序号, 半边序号);                         //判断给定半边是否为主半边（primary half-edge）；返回值为int型，是主半边返回1，否则返回0；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；半边序号为int型；每条edge在其所有等价半边中恰好有且只有一条主半边；常用于遍历所有半边时过滤主半边，以不重不漏地处理每条edge
@@ -594,6 +596,7 @@ vertexprim(输入端序号, 顶点线性序号);                          //返�
 primvertices(输入端序号, 面序号);                              //返回指定面上所有顶点的线性序号数组；返回值为int[]型（元素为@vtxnum），顺序与该面内部存储顺序一致；面序号无效时返回空数组；与primpoints的区别：primpoints返回@ptnum数组（点序号），primvertices返回@vtxnum数组（顶点线性序号），两者顺序相同但语义不同（点是共享的，顶点是面私有的）
 vertexprimindex(输入端序号, 顶点线性序号);                     //返回指定顶点在其所属面内的局部序号；返回值为int型，顶点无所属面时返回-1；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；顶点线性序号为int型（@vtxnum）；注意：首次调用时需遍历所有面建立查找表，有一次性性能开销，之后调用会被摊销；与vertexindex互为逆运算（vertexindex将(面序号,局部序号)→@vtxnum，vertexprim/vertexprimindex将@vtxnum→(面序号,局部序号)）
 primintrinsic(输入端序号, 内参名, 面序号);                     //读取指定面的内参（intrinsic）值；内参类似属性但由 Houdini 实时计算而非存储，在 Geometry Spreadsheet 中不可见；返回值类型由内参决定，内参不存在时返回0；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；内参名为string型，常用内参："typename"（返回string型，Primitive的类型名称，常见值："Poly"（封闭多边形和开放折线均为此值，typeid=1）、"NURBCurve"（typeid=2）、"BezierCurve"（typeid=3）、"Circle"（typeid=8）、"Sphere"（typeid=9）、"Tube"（typeid=10）、"Volume"（typeid=20）、"VDB"（typeid=23）、"PackedGeometry"（typeid=24）等；注意开放折线与封闭多边形的typename均为"Poly"，需通过内参"closed"区分（1为封闭，0为开放））、"typeid"（返回int型，对应类型的数字编号）、"pointcount"（返回int型，面上点的数量）、"bounds"（返回float[]型，面的包围盒）；面序号为int型（@primnum）
+hedge_prim(输入端序号, 半边序号);                              //返回包含指定半边的面序号；返回值为int型（@primnum），即该半边（源顶点与目标顶点所在的面）所归属的面的编号；半边无效时返回-1；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；半边序号为int型
 ```
 
 # 快捷键

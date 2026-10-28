@@ -1198,10 +1198,63 @@ k帧
 
 **polyextrude节点**
 
-- 挤出面
-- 属性视窗中的`distance`选项控制挤出高度
-- `divisions`选项控制挤出高度的分段数
-- 属性视窗中的`twist`控制条可调整挤出模型的旋转角度，且是基于每个`uv`点的，非整体旋转
+- 对选中的面或边沿法线方向挤出，生成侧面多边形，节点会复制选中元素并进行变换，原始位置称为 `back`（红色），变换后的副本称为 `front`（绿色）
+- `Group`：指定要挤出的面或边组，留空则对全部元素挤出
+- `Divide Into`：划分挤出单元的方式，默认 `Connected Components`（将相邻面/边视为一组独立挤出）；若需让相邻元素分别独立挤出，可在 `Split Group` 中指定分割组
+- `Extrusion Mode`：挤出方向的法线来源，默认 `Primitive/Edge Normal`（面沿面法线、边根据内/边界类型智能判断方向）
+- `Distance`：挤出距离，正值沿法线向外，负值向内压入
+- `Inset`：挤出顶端面的内缩/外扩量，正值向内收缩，负值向外扩张；对边挤出无效
+- `Twist`：挤出顶端面绕挤出轴的旋转角度，基于每个挤出单元各自的局部坐标系，非整体旋转
+- `Divisions`：挤出方向的分段数，段数越多侧面环线越多，有利于后续弯曲变形
+- `Spine Shape`：挤出路径形状，`Straight` 为直线，`Curve` 为两端朝向之间的曲线，`Curve From Second Input` 为从第二输入端读取外部曲线驱动路径
+- Extrusion 标签页
+  - Front Transform（勾选 `Transform Extruded Front` 后启用）：对挤出顶端面单独施加位移/旋转/缩放变换；该变换叠加在 `Distance` 和 `Twist` 之上，若只用变换控制建议将两者归零
+  - Output Geometry and Groups：控制哪些部分输出并指定其所属组
+    - `Output Front`：是否输出挤出顶端面（默认开启），组名由 `Front Group` 指定（默认 `extrudeFront`）
+    - `Output Back`：是否输出挤出底端面（默认关闭），组名由 `Back Group` 指定（默认 `extrudeBack`）
+    - `Output Side`：是否输出侧面（默认开启），组名由 `Side Group` 指定（默认 `extrudeSide`）
+    - `Front Boundary Group`：顶端面与侧面交界处的边线组（默认 `extrudeFrontSeam`，视口中显示为绿色）
+    - `Back Boundary Group`：底端面与侧面交界处的边线组（默认 `extrudeBackSeam`，视口中显示为红色）
+    - `Preserve Groups`：保留输出组中已有的内容，不随挤出操作覆盖
+  - Insetting：控制内缩行为的边界保护
+    - `Limit Insetting`：防止内缩量过大导致面翻转或退化（建议始终开启）
+    - `Use Common Limit`：多个挤出单元同时内缩时，以最先触及边界的那个为统一上限；关闭则每个单元各自独立收缩至零
+  - Normals：法线相关设置
+    - `Add Vertex Normals`：为挤出结果添加顶点法线
+    - `Cusp Angle`：折痕角阈值（默认 60°），共享边两侧面法线夹角超过此值时产生硬边
+    - `Cusp All Front Boundary Edges`：强制将顶端面边界全部设为硬边，忽略 `Cusp Angle`
+    - `Cusp All Back Boundary Edges`：强制将底端面边界全部设为硬边，忽略 `Cusp Angle`
+  - Texture Coordinates：侧面 UV 生成（仅当输入几何体已有 UV 时才会生成）
+    - `Generate Unwrapped Texture Coordinates for Sides`：为侧面生成展开 UV
+    - `Style`：UV 填充方式，`Proportional` 按实际长度比例分配
+    - `Scaling`：UV 缩放策略，`Match Incident UV Scale` 与相邻面的 UV 密度匹配
+- Spine Control 标签页：控制脊线形状与截面厚度/扭转变化，`Spine Shape` 为直线时大部分参数不可用
+  - Shape Adjustment：脊线曲率控制（`Spine Shape` 非 `Straight` 时生效）
+    - `Front Magnitude` / `Back Magnitude`：挤出首尾切线长度，影响曲线弯曲幅度
+    - `Front Stiffness` / `Back Stiffness`：路径在端点处沿切线方向延伸的距离，值越大曲线在端点越直
+    - `Division Spacing`：分段间距分布，`Uniform` 均匀分布，`Curvature Sensitive` 高曲率区分配更多分段
+  - External Spine（`Spine Shape` 为 `Curve From Second Input` 且第二输入已连接时生效）
+    - `Reverse Direction`：反转脊线曲线的方向
+    - `Axial Rotation`：截面绕脊线端点连线的旋转角度
+    - `Front Blend` / `Back Blend`：曲线端点方向与挤出面朝向之间的混合量（默认 0.1）
+  - Thickness：截面沿脊线的厚度变化
+    - `Thickness Scale`：整体厚度缩放系数
+    - `Thickness Attribute`：从外部曲线上的指定属性（默认 `thickness`）读取逐点厚度，与 `Thickness Scale` 相乘后叠加到渐变曲线上
+    - `Thickness Ramp`：沿挤出方向的厚度渐变曲线，0.5 为不缩放，小于 0.5 收窄，大于 0.5 加宽
+  - Twist：截面沿脊线的扭转变化
+    - `Range Half-Width`：扭转属性值到角度的映射范围（默认 180°），属性值 ±1 对应 ±180° 扭转
+    - `Twist Attribute`：从外部曲线上的指定属性（默认 `twist`）读取逐点扭转，与 `Range Half-Width` 相乘后叠加到渐变曲线上
+    - `Local Twist Ramp`：沿挤出方向的扭转渐变曲线，0.5 为不扭转
+- Local Control 标签页：通过几何体自定义属性对每个挤出单元实现逐元素参数覆盖；面挤出使用 primitive 属性，边挤出使用 point 属性
+  - Local Attributes
+    - `Distance Scale`：将挤出距离乘以该属性值，默认属性名 `zscale`
+    - `Inset Scale`：将内缩量乘以该属性值，默认属性名 `insetscale`
+    - `Twist Scale`：将扭转量乘以该属性值，默认属性名 `twistscale`
+    - `Divisions Scale`：将分段数乘以该属性值，默认属性名 `divsscale`
+  - Local Frames：自定义各挤出单元的局部坐标系，面挤出使用 primitive 属性，边挤出使用 point 属性，多个面/边组成一个 front 时取平均值
+    - `X Direction`：局部 X 轴方向向量属性，默认属性名 `localx`；节点会自动将其与 Z 轴正交化
+    - `Z Direction`：局部 Z 轴（挤出方向）向量属性，默认属性名 `localz`；覆盖计算得到的法线
+    - `Center`：局部原点位置属性，默认属性名 `localctr`；覆盖计算得到的质心
 
 **polysplit节点**
 
@@ -4320,8 +4373,48 @@ k帧
 
 - **materialbuilder节点**
   - **principledshadercore节点**
-    - 利用输入通道（例如自发光、透明、粗糙、颜色）结合`bind`导入的属性做处理
-      - `bind`导入的属性既可以来自点层级，也可以来自面层级，都可以正确显示
+    - 基于物理的艺术家友好型着色器，通过少量参数即可模拟大量真实材质；所有参数均在 0~1 范围内，对应真实世界的合理取值；利用输入通道结合 `bind` 导入的属性做处理，`bind` 导入的属性既可以来自点层级，也可以来自面层级，都可以正确显示
+    - Surface 标签页
+      - `Base Color`：表面基础颜色；`Metallic` 为 0 时控制漫反射颜色，为 1 时漫反射消失，仅控制反射颜色和强度
+      - `Metallic`：金属度，越接近 1 外观越金属化；漫反射逐渐淡出，反射色由 `Base Color` 驱动
+      - `Albedo Multiplier`：反照率整体缩放系数，默认 1
+      - `Transparency`：透明度，0 为完全不透明，1 为完全透明；开启后激活折射相关参数
+      - `Dispersion`：色散强度，模拟不同波长光线折射角度的差异（仅透明材质有效）
+      - `Transmittance Color`：透射颜色，光线穿过材质时的染色（仅透明材质有效）
+      - `At Distance`：透射颜色在多少单位深度后达到完全染色效果（仅透明材质有效）
+      - `Reflectivity`：正面反射率，控制面向视角的表面反射强度；边缘处反射始终为 100%（菲涅尔效应）；设为精确 0 时可完全禁用反射
+      - `Reflection Tint`：用 `Base Color` 对反射进行着色，默认 0（不着色）；非金属材质通常不需要开启
+      - `IOR`：折射率（Index of Refraction），默认 1.5（玻璃）；影响折射偏移量
+      - `Roughness`：粗糙度，0 为完全光滑镜面反射，1 为完全粗糙漫反射；调节光泽感时优先调整此参数而非 `Reflectivity`
+      - `Anisotropy`：各向异性强度，使反射在特定方向拉伸，模拟拉丝金属等效果；粗糙度越高效果越明显
+      - `Anisotropy Direction`：各向异性方向，基于 UV 坐标，0 为 U 方向，0.5 旋转 90° 为 V 方向
+      - `Subsurface`：次表面散射强度，0 为关闭，值越大光线穿透表面后在内部散射的效果越明显；金属度越高该效果越弱
+      - `SSS Mode`：次表面散射的计算模式，默认 `Full Subsurface Scattering`（完整物理 SSS 计算）
+      - `Subsurface Distance`：次表面散射的平均自由程（光线在材质内部传播的距离），单位为 Houdini 单位
+      - `Subsurface Color`：次表面散射颜色，默认白色（1, 1, 1）
+      - `Scattering Phase`：散射相位函数参数，控制前向/后向散射比例（仅特定 SSS 模式下生效）
+      - `Sheen Intensity`：布料光泽强度，模拟掠射角处的额外反射，适合布料等材质
+      - `Sheen Tint`：用 `Base Color` 对布料光泽反射着色
+      - `Coat Intensity`：清漆层反射强度，模拟车漆、上光木材等双层材质的顶部涂层
+      - `Coat Roughness`：清漆层的粗糙度，与基础层的 `Roughness` 独立控制
+      - `Emission Color`：自发光颜色，默认黑色（不发光）
+      - `Emission Illuminates Objects`：自发光是否照亮周围物体，默认开启
+      - `Surface Priority`：表面优先级，两个几何体重叠时数值较高的材质优先渲染，用于处理材质嵌套
+      - `Shade Both Sides As Front`：将背面按正面法线着色，默认开启，避免薄面背面出现黑色
+    - Opacity 标签页
+      - `Opacity`：不透明度颜色（RGB 分别控制），默认全白（1, 1, 1）即完全不透明；与 `Transparency` 不同，此处控制的是蒙版而非折射
+      - Fake Caustics：模拟透明物体在光线下投射彩色/明亮阴影的效果
+        - `Enable`：是否启用伪焦散，默认关闭
+        - `Transmission Tint`：焦散透射颜色的染色强度（`Enable` 开启后生效）
+        - `Shadow Contour`：焦散阴影轮廓的锐度（`Enable` 开启后生效）
+        - `Shadow Opacity`：焦散阴影的不透明度，默认 0
+    - Settings 标签页
+      - Component Labels：为各着色分量指定 AOV（渲染元素）标签，用于渲染时将该分量单独输出到对应图像层
+        - `Diffuse Label`：漫反射分量的 AOV 标签，默认 `diffuse`
+        - `Reflection Label`：基础层反射分量的 AOV 标签，默认 `reflect`
+        - `Refraction Label`：折射分量的 AOV 标签，默认 `refract`
+        - `Coat Reflection Label`：清漆层反射分量的 AOV 标签，默认 `coat`
+        - `Subsurface Label`：次表面散射分量的 AOV 标签，默认 `sss`
   - **computelighting节点**
     - 前接**principledshadercore节点**，后连**surface_output节点**
   - `displacementbound`选项

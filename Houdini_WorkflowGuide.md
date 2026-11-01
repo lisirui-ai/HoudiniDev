@@ -1189,7 +1189,7 @@ k帧
 **subdivide节点**
 
 - 增加模型的细分等级
-- crease `weight`调整边的软硬值
+- `crease weight`调整边的软硬值
 
 **peak节点**
 

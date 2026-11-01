@@ -1427,7 +1427,7 @@ k帧
 - 在`brush`选项中修改想要绘制的颜色
 - 笔触参数在颜色下面的滑块控制条处修改，笔触大小可直接滑动鼠标滚轮修改
 - 注意：直接赋值时写数值即可
-- paint a **mask节点**与`paint` **color节点**的本质都是`ap`绘制节点，区别仅在于节点属性名和模式的设置不同
+- 在视窗按`Tab`键出现的`Paint Color`与`Paint a Mask`两个工具，创建的都是**attributepaint节点**，区别仅在预设的属性名和模式：`Paint Color`预设为`Cd`和`color`，`Paint a Mask`不预设，使用节点默认值
 
 **restposition节点**
 

@@ -376,8 +376,8 @@ float result = (@P.x > 0) ? 1 : 0.5;  // 1 为 int，0.5 为 float，结果为 f
 @N                                       //点的法线属性;三维向量类型；控制法线的朝向;默认法线朝向是世界z轴
 @up                                      //点的法线的旋转（朝向不变）；浮点数类型
 3@transform                              //点的坐标系属性；类型是三维矩阵；控制点的坐标系；第一个分量固定是x轴，第二个分量固定是y轴，第三个分量固定是z轴；不是固有属性；使用时，需要自行定义；一般用于克隆节点控制克隆体的旋转；分量||向量的长度还控制克隆体在对应方向上的缩放
-p@orient                                 //点的坐标系的旋转属性；类型是四维向量；需要搭配坐标系的三维矩阵和rotate函数（旋转坐标系）和quaternion函数使用
-v@scale                                  //点的轴向的伸缩；类型是三维向量
+p@orient                                 //点的坐标系的旋转属性；类型是四维向量；需要搭配坐标系的三维矩阵和rotate函数（旋转坐标系）和quaternion函数使用；可用于控制克隆体（如Copy to Points复制出的实例）的旋转
+v@scale                                  //点的轴向的伸缩；类型是三维向量；可用于控制克隆体（如Copy to Points复制出的实例）的缩放
 @group_组名                               //分组属性；为1在组内，为0不在组内；是setpointgroup/setprimgroup/setvertexgroup的语法糖，等价于对当前元素调用对应层级的set函数；只能操作当前执行层级（如Points层级只能设置点组），跨层级写组时仍需使用set系列函数；既可读也可写，读时相当于inpointgroup/inprimgroup/invertexgroup
 @width                                   //线的宽度属性；渲染才可见
 @uv                                      //uv属性；类型是vector三维向量

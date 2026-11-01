@@ -972,7 +972,7 @@ k帧
 **connectivity节点**
 
 - 根据点/面是否相连，为分隔的部分设置`class`属性
-- 可配合`foreach` named `primitive`进行使用
+- 可配合`foreach named primitive`进行使用
 - 作用相当于**assemble节点**，但不如**assemble节点**常用，**assemble节点**直接生成`name`属性
 
 **measure节点**

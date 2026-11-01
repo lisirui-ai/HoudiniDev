@@ -5110,6 +5110,10 @@ importpoint/primitive/vertex/**detailattribute节点**
     - `fogisovalue`控制缩放
 - 将模型转为体积，再将体积转为`polygons`可解决原模型破面的问题
   - `fog`体积不能直接转为`polygon`，需要先转为`distance`体积，再从`distance`体积转为`polygon`
+- `Convert To`为`Polygons`时的参数
+  - `Isovalue`：VDB值的交界点，转换为多边形时把数值等于该值的位置视为表面；对`sdf`体积，`0`即位于原表面上，调大表面向外扩，调小（负值）表面向内缩
+  - `Adaptivity`：转换为多边形时对表面的贴合程度；为`0`时各处面大小均匀、最贴合表面、面数最多，值越高平坦处合并的大面越多、用更少的面表示表面，但精度下降
+  - 注意：`Fog Isovalue`是另一个参数，用于`VDB Class`选`Convert Fog to SDF`时，由`fog`转为`sdf`所依据的交界点，与`Polygons`模式下的`Isovalue`不是同一个
 
 **vdbfromparticles节点**
 

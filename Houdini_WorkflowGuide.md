@@ -4427,7 +4427,7 @@ k帧
       - `Surface Priority`：表面优先级，两个几何体重叠时数值较高的材质优先渲染，用于处理材质嵌套
       - `Shade Both Sides As Front`：将背面按正面法线着色，默认开启，避免薄面背面出现黑色
     - Opacity 标签页
-      - `Opacity`：不透明度颜色（RGB 分别控制），默认全白（1, 1, 1）即完全不透明；与 `Transparency` 不同，此处控制的是蒙版而非折射
+      - `Opacity`：不透明度颜色（RGB 分别控制），默认全白（1, 1, 1）即完全不透明；与 `Transparency` 不同，此处控制的是蒙版而非折射；分别控制 R、G、B 三个通道的不透明程度，对应通道为 1 时不透明，为 0 时透明
       - Fake Caustics：模拟透明物体在光线下投射彩色/明亮阴影的效果
         - `Enable`：是否启用伪焦散，默认关闭
         - `Transmission Tint`：焦散透射颜色的染色强度（`Enable` 开启后生效）

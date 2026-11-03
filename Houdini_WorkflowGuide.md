@@ -1144,11 +1144,12 @@ k帧
   - `Along Vector`：按投影到指定向量上的距离排序
   - `By Expression`：按自定义表达式的计算结果排序
   - `Spatial Locality`：按空间局部性排序（使空间上相邻的点/面序号也相邻，提升缓存效率）
-  - `By Attribute`：按指定属性的值从小到大排序
+  - `By Attribute`：按 `Attribute` 指定的属性值作为排序键，从小到大排序；对向量/矩阵等复合属性，用 `Component` 选择参与排序的分量，一次只能按一个分量排序，如需按多个分量或多个属性排序，可串联多个 **Sort** 节点（该节点使用稳定排序）
   - `By Primitive Index`：按所属面的序号排序（仅 Point Sort 可用）
-  - `Reorder by Index Attribute`：按指定属性中存储的目标序号直接重排
+  - `Reorder by Index Attribute`：按 `Ordering Attribute` 指定的属性中存储的序号直接重排（该属性可由 `Sort Indices` 生成）
 - `Reverse Point Sort` / `Reverse Primitive Sort`：将排序结果反转
-- `Sort Indices`：指定用于排序的属性通道，`Combine Sort Indices` 可将多个属性组合为复合排序键
+- `Sort Indices`：输出一个记录排序后序号的属性（每个元素的值为其在排序序列中的序号），不会改变元素本身的顺序；该属性可交给 `Reorder by Index Attribute` 模式（在 `Ordering Attribute` 中指定）真正重排
+  - `Combine Sort Indices`：勾选时以已有的序号属性作为稳定排序基准，适合串联多次间接排序；关闭时以当前几何体顺序作为稳定排序基准
 - `Optimize Internal Vertex Order`（仅 Primitives）：重排面序号后同步优化面内顶点的内部顺序，提升渲染和处理性能
 
 **enumerate节点**

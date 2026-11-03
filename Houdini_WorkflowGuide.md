@@ -1204,8 +1204,8 @@ k帧
   - `Size`：砖格的三维尺寸
   - `Offset`：砖格的偏移量
   - `Angle`：砖格的旋转角度
-  - `Bricker Shared Edges`：在砖格切割时保留共享边（默认勾选）
-  - `Remove Shared Edges`：移除切割产生的内部共享边
+- `Bricker Shared Edges`：在砖格切割时保留共享边（默认勾选）
+- `Remove Shared Edges`：移除公共边（相邻面共享的边）；常用于检测碎裂后的碎块是否为流形：若为闭合流形几何体，勾选后应不剩任何几何体
 - `Compute Dual`：计算对偶多边形（将原面的中心作为新顶点、原顶点区域作为新面），生成拓扑互换的对偶网格
 - `Attributes to Swap`：在计算对偶时需要在点/面层级之间互换的属性，默认 `* ^P`（除位置外的所有属性）
 

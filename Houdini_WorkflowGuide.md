@@ -369,6 +369,7 @@ float result = (@P.x > 0) ? 1 : 0.5;  // 1 为 int，0.5 为 float，结果为 f
   - `@N` 的含义随层级变化：Point 层级为该点的平滑法线（周围相邻面法线的加权平均）；Vertex 层级为该顶点的私有法线（可与 Point 法线不同，用于硬边折痕）；Primitive 层级为该面的几何法线（由面的边叉积计算得到）
   - `@elemnum` 和 `@numelem` 是层级自适应的通用序号与总数变量：Point 层级下等价于 `@ptnum` / `@numpt`，Vertex 层级下等价于 `@vtxnum` / `@numvtx`，Primitive 层级下等价于 `@primnum` / `@numprim`，无需判断当前层级即可使用
   - 半边（half-edge）的方向与面的顶点顺序一致：从法线正面观察，沿顶点 0→1→2→... 的顺时针方向依次首尾相连；翻转顶点顺序（如 **Reverse** 节点）时，半边方向与法线一起翻转；手动设置的 `@N` 属性不影响半边方向
+  - 影响 `@vtxnum` 的因素（仅 `poly` 与 `polyline`）：`@vtxnum` 是顶点在存储中的线性序号，始终为 `0` 到 `nvertices()-1`，无空洞，与点编号 `@ptnum` 无关（顶点只是引用某个点，改变点序号不会改变 `@vtxnum`）；删除面后剩余顶点保持原有相对顺序并重新编号；**Reverse** 节点只翻转面内顶点的排列，顶点自身的 `@vtxnum` 不变；**Sort** 节点勾选 `Optimize Internal Vertex Order`（默认勾选）时，会按面序号重排顶点，`@vtxnum` 随面序号递增；取消勾选则顶点保留原有 `@vtxnum`，面序号改变后 `@vtxnum` 不再随面序号递增
 
 
 @调用变量

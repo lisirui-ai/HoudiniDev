@@ -1568,7 +1568,49 @@ k帧
 
 **boolean节点**
 
-- 模型布尔运算
+- 对多边形模型做布尔运算（并集、交集、差集），也可用切割面把实体碎裂（`Shatter`）、沿两模型相交处生成折线（`Seam`）、检测相交的面并分组（`Detect`）
+- 两个输入分别对应 `Set A` 和 `Set B`；若只连接一个输入，`Set A`、`Set B` 的 `Group` 都引用第一个输入，可对同一几何体内的两个组做运算；只连一个输入且两个 `Group` 都留空时，模型与自身运算，配合 `Shatter` 可沿自相交处把模型分开
+- 输入可指定为“实体”（模型表面视为包围一个填充空间）或“曲面”（模型表面视为无厚度的平面）；作为实体的输入应封闭无缺口、法线统一朝外、无非流形边（被三个及以上多边形共享的边），否则节点会给出警告，且内外判断可能出错
+- 节点内部会先把输入三角化再运算，输出时按参数决定是否还原为多边形；点/顶点属性会插值，图元属性会复制
+- `Set A` 折叠栏
+  - `Group`：用第一个输入的一个子集作为“A”物体
+  - `Treat As`：把该几何体当作实体的边界（`Solid`），还是当作没有内外之分的平面（`Surface`）
+  - `Resolve Self-intersections`：勾选后自动修复模型中交叉或重叠的表面；有些操作要求几何体无自相交，会忽略该设置而始终修复
+- `Set B` 折叠栏
+  - `Group`：用第二个输入的一个子集作为“B”物体；只连了一个输入时，引用第一个输入中的组
+  - `Treat As`：同 `Set A`
+  - `Resolve Self-intersections`：同 `Set A`
+- `Output Geometry` 折叠栏
+  - `Operation`：如何组合或修改输入；右侧第二个下拉框在选择 `Subtract` 时出现，用于指定相减方向，`A - B` 表示从 A 中减去 B
+    - `Union`：并集，得到包围两个输入合并体积的新实体
+    - `Intersect`：交集，得到两个输入共有体积的新实体
+    - `Subtract`：差集，从一个输入中去掉与另一个输入共有的体积，方向由第二个下拉框决定（`A - B` 或 `B - A`）
+    - `Shatter`：碎裂，相当于交集与差集的组合，沿两表面的相交处切开并雕出新的碎块；常配合 **explodedview节点** 把各碎块分开查看
+    - `Seam`：接缝，输出两个模型表面相交处的折线
+    - `Custom`：自定义，对带有重叠或同心表面（如盒中盒、自相交几何体）的实体，按“深度”（走出模型所需穿过的最少表面数）提取指定范围内的实体区域
+    - `Detect`：检测，直通第一个输入，并额外输出相交多边形的组或属性
+    - `Resolve`：内部测试用，输出算法中间步骤的三角化网格，一般无需使用
+  - 以下参数在 `Operation` 为布尔运算（`Union`、`Intersect`、`Subtract`、`Shatter`）时出现
+    - `Detriangulate`：节点内部会把输入转成三角形，该项控制输出时是否合并回 N 边形
+      - `All Polygons`：把来自同一个输入多边形的相邻三角形重新合并
+      - `Only Unchanged Polygons`：被切割过的输入多边形保留为三角形，未被切割的才合并回去
+      - `No Polygons`：直接输出三角化的几何体
+    - `Assume Seam Polygons Are Flat`：因浮点精度，多数“平”多边形在技术上并不共面，勾选后在合并三角形时忽略这类差异（默认开启，绝大多数情况适用）；对极细微差别的程序化连续布尔，可关闭它，输出会有更多三角形
+    - `Unique Points Along Seams`：沿接缝把输出表面切成独立的多边形，接缝两侧各自拥有一份接缝点，可避免点属性在接缝处互相混合
+    - `Correct Normals on Reversed Faces`：校正方向反转的面的法线
+    - `Collapse Tiny Seam-Adjacent Edges`：对齐两个模型的边时，微小的数值误差会产生极短的多余边，勾选后节点会把它们融合掉；除非确实需要极薄的多边形，否则不要关闭
+    - `Edge Length Threshold`：`Collapse Tiny Seam-Adjacent Edges` 开启时，长度小于等于该值的边会被自动融合，默认 `1e-05`
+- `Output Primitive Groups` 折叠栏：勾选左侧复选框，节点才会在输出中创建对应的组，右侧文本框为组名；仅对 `Union`、`Intersect`、`Subtract`、`Shatter`、`Custom` 生效
+  - `A Inside B`：A 中被 B 包围的多边形，默认组名 `ainsideb`
+  - `A Outside B`：A 中位于 B 外部的多边形，默认组名 `aoutsideb`
+  - `B Inside A`：B 中被 A 包围的多边形，默认组名 `binsidea`
+  - `B Outside A`：B 中位于 A 外部的多边形，默认组名 `boutsidea`
+  - `Overlap`：重叠的多边形，默认组名 `aboverlap`
+  - `Reversed Faces`：方向反转的面，默认组名 `reversed`
+- `Output Edge Groups` 折叠栏：勾选左侧复选框创建对应的边组；`Operation` 为 `Detect` 或 `Resolve` 时不输出边组
+  - `A-A Seams`：A 与自身相交处的接缝边，默认组名 `aseams`
+  - `B-B Seams`：B 与自身相交处的接缝边，默认组名 `bseams`
+  - `A-B Seams`：A 与 B 相交处的接缝边，默认组名 `abseams`
 
 **attributefrommap节点**
 

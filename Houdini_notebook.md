@@ -440,6 +440,9 @@ $CEZ                                   //当前几何体包围盒中心的Z坐�
 $SF                                    //DOP子步计数器；类型为int；仅在DOP节点中有效；模拟开始时为0，每个子步递增1；若substeps=N，则每个Houdini帧对应$SF递增N次，因此$SF并非帧号；等于$ST除以TIMESTEP（子步时长）；在activation中若要基于帧控制发射，用$F更可靠（$F在同一帧的所有子步内保持不变），$SF适合需要子步级别精度的逻辑
 $ST                                    //DOP模拟时间；类型为float；单位为秒；模拟开始时为0，等于$SF乘以TIMESTEP（子步时长）；与$T不同：$T是全局Houdini时间，可能因DOP网络时间偏移设置而与$ST不等；测试模拟第一帧应用$ST == 0而非$T == 0或$F == 1
 $BBY                                   //当前几何体包围盒在Y轴方向的尺寸（高度，即最大Y减最小Y）；类型为float；与$CEY不同：$CEY是包围盒中心的Y坐标，$BBY是包围盒的Y向长度；仅在SOP节点参数中有效；典型用途：按物体高度做参数联动，如将Transform节点的Y平移填 $BBY/2 使物体向上抬起半个高度
+$XMIN                                  //当前几何体包围盒在X轴方向的最小坐标（最左侧的X值）；类型为float；仅在SOP节点参数中有效；与$BBX的关系：$BBX = $XMAX - $XMIN；典型用途：在Transform节点平移参数填 -$XMIN 可将物体左侧边缘对齐到X=0
+$YMIN                                  //当前几何体包围盒在Y轴方向的最小坐标（最底部的Y值）；类型为float；仅在SOP节点参数中有效；与$BBY的关系：$BBY = $YMAX - $YMIN；典型用途：在Transform节点的Y平移填 -$YMIN 可将物体底部贴到Y=0平面（如拷贝到点前让克隆体“站”在目标点上）
+$ZMIN                                  //当前几何体包围盒在Z轴方向的最小坐标（最靠前/负方向一侧的Z值）；类型为float；仅在SOP节点参数中有效；与$BBZ的关系：$BBZ = $ZMAX - $ZMIN；典型用途：在Transform节点的Z平移填 -$ZMIN 可将物体Z向最小边缘对齐到Z=0
 ```
 
 HScript 拥有独立的表达式函数库，与 VEX 函数相互独立，部分函数同名（如 `sin`、`fit`、`rand`）

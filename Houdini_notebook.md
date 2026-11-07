@@ -1471,8 +1471,55 @@ k帧
 
 **transform节点**
 
-- 移动模型
-- 快速将模型移动至世界原点
+- 在物体空间中，使用变换矩阵对输入几何体进行变换（平移、旋转、缩放、剪切）
+- 选中的所有图元接收相同的变换；若需要按点属性让变换各不相同，使用**xformbyattrib节点**
+- 快速将模型移动至世界原点：点击`Move Centroid to Origin`按钮
+- 净变换矩阵（行向量约定）：`inverse(P)*M*P*N`
+  - `P`：`Pivot Transform`（枢轴平移、旋转）矩阵
+  - `M`：`Translate`、`Rotate`、`Scale`、`Shear`组成的矩阵
+  - `N`：`Pre-Transform`（预变换）矩阵
+
+基本参数
+
+- `Group`：要变换的几何体子集，留空则变换全部
+- `Group Type`：`Group`栏中元素的类型，默认`Guess from Group`（根据组自动判断）
+- `Transform Order`：变换的执行顺序，默认`Scale Rot Trans`（先缩放、再旋转、最后平移）
+- `Rotate Order`：旋转的执行顺序，默认`Rx Ry Rz`
+- `Translate`：沿xyz轴的平移量
+- `Rotate`：绕xyz轴的旋转量
+- `Scale`：沿xyz轴的非均匀缩放
+- `Shear`：剪切量，三个值依次表示：XY平面上X方向的剪切、XZ平面上X方向的剪切、YZ平面上Y方向的剪切
+- `Uniform Scale`：均匀缩放，三个轴同时缩放
+
+`Pivot Transform`折叠栏
+
+- `Pivot Translate`：局部枢轴空间的平移值，变换围绕该点进行
+- `Pivot Rotate`：局部枢轴空间的旋转值
+
+`Pre-Transform`折叠栏
+
+- 在主变换之前先施加的变换，包含预变换的顺序、旋转顺序、平移、旋转、缩放、剪切
+
+按钮
+
+- `Move Centroid to Origin`：将几何体的质心移动到世界原点
+- `Move Pivot to Centroid`：将枢轴移动到几何体的质心
+
+法线与属性
+
+- `Attributes`：需要被变换的属性，默认`*`（全部）；仅对被标记为可变换类型的属性生效
+  - 可用**attribcreate节点**将属性的变换类型设置为`Position`、`Vector`、`Normal`、`Quaternion`或`Transform Matrix`
+  - 设为`None`或从列表中移除，则该属性不参与变换
+  - 仅当`P`被变换时，图元变换才受影响
+- `Recompute Point Normals`：若存在法线属性，将所有法线重新计算为点法线
+- `Recompute Affected Normals`：重新计算受影响的法线，即同时使用了已变换点和未变换点的多边形的法线；变换整个几何体或完整连通部分时，结果与关闭此项相同；`P`未被变换时无效
+- `Preserve Normal Length`：保持法线长度不变
+- `Invert Transformation`：使用变换的逆变换（撤销所指定的变换）；其余参数相同、仅此项不同的两个**transform节点**会相互抵消
+
+输出属性
+
+- `Output Attribute`：不为空时，节点会创建一个同名的`detail`属性，内容为所应用变换的`4x4`矩阵；可用于在别处应用相同变换，或在之后的节点链中还原变换
+- `Combine`：当`Output Attribute`已存在时，控制新变换与已有变换如何合并；`Post-Multiply`的效果等同于把多个**transform节点**依次连接
 
 **fuse节点**
 

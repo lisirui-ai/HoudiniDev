@@ -655,6 +655,7 @@ setvertexpoint(geohandle, 面序号, 面内局部顶点序号, 点序号);   //�
 primvertex(输入端序号, 面序号, 面内局部顶点序号);              //将（面序号, 面内局部顶点序号）二元组转换为全局线性顶点序号；返回值为int型（@vtxnum），找不到时返回-1；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；面序号为int型（@primnum）；面内局部顶点序号为int型（从0开始，0为面的第一个顶点）；与vertexindex功能相同，是其别名；与vertexprim/vertexprimindex互为逆运算（primvertex将(面序号,局部序号)→@vtxnum，vertexprim/vertexprimindex将@vtxnum→(面序号,局部序号)）
 radians(角度值);                                               //将角度（degrees）转换为弧度（radians）；返回值为float型；参数为float型，单位为度；VEX的三角函数（sin、cos、tan等）使用弧度，而UI中的参数多以角度显示，因此常在内部计算前用radians转换，需要显示回UI时用degrees转换回角度
 degrees(弧度值);                                               //将弧度（radians）转换为角度（degrees）；返回值为float型；参数为float型，单位为弧度；是radians的逆运算，degrees(radians(x))等于x；VEX的三角函数多使用弧度，而UI中的角度参数更直观，常在UI角度与内部弧度之间互相转换
+vertexpoint(输入端序号, 顶点线性序号);                         //返回指定顶点所引用的点的序号；返回值为int型（@ptnum），顶点没有对应点时返回-1；输入端序号为int型（从0开始）或string型（.bgeo文件路径或op:/path/to/sop引用）；顶点线性序号为int型（@vtxnum，全局线性顶点序号）；与vertexprim/vertexprimindex同属@vtxnum的反查函数（vertexprim返回所属面，vertexprimindex返回面内局部序号，vertexpoint返回所引用的点）；常用于Vertices层级下由@vtxnum取得点序号，再配合setpointattrib写回点属性
 ```
 
 # 快捷键

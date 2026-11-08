@@ -2328,6 +2328,10 @@ k帧
   - 大规模场景使用材质内置换的方式生成内部面凹凸
 
 - `Constraints`标签页：约束
+  - 本标签页的参数最终写入第二个输出（约束几何体）的图元上，而不是第一个输出的碎块上
+    - 第一个输出（碎块几何体）：图元属性只有`name`，点属性只有`P`，顶点属性只有`N`，另有`inside`、`outside`等分组
+    - 第二个输出（约束几何体）：每根约束是一条两点线，点位于碎块中心，点属性有`P`、`name`（连接的碎块）；图元属性有`constraint_name`、`constraint_tag`、`strength`、`restlength`、`propagate_rate`、`impulse_halflife`、`propagationiterations`、`stiffness`、`dampingratio`、`next_constraint_name`、`next_constraint_type`等
+    - 在 Geometry Spreadsheet 中查看约束属性，需要切换到第二个输出
   - `Enable Constraints`：开启碎块间约束的生成
   - `Search Radius`：重新连接输入约束时，在该半径内查找匹配的连接
     - 没有输入约束时同样有作用：只有一级切割且没开`Chipping`时，半径不影响约束数量；一旦有多级切割或开启`Chipping`，半径越大，生成的约束越多

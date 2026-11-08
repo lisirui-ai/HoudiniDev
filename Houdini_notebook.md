@@ -3285,6 +3285,41 @@ k帧
 - `Remove Unused Points`：仅保留有连接关系的点，删除孤立点
 - `Compute Length`：启用后，计算每条线段的长度并存入指定属性
 
+**rbdbulletsolver节点**
+
+- 第一个输入端是模型，第二个输入端是约束，第三个输入端是简模，第四个输入端是地面/被动碰撞刚体
+  - 多个刚体都要输出动画时，需先用 merge 合并后再连入第一个输入端，因为`rbdbulletsolver`只从第一个输入端输出动画
+- 前接**rbdconfigure节点**
+- `collision`选项
+  - `groundcollision`添加碰撞地面
+- `visualization`选项
+  - 勾选`showcollisionshape`显示碰撞刚体的外形
+  - 勾选`showactive`显示参与碰撞的刚体
+  - 勾选`ground`显示地面
+  - 勾选`constraintgeometry`显示约束
+    - 勾选`showguides`
+  - 勾选`showgeometry`显示被动碰撞刚体
+    - 当第四个输入端连`active`为0的刚体即被动碰撞刚体时，显示被动碰撞刚体
+- `advanced`选项
+  - `glue`设置胶水约束
+    - 胶水约束相当于钢筋
+    - `dataname`要与s`@constraint_name`一致
+  - `soft`设置软约束
+    - 软约束相当于钢筋的粘连效果
+- `constraints`选项
+  - `distancethreshold`控制`constraintnames`对应的约束的作用范围
+    - 面与`constraintnames`对应的约束的面的间距超过这个阈值后，约束消失
+  - `anglethreshold`控制`constraintnames`对应的约束的作用范围
+    - 面与`constraintnames`对应的约束的面的角度超过这个阈值后，约束消失
+  - 勾选`usevexsnippet`开启`vex`控制约束，针对于当前页的约束
+    - `vex`中该约束对应的线编号是0
+  - `vexsnippetsoppath`指定辅助`sop`对象
+    - `vex`中对应的线编号是2
+- 内层
+  - **presolve节点**
+    - 前连**popwrangle节点**
+      - 可以修改解算中的属性的值
+
 ## dop
 
 **solver节点**
@@ -4133,54 +4168,18 @@ k帧
     - 同**popwrangle节点**
 
 
-**rbdbulletsolver节点**
-
-- 第一个输入端是模型，第二个输入端是约束，第三个输入端是简模，第四个输入端是地面/被动碰撞刚体
-  - 多个刚体都要输出动画时，需先用 merge 合并后再连入第一个输入端，因为`rbdbulletsolver`只从第一个输入端输出动画
-- 前接**rbdconfigure节点**
-- `collision`选项
-  - `groundcollision`添加碰撞地面
-- `visualization`选项
-  - 勾选`showcollisionshape`显示碰撞刚体的外形
-  - 勾选`showactive`显示参与碰撞的刚体
-  - 勾选`ground`显示地面
-  - 勾选`constraintgeometry`显示约束
-    - 勾选`showguides`
-  - 勾选`showgeometry`显示被动碰撞刚体
-    - 当第四个输入端连`active`为0的刚体即被动碰撞刚体时，显示被动碰撞刚体
-- `advanced`选项
-  - `glue`设置胶水约束
-    - 胶水约束相当于钢筋
-    - `dataname`要与s`@constraint_name`一致
-  - `soft`设置软约束
-    - 软约束相当于钢筋的粘连效果
-- `constraints`选项
-  - `distancethreshold`控制`constraintnames`对应的约束的作用范围
-    - 面与`constraintnames`对应的约束的面的间距超过这个阈值后，约束消失
-  - `anglethreshold`控制`constraintnames`对应的约束的作用范围
-    - 面与`constraintnames`对应的约束的面的角度超过这个阈值后，约束消失
-  - 勾选`usevexsnippet`开启`vex`控制约束，针对于当前页的约束
-    - `vex`中该约束对应的线编号是0
-  - `vexsnippetsoppath`指定辅助`sop`对象
-    - `vex`中对应的线编号是2
-- 内层
-  - **presolve节点**
-    - 前连**popwrangle节点**
-      - 可以修改解算中的属性的值
 
 
-**popnetwork节点**（刚体）
-
-- **rbdpackedobject节点**
-  - `geometrysource`处导入外部已经设置解算属性的模型（带动画）
-  - `initialobjecttype`设置为`createanimatedstaticobjects`或`deforming`
-    - 减少解算量
-  - `bulletdata`选项
-    - `geometryrepresentation`设置为`concave`可提高解算精度，但耗时
-    - 勾选`showguidegeometry`显示刚体轮廓
-- **rigidbodysolver节点**
-  - 输出解算结果
-  - 前连**rbdpackedobject节点**，后连**output节点**
+**rbdpackedobject节点**
+- `geometrysource`处导入外部已经设置解算属性的模型（带动画）
+- `initialobjecttype`设置为`createanimatedstaticobjects`或`deforming`
+  - 减少解算量
+- `bulletdata`选项
+  - `geometryrepresentation`设置为`concave`可提高解算精度，但耗时
+  - 勾选`showguidegeometry`显示刚体轮廓
+**rigidbodysolver节点**
+- 输出解算结果
+- 前连**rbdpackedobject节点**，后连**output节点**
 
 **flipobject节点**
 

@@ -2221,7 +2221,7 @@ k帧
 - 节点顶部通用参数（所有标签页共用）
   - `Group`：指定要切割的几何体分组，不指定则切割全部输入几何体
   - `Material Type`：输入几何体的材质类型，不同材质使用不同的切割方式（材质不同，下方标签页内容也不同）
-    - `Concrete`：混凝土，当前截图的模式
+    - `Concrete`：混凝土
     - 设置为`glass`产生玻璃破碎的碎块
       - 碎块模式是基于点云呈放射状
     - 设置为`wood`木头切割模式
@@ -2232,7 +2232,9 @@ k帧
   - `Piece Prefix`用于设置`@name`属性分级间的字符
     - 用于区分其他**rbdmaterialfracture节点**生成的`@name`属性
     - 设为`-`生成`piece0-0-0`、`piece0-0-1`，设为`_`则生成`piece0_0_0`、`piece0_0_1`
-  - `Reset Cached Pass`：重置 for 循环中当前缓存的显示结果，当引导几何体没有显示当前几何体时点击更新
+  - `Reset Cached Pass`：清除节点内部 for 循环缓存的辅助显示结果
+    - 修改输入几何体或参数后，如果`Guide Geometry`的显示还是旧结果，点击它即可按当前几何体重新生成
+    - 只影响视口中的辅助显示，不影响节点实际输出的切割结果
   - `Guide Geometry`：切换视口中的辅助显示
     - `None`：无辅助显示
     - `Fractured Geometry`：高亮显示当前正在被切割的分组
@@ -2249,6 +2251,9 @@ k帧
   - `Fracture ID`：该级切割的标识名（如`concrete_fracture2`），该级切割产生的属性和分组都带有此标签
   - `Fracture Ratio`（即`fractureratio`）控制该次切割对象来自上次切割的比例
     - 控制比例，生成不同切割等级的碎块，有层次感
+    - 比例小于1时，只有该比例的碎块会被继续切割，未被选中的碎块保持上一次切割的结果，不再被切碎
+    - 比例为1时，上一次的所有碎块都会被继续切割
+    - 哪些碎块被选中由`Fracture Seed`决定
   - `Fracture Seed`：当`Fracture Ratio`小于1时，决定哪些碎块被切割、哪些不被切割的随机种子
   - `Connectivity Partition`：是否按连通性进一步划分碎块
     - `None`：不再按连通性划分
@@ -2259,30 +2264,39 @@ k帧
       - `Attribute`：基于输入几何体上指定的点属性（如**rbdpaint节点**绘制的`density`）撒点
     - `Scatter Points`（即`scatterpoints`）控制该次切割的碎块数
       - 当使用第四个输入端基于点云切割时，应该设置为0，避免干扰，或者也可以混用两种切割方式
-      - 右侧下拉菜单（默认`No Scaling`）设置撒点数量是否按属性缩放
+      - 右侧下拉菜单（默认`No Scaling`）设置撒点数量是否缩放：`None`不影响；`Scale by Piece Volume`乘以碎块体积；`Scale by Max Axis Length`乘以碎块包围盒最大轴长；`Scale by Attribute`乘以碎块上指定属性的平均值（前两项仅`Concrete`可用，大碎块会产生更多点，可用`Remap Range`限制）
     - `Scatter Seed`：撒点的随机种子
     - `Input Points`（即`inputspoints`）勾选后基于第四个输入端的点云进行切割
       - 点云所在的位置切割的碎块越细碎，越远越整体
       - 点云中的点越多，切割出的碎块越多越细碎，反之越少越整体
-  - `Fog Volume`：用于撒点的雾体积
+  - `Fog Volume`：用于撒点的雾体积（`Scatter From`为`Volume`时生效）
     - `Noise Type`：噪波类型，如`Sparse Convolution Noise`，另有`None`、`Perlin Noise`、`Original Perlin Noise`、`Alligator Noise`、`Simplex Noise`、`Zero Centered Perlin`
     - `Volume Resolution`：雾体积的分辨率，越高切割越慢；越小的几何体需要越高的分辨率
-    - `Noise Frequency`：噪波频率（三个分量）
+      - 决定密度雾体积被划分成多少个体素：分辨率太低，体素粗大，噪波的疏密变化被量化成一块块的，撒点依据的密度图会失真
+      - 分辨率足够高之后，再增大对碎块分布几乎没有影响，只会让切割变慢
+      - 不影响碎块个数（碎块个数由`Scatter Points`决定）
+    - `Noise Frequency`：噪波频率（三个分量，分别对应 X、Y、Z 方向）
+      - 影响碎块大小的分布，不影响碎块个数（碎块个数由`Scatter Points`决定）
+      - 频率越低，密度噪波起伏越缓，碎块的大小成片分布：一片细碎，一片整体，大小对比明显
+      - 频率越高，密度噪波起伏越密，疏密变化被平均掉，碎块大小趋于均匀，接近普通随机撒点的效果
     - `Noise Offset`：噪波偏移（三个分量）
     - `Cutoff Density`：密度截断值，低于该值的密度被丢弃
+      - 值越大，低密度区域不再撒点，碎块向高密度区域集中，碎块大小对比更明显，低密度区域的碎块更大、更整体
+      - 不影响碎块个数（碎块个数由`Scatter Points`决定）
+      - 影响程度比`Noise Frequency`小，需要较大的值（如0.6以上）才能明显看出
 
 - `Chipping`标签页：碎屑
   - `Enable Chipping`：开启碎屑生成
   - `Chipping Ratio`（即`chippingratio`）控制可以生成碎屑的碎块个数
     - 越大，越多的碎块可以生成碎屑
   - `Seed`：碎屑的随机种子
-  - `Randomness`：碎屑的随机变化程度（截图中灰显，不可编辑）
+  - `Randomness`：按碎块逐个切割（`Fracture per Piece`）时，对每个碎块的`Chipping Ratio`做随机化的幅度（截图中灰显，因为未开启`Fracture per Piece`）
   - `Corner Ratio`（即`cornorratio`）控制每个碎块生成的碎屑个数
     - 越大，碎块角落生成的碎屑越多，生成碎屑的角落越多
   - `Corner Depth`（即`cornordepth`）控制碎屑的大小
   - `Directional Noise`（即`directionalnoise`）控制碎屑的形状
     - 越大，碎屑的形状越整体
-  - `Detriangulate`：对碎屑结果去三角化（如`All Polygons`）
+  - `Detriangulate`：布尔运算会把几何体转成三角形，该选项在布尔后把几何体恢复为原来的 N 边形（如`All Polygons`）；多级切割时关闭可能避免自相交
   - 大规模场景，使用激活点云实例的方式生成碎屑
 
 - `Detail`标签页：细节
@@ -2296,35 +2310,59 @@ k帧
       - 对第一次切割无效
     - `Level Multiplier`（即`levelmultiplier`）控制该层的纹理大小对上层纹理大小的缩放
       - 对第一次切割无效
-    - `Detriangulate`：对结果去三角化（如`All Polygons`）
+    - `Detriangulate`：布尔后把几何体恢复为原来的 N 边形（如`All Polygons`），含义同`Chipping`标签页
   - `Interior Detail`（即`interiordetail`）勾选开启碎块内部面的细节
     - `Noise Amplitude`：噪波幅度
     - `Noise Type`：噪波类型，如`Sparse Convolution`
     - `Frequency`（即`frequency`）控制凹凸纹理的频率
       - 越大，凹凸越细碎
     - `Offset`：噪波偏移
-  - `Crease Weights`：勾选后为碎块边缘添加折痕权重
+  - `Crease Weights`：勾选后创建`creaseweights`属性，并把权重值赋给内外表面交界处的顶点，用于控制细分曲面时边缘的收紧程度（见**subdivide节点**）
     - `Weight`：折痕权重值
   - `Proxy Geometry`：简模（代理几何体）
     - `Proxy Geometry`：简模的生成方式
       - `Default`：使用默认的 Voronoi 切割几何体
+        - 与高模是同一次切割（切割参数、碎块划分完全一致），简模不含`Edge Detail`和`Interior Detail`的细节，但含`Chipping`产生的碎屑
       - `Convex Decomposition`：对切割后的几何体做凸分解
       - `Packed Spheres`：使用打包球体图元
   - 大规模场景使用材质内置换的方式生成内部面凹凸
 
 - `Constraints`标签页：约束
   - `Enable Constraints`：开启碎块间约束的生成
-  - `Search Radius`：搜索相邻碎块建立约束的半径
-  - `Use Tags`：使用标签区分约束
-  - `Apply Constraint Properties`：为生成的约束应用约束属性
+  - `Search Radius`：重新连接输入约束时，在该半径内查找匹配的连接
+    - 没有输入约束时同样有作用：只有一级切割且没开`Chipping`时，半径不影响约束数量；一旦有多级切割或开启`Chipping`，半径越大，生成的约束越多
+  - `Use Tags`：在约束图元上创建字符串属性`constraint_tag`来代替分组，更灵活，与 Vellum 约束一致
+  - `Apply Constraint Properties`：对输出的约束几何体应用约束属性（高级设置可用**rbdconstraintproperties节点**）
   - `Glue Constraint Name`：胶水约束的名称（默认`Glue`）
-  - `Enable Color`：为约束设置颜色
+  - `Enable Color`：为创建的各类约束添加颜色，便于快速识别
   - `Primary Strength`：主切割胶水约束的初始强度
   - `Level Multiplier`：切割等级每增加一级，主强度乘以该数值
-  - `Chipping Glue Strength`：碎屑胶水约束的强度
+  - `Chipping Glue Strength`：碎屑（边角碎片）胶水约束的强度
   - `Strength Variance`：胶水强度的随机变化量
   - `Switch to Soft Constraint when Broken`：胶水约束断开后切换为软约束
-  - `Bypass Chipping Constraints`：跳过碎屑约束（截图中灰显，不可编辑）
+    - 胶水约束与软约束的区别
+
+      | 对比项 | 胶水约束 | 软约束 |
+      |---|---|---|
+      | 行为 | 被连着的碎块作为一个整体运动，直到受到足够大的力才断开 | 在两个锚点之间持续施加与距离成正比的力，像弹簧一样 |
+      | 实现方式 | 把粘在一起的碎块当作一个带复合碰撞形状的整体来模拟 | 作为弹簧式力约束，逐步把锚点拉向静止距离 |
+      | 是否会断 | 会断，`Strength`为-1时永不断开；只有碰撞产生的冲击才能使其断开 | 没有断开的概念，碎块一直被弹性地连着，力越大拉得越开 |
+      | 核心参数 | `Strength`（强度）、`Half-Life`（冲击衰减的半衰期）、`Propagation Rate`（冲击在约束网络中扩散的速率）、`Propagation Iterations`（扩散的迭代次数） | `Stiffness`（刚度）、`Damping Ratio`（阻尼比），可选`Plasticity`（塑性） |
+      | `Degrees of Freedom` | 不适用 | 可选作用于位置、方向或两者 |
+      | 求解器 | 仅支持 Bullet | 仅支持 Bullet |
+      | 组合效果 | 碎块起初被胶水粘死，受冲击后胶水断开 | 由软约束接手，断开后的碎块仍被弹性地拉住 |
+
+    - 软约束是类似弹簧的约束：在两个锚点之间施加与距离成正比的力，使两个锚点趋向保持静止距离（`Rest Length`），不会像胶水约束那样断开后彻底分离
+    - 比普通弹簧约束更稳定，不容易在很硬的弹簧或小质量物体上炸开；参数不依赖质量；仅支持 Bullet 求解器
+    - 典型用途：木头先弯曲再断裂
+    - 勾选后下方才会出现以下参数
+      - `Soft Constraint Name`：断开后使用的约束数据名称，默认`Soft`
+      - `Degrees of Freedom`：软约束作用于位置、方向或两者
+      - `Stiffness`：软约束的刚度，等价于弹簧的频率，越大越硬，默认`10`；这就是胶水断开后软约束的“强度”，它不是`Strength`
+      - `Damping Ratio`：阻尼比，0无阻尼会来回震荡，1刚好不震荡，大于1更迟缓，默认`1`
+  - `Bypass Chipping Constraints`：碎屑的胶水约束断开后不再切换为软约束（需先勾选`Switch to Soft Constraint when Broken`才可编辑，同时需开启`Enable Chipping`才会显示
+    - 不勾选：碎块约束和碎屑约束断开后都切换为软约束
+    - 勾选：只有碎块约束断开后切换为软约束，碎屑约束断开后保持原样，不再替换为软约束
 
 - 生成面层级的属性
 

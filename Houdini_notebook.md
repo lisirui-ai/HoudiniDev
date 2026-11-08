@@ -2211,56 +2211,120 @@ k帧
 - 不能切割面，必须切割有体积的模型
   - 可用`polyextrude`挤出厚度后切割
 
-- `pieceprefix`用于设置`@name`属性分级间的字符
-  
-  - 用于区分其他**rbdmaterialfracture节点**生成的`@name`属性
-  
-- materialtype
-  - 设置为`glass`产生玻璃破碎的碎块
-    - 碎块模式是基于点云呈放射状
-  - 设置为`wood`木头切割模式
-
 - 切割刚体产生小碎块
 
-- 第二个输入/输出为约束，第三个输入/输出为简模（不带`interiordetail`的结果），第四个输入为切割基于的点云
+- 输入/输出端口
+  - 第一个输入/输出为高模几何体
+  - 第二个输入/输出为约束，第三个输入/输出为简模（不带`interiordetail`的结果），第四个输入为切割基于的点云
+    - 只有该节点正确连接（高模连高模，约束连约束，简模连简模）后续的`rbd`系列节点时，后续`rbd`系列节点才能正确输出简模
 
-  - 只有该节点正确连接（高模连高模，约束连约束，简模连简模）后续的`rbd`系列节点时，后续`rbd`系列节点才能正确输出简模
+- 节点顶部通用参数（所有标签页共用）
+  - `Group`：指定要切割的几何体分组，不指定则切割全部输入几何体
+  - `Material Type`：输入几何体的材质类型，不同材质使用不同的切割方式（材质不同，下方标签页内容也不同）
+    - `Concrete`：混凝土，当前截图的模式
+    - 设置为`glass`产生玻璃破碎的碎块
+      - 碎块模式是基于点云呈放射状
+    - 设置为`wood`木头切割模式
+    - `Custom`：使用自定义切割体
+  - `Fracture Namespace`：为每个碎块的名称添加命名空间前缀，用于避免碎块重名或隔离一组约束（勾选后才可编辑，默认值`fracture`）
+  - `Fracture per Piece`：逐个遍历输入几何体中的每个碎块并单独切割
+    - 若找不到碎块属性，则基于连通性切割
+  - `Piece Prefix`用于设置`@name`属性分级间的字符
+    - 用于区分其他**rbdmaterialfracture节点**生成的`@name`属性
+    - 设为`-`生成`piece0-0-0`、`piece0-0-1`，设为`_`则生成`piece0_0_0`、`piece0_0_1`
+  - `Reset Cached Pass`：重置 for 循环中当前缓存的显示结果，当引导几何体没有显示当前几何体时点击更新
+  - `Guide Geometry`：切换视口中的辅助显示
+    - `None`：无辅助显示
+    - `Fractured Geometry`：高亮显示当前正在被切割的分组
+    - `Primary Volume`：显示每一级主切割用于撒点的体积分布
+    - `Edge Detail`：显示用于生成边缘细节的布尔切割平面
+    - `Constraint Network`：显示所有碎块的约束网络
 
-- `detail`选项
+- `Primary Fracture`标签页：主切割
+  - `Fracture Level`控制碎块的切割次数
+    - 每一次切割都是在上一次切割的碎块的基础上继续切割，切割对象是上一次的碎块
+    - `+` / `-`按钮增加/删除一级切割，`Clear`清空所有切割等级
+    - 每一级切割对应一个独立的子标签页（`1`、`2`……），下列参数在每级中独立设置
+  - `Enable Fracture`：取消勾选则跳过该级切割
+  - `Fracture ID`：该级切割的标识名（如`concrete_fracture2`），该级切割产生的属性和分组都带有此标签
+  - `Fracture Ratio`（即`fractureratio`）控制该次切割对象来自上次切割的比例
+    - 控制比例，生成不同切割等级的碎块，有层次感
+  - `Fracture Seed`：当`Fracture Ratio`小于1时，决定哪些碎块被切割、哪些不被切割的随机种子
+  - `Connectivity Partition`：是否按连通性进一步划分碎块
+    - `None`：不再按连通性划分
+    - `Overwrite Piece Numbering`：把同一碎块中互不相连的几何体拆分成独立的碎块，会覆盖碎块编号，速度快；适合凹形物体，但碎块编号将不再与输入点号对应
+  - `Cell Points`：切割用的细胞点
+    - `Scatter From`：撒点来源
+      - `Volume`：基于下方生成的雾体积撒点
+      - `Attribute`：基于输入几何体上指定的点属性（如**rbdpaint节点**绘制的`density`）撒点
+    - `Scatter Points`（即`scatterpoints`）控制该次切割的碎块数
+      - 当使用第四个输入端基于点云切割时，应该设置为0，避免干扰，或者也可以混用两种切割方式
+      - 右侧下拉菜单（默认`No Scaling`）设置撒点数量是否按属性缩放
+    - `Scatter Seed`：撒点的随机种子
+    - `Input Points`（即`inputspoints`）勾选后基于第四个输入端的点云进行切割
+      - 点云所在的位置切割的碎块越细碎，越远越整体
+      - 点云中的点越多，切割出的碎块越多越细碎，反之越少越整体
+  - `Fog Volume`：用于撒点的雾体积
+    - `Noise Type`：噪波类型，如`Sparse Convolution Noise`，另有`None`、`Perlin Noise`、`Original Perlin Noise`、`Alligator Noise`、`Simplex Noise`、`Zero Centered Perlin`
+    - `Volume Resolution`：雾体积的分辨率，越高切割越慢；越小的几何体需要越高的分辨率
+    - `Noise Frequency`：噪波频率（三个分量）
+    - `Noise Offset`：噪波偏移（三个分量）
+    - `Cutoff Density`：密度截断值，低于该值的密度被丢弃
 
-  - 勾选`interiordetail`开启碎块内部面的细节
-  - `detailsize`控制碎块内部面凹凸纹理的程度
-    - 越小越凹凸，越大越平整
-  - `frequency`控制凹凸纹理的频率
-    - 越大，凹凸越细碎
-  - 勾选`edgedetail`为切割刀面添加噪波
-  - `lacunarity`控制每层的纹理大小
-    - 越大，每层的纹理小
-  - `levelmultiplier`控制该层的纹理大小对上层纹理大小的缩放
-  - 大规模场景使用材质内置换的方式生成内部面凹凸
-
-- `chipping`选项
-
-  - `chippingratio`控制可以生成碎屑的碎块个数
+- `Chipping`标签页：碎屑
+  - `Enable Chipping`：开启碎屑生成
+  - `Chipping Ratio`（即`chippingratio`）控制可以生成碎屑的碎块个数
     - 越大，越多的碎块可以生成碎屑
-  - `cornorratio`控制每个碎块生成的碎屑个数
+  - `Seed`：碎屑的随机种子
+  - `Randomness`：碎屑的随机变化程度（截图中灰显，不可编辑）
+  - `Corner Ratio`（即`cornorratio`）控制每个碎块生成的碎屑个数
     - 越大，碎块角落生成的碎屑越多，生成碎屑的角落越多
-  - `cornordepth`控制碎屑的大小
-  - `directionalnoise`控制碎屑的形状
+  - `Corner Depth`（即`cornordepth`）控制碎屑的大小
+  - `Directional Noise`（即`directionalnoise`）控制碎屑的形状
     - 越大，碎屑的形状越整体
+  - `Detriangulate`：对碎屑结果去三角化（如`All Polygons`）
   - 大规模场景，使用激活点云实例的方式生成碎屑
 
-- `primaryfracture`选项
+- `Detail`标签页：细节
+  - `Detail Size`（即`detailsize`）控制碎块内部面凹凸纹理的程度，也是边缘和内部细节所添加多边形的大小
+    - 越小越凹凸，越大越平整
+  - `Edge Detail`（即`edgedetail`）勾选为切割刀面添加噪波（使用布尔获得边缘细节）
+    - `Noise Height`：位移量的缩放
+    - `Noise Element Size`：噪波图案的大小，越大细节越大
+    - `Lacunarity`（即`lacunarity`）控制每层的纹理大小
+      - 越大，每层的纹理小
+      - 对第一次切割无效
+    - `Level Multiplier`（即`levelmultiplier`）控制该层的纹理大小对上层纹理大小的缩放
+      - 对第一次切割无效
+    - `Detriangulate`：对结果去三角化（如`All Polygons`）
+  - `Interior Detail`（即`interiordetail`）勾选开启碎块内部面的细节
+    - `Noise Amplitude`：噪波幅度
+    - `Noise Type`：噪波类型，如`Sparse Convolution`
+    - `Frequency`（即`frequency`）控制凹凸纹理的频率
+      - 越大，凹凸越细碎
+    - `Offset`：噪波偏移
+  - `Crease Weights`：勾选后为碎块边缘添加折痕权重
+    - `Weight`：折痕权重值
+  - `Proxy Geometry`：简模（代理几何体）
+    - `Proxy Geometry`：简模的生成方式
+      - `Default`：使用默认的 Voronoi 切割几何体
+      - `Convex Decomposition`：对切割后的几何体做凸分解
+      - `Packed Spheres`：使用打包球体图元
+  - 大规模场景使用材质内置换的方式生成内部面凹凸
 
-  - `fracturelevel`控制碎块的切割次数
-    - 每一次切割都是在上一次切割的碎块的基础上继续切割，切割对象是上一次的碎块
-  - `fractureratio`控制该次切割对象来自上次切割的比例
-    - 控制比例，生成不同切割等级的碎块，有层次感
-  - 勾选`inputspoints`基于第四个输入端的点云进行切割
-    - 点云所在的位置切割的碎块越细碎，越远越整体
-    - 点云中的点越多，切割出的碎块越多越细碎，反之越少越整体
-  - `scatterpoints`控制该次切割的碎块数
-    - 当使用第四个输入端基于点云切割时，应该设置为0，避免干扰，或者也可以混用两种切割方式
+- `Constraints`标签页：约束
+  - `Enable Constraints`：开启碎块间约束的生成
+  - `Search Radius`：搜索相邻碎块建立约束的半径
+  - `Use Tags`：使用标签区分约束
+  - `Apply Constraint Properties`：为生成的约束应用约束属性
+  - `Glue Constraint Name`：胶水约束的名称（默认`Glue`）
+  - `Enable Color`：为约束设置颜色
+  - `Primary Strength`：主切割胶水约束的初始强度
+  - `Level Multiplier`：切割等级每增加一级，主强度乘以该数值
+  - `Chipping Glue Strength`：碎屑胶水约束的强度
+  - `Strength Variance`：胶水强度的随机变化量
+  - `Switch to Soft Constraint when Broken`：胶水约束断开后切换为软约束
+  - `Bypass Chipping Constraints`：跳过碎屑约束（截图中灰显，不可编辑）
 
 - 生成面层级的属性
 
@@ -2274,7 +2338,7 @@ k帧
 
     - 可见的朝向外部的面的分组名为`outside`
 
-      - 分组内包含的面数是所有`fracturelevel`切割所产生的超向外的面的总和
+      - 分组内包含的面数是所有`fracturelevel`切割所产生的朝向外的面的总和
 
         ```
         @group_outside

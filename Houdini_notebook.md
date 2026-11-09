@@ -4998,6 +4998,27 @@ attribute **vop节点**
 
 - 作用与 sop 中的**switch节点**相同：切换选择多个输入中的某一个作为输出
 
+**compare节点**
+
+- 比较两个值，返回真或假
+  - 两个输入必须是相同的类型，可以是浮点数、整数或字符串
+- 输入端
+  - `input1`：第一个比较值
+  - `input2`：第二个比较值；未连线时使用参数面板中的值
+    - `Compare to Float`：与浮点数比较，默认0
+    - `Compare to Integer`：与整数比较，默认0
+    - `Compare to String`：与字符串比较，默认为空
+- 输出端
+  - `bool`：比较结果，整数类型；条件成立为1（真），不成立为0（假）
+- `Test`：比较方式
+  - `Equal`（`==`）：等于，默认
+  - `Less Than`（`<`）：小于
+  - `Greater Than`（`>`）：大于
+  - `Less Than Or Equal`（`<=`）：小于等于
+  - `Greater Than Or Equal`（`>=`）：大于等于
+  - `Not Equal`（`!=`）：不等于
+- 常与**switch节点**、**if block节点**、**and节点**、**or节点**、**not节点**配合使用，根据比较结果控制流程
+
 **rampparameter节点**
 
 - 将颜色根据输入端作为横轴映射输出

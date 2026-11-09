@@ -4994,6 +4994,16 @@ attribute **vop节点**
 
 - 实现`rand`函数的功能
 
+**constant节点**
+
+- 输出一个任意 VEX 数据类型的常量值
+- 输出端
+  - 常量值输出：输出名称由 `Constant Name` 决定，类型由 `Constant Type` 决定
+- `Constant Type`：常量的 VEX 数据类型
+  - 同一种 VEX 类型可能有多种表示方式，例如 `vector` 可以用3个浮点数表示，也可以用单个颜色值表示；该参数同时决定使用哪个参数来设置常量的值
+- `Default Values`：常量的值；具体显示哪一个取值参数由 `Constant Type` 决定
+- `Constant Name`：常量的名称，同时用作生成的 VEX 代码中的变量名和节点输出端的名称
+
 **switch节点**
 
 - 作用与 sop 中的**switch节点**相同：切换选择多个输入中的某一个作为输出

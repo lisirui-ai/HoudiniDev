@@ -983,8 +983,33 @@ k帧
 **connectivity节点**
 
 - 根据点/面是否相连，为分隔的部分设置`class`属性
+  - 每一组互相连着的点/面得到一个编号，存入`class`属性；编号从0开始依次递增，最大值为“相连部分的个数-1”，编号相同的点/面彼此相连
+    - 例如场景中有3个互不相连的立方体：第一个立方体上所有点/面的`class`为0，第二个为1，第三个为2
 - 可配合`foreach named primitive`进行使用
 - 作用相当于**assemble节点**，但不如**assemble节点**常用，**assemble节点**直接生成`name`属性
+- `Connectivity Type`：决定对点还是对面进行分类，生成的属性随之为点属性或面属性
+  - `Point`：对点分类，生成点属性
+  - `Primitive`：对面分类，生成面属性
+- `Primitive Include Group`：参与连通性计算的面分组
+  - 不在该分组内的面被视为已删除，这可能让剩余几何体出现新的断开，产生不含任何面的空类别
+  - `Connectivity Type`为`Primitive`时，被排除的面其整数属性值为-1，字符串属性值为空
+- `Point Include Group`：参与连通性计算的点分组，仅在`Connectivity Type`为`Point`时有效
+  - 不在该分组内的点被视为已删除，这可能让几何体出现新的断开
+  - 被排除的点其整数属性值为-1，字符串属性值为空
+- `Attribute`：生成的属性名称，默认`class`
+- `Attribute Type`：生成整数属性还是字符串属性
+  - `Integer`：整数属性，值为类别编号
+  - `String`：字符串属性，此时会出现`Prefix`，字符串值由前缀与整数编号组合而成
+- `Local Variable`：勾选后可设置新属性映射到的局部变量名，默认是属性名的全大写形式
+  - 局部变量是形如`$CLASS`的老式写法，只能在逐点/逐面计算的节点参数中使用，取的是当前正在处理的点/面的属性值
+  - 变量名留空时默认为属性名的大写形式，即`CLASS`；也可以自定义，如填`MYID`则使用`$MYID`
+  - 现在更常用 VEX 直接读取属性（如`i@class`），因此这个选项主要用于兼容老式参数表达式
+- `Seam Group`：仅在`Connectivity Type`为`Primitive`时可用（截图中`Point`模式下灰显）
+  - 一组边，在判断面的连通性时被当作额外的拓扑边界
+- `Use UV Connectivity`：仅在`Connectivity Type`为`Primitive`且未指定`Seam Group`时可用（截图中灰显）
+  - 默认情况下两个面只要共用点就视为相连；勾选后改为只要顶点具有相同的顶点纹理坐标才视为相连
+  - 作用于顶点纹理属性，不是点纹理属性
+  - `UV Attribute`：勾选`Use UV Connectivity`时使用的纹理坐标属性名，默认`uv`
 
 **measure节点**
 

@@ -4994,6 +4994,10 @@ attribute **vop节点**
 
 - 实现`rand`函数的功能
 
+**switch节点**
+
+- 作用与 sop 中的**switch节点**相同：切换选择多个输入中的某一个作为输出
+
 **rampparameter节点**
 
 - 将颜色根据输入端作为横轴映射输出

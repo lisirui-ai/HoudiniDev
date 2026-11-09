@@ -4903,13 +4903,47 @@ attribute **vop节点**
 - 沿法线置换
 - 在材质`vop`中，P通道连接相机坐标系下的P
 
-worley **noise节点**
+**worley noise节点**
 
 - 生成`worley` noise
+  - 又称细胞噪波（cell noise）：在空间中按泊松分布随机撒点，根据到这些点的距离生成类似细胞的图案
+  - 生成的噪波没有抗锯齿；若需要更好的着色效果，应使用带抗锯齿的**cellular noise节点**
 - 锐化边缘的方法
   - `dist2`减去`dist1`作为输出
+  - 判断细胞边界：当`dist2 - dist1`小于某个容差时，说明当前位置正处于两个细胞的交界处
+- 输入端
+  - `pos`：位置，噪波的采样位置
+  - `freq`：频率
+  - `offset`：偏移
+  - `metric`：距离度量方式，字符串类型
+- 输出端
+  - `dist1`：到最近点的距离
+  - `dist2`：到第二近点的距离
+  - `dist3`：到第三近点的距离
+  - `dist4`：到第四近点的距离
+  - `seed`：最近点关联的种子，整数类型
+    - 几乎可以保证每个点的种子都是唯一的，相邻的两个点不太可能有相同的种子
+    - 可用于给每个细胞生成不同的随机值
+  - 距离按从近到远排序，即`dist1 <= dist2 <= dist3 <= dist4`
+  - `dist1`可当作噪波的强度值，连接到`mix`的混合系数、**displacealongnormal节点**的置换量或其他浮点输入
+- `Signature`：噪波的维度
+  - `1D Noise`：一维噪波，`Position`、`Frequency`、`Offset`均为浮点数，截图中为该选项
+  - `2D Noise`：二维噪波，三者均为二维向量
+  - `3D Noise`：三维噪波，三者均为三维向量
+  - `4D Noise`：四维噪波，三者均为四维向量
+- `Scatter`：每次撒点的数量
+  - `Two Points`：撒两个点，只有`dist1`、`dist2`有效
+  - `Four Points`：撒四个点，`dist1`到`dist4`均有效
+- `Position`：采样位置
+- `Frequency`：噪波频率
+- `Offset`：噪波偏移
+- `Metric`：计算点与点之间距离所用的度量方式
+  - `Euclidean`：欧几里得距离，默认
+  - `Manhattan`：曼哈顿距离
+  - `Chebyshev`：切比雪夫距离
+- 性能：比 Perlin Noise 慢，官方给出的相对耗时约为 Perlin Noise 的 1.8 倍
 
-**rand节点**
+**random节点**
 
 - 实现`rand`函数的功能
 

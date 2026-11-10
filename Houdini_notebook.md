@@ -2548,10 +2548,19 @@ k帧
           - 碎块由多个互不相连的部分组成，又不想用 `Concave` 时，应勾选
       - `Collisions`（碰撞）
         - `Collision Group`：创建并设置 `collisiongroup` 属性
+          - 作用：给碎块指定一个碰撞组名称，供其他碎块的 `Activation Ignore` 等匹配模式按名称筛选，自身不改变碰撞行为
+          - `Activation Ignore` 的模式按 `collisiongroup` 的值匹配，不按碎块的 `name` 匹配
         - `Collision Ignore`：创建并设置 `collisionignore` 属性，匹配的物体之间不发生碰撞
+          - 作用：本碎块不与匹配该模式的 DOP 物体碰撞；`*` 表示忽略所有，空字符串表示不忽略，`* ^名称` 表示只与该名称碰撞
         - `Min Activation Impulse`：碰撞冲量达到该值才会激活物体，默认0；勾选后创建 `min_activation_impulse` 属性
+          - 作用：使 `active` 为0的碎块保持静止，只有受到的碰撞冲量达到该值时，才在碰撞瞬间转为受物理影响
+          - 该属性只决定静止碎块何时被唤醒，不影响碰撞检测本身；阈值越小，越轻的碰撞就能激活，阈值越大，需要越大的冲击
+          - 对 `active` 为1的碎块无影响
         - `Activation Ignore`：启用 `Min Activation Impulse` 时，与匹配该模式的物体碰撞不会激活本物体，写法与 `collisionignore` 相同
+          - 作用：设置了 `Min Activation Impulse` 的碎块，与匹配该模式的碎块碰撞时，不会被它激活
         - `Allow Initial Overlap`：允许初始时互相重叠
+          - 作用：决定第一帧就互相重叠的两个碎块如何处理；默认1，保持重叠不强行分开，0则会把它们推开
+          - 要把初始重叠的碎块分开，重叠的两个碎块都必须把该属性设为0
       - `Sticky Collisions`（粘性碰撞）
         - `Min Sticky Collision Impulse`：使物体粘在另一物体上所需的最小碰撞冲量，必须大于等于0才会粘住，默认-1
         - `Max Sticky Collision Objects`：最多能粘住的其他物体数量，小于等于0表示不限制

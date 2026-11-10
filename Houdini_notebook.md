@@ -2574,11 +2574,10 @@ k帧
         - `Max Sticky Collision Points`：粘住另一物体最多使用的锚点（约束）数量
         - `Sticky Collision Ignore`：与匹配该模式的物体碰撞时不发生粘连
       - `Speed Limit`（速度限制）
+        - 生效范围：这组限制写成属性后一直保留在碎片上，只要属性值非负，就对解算的每一帧持续生效（作用于整个解算过程），不是只在第一帧或碰撞瞬间起作用，属性值为负数时不做限制
         - `Speed Min`、`Speed Max`：创建并设置 `speedmin`、`speedmax` 属性，限制最小、最大速度，默认-1表示无效果
           - `speedmin` 只限制最小速度，不会给静止的刚体初速度
-            - 无重力、无初速度，设 `speedmin` 为3：刚体始终静止不动，与不设置时相同
-            - 无重力、`v` 为(1,0,0)，设 `speedmin` 为3：速度被提到3单位/秒（24帧下每帧移动0.125），不设置时为1单位/秒（每帧0.0417）
-            - 因此初速度要靠 `v`、`w` 属性给（`Transfer Attributes` 默认传递 `v w`），`speedmin` 的作用是把已经在运动但太慢的刚体加速到至少该速度
+            - 初速度要靠 `v`、`w` 属性给（`Transfer Attributes` 默认传递 `v w`），`speedmin` 的作用是把已经在运动但太慢的刚体加速到至少该速度
         - `Spin Min`、`Spin Max`：创建并设置 `spinmin`、`spinmax` 属性，限制最小、最大旋转速度，默认-1
         - `Acceleration Max`：创建并设置 `accelmax` 属性，限制最大加速度，默认-1
         - `Angular Acceleration Max`：创建并设置 `angaccelmax` 属性，限制最大角加速度，默认-1

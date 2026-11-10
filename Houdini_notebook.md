@@ -2531,6 +2531,8 @@ k帧
       - `Sleep Angular Threshold`：创建并设置 `bullet_angular_sleep_threshold` 属性，默认1；物体角速度低于该值并持续一段时间，会被视为不再运动
       - `Bullet Ignore`：创建并设置 `bullet_ignore` 属性，默认0；为1时，该物体被 Bullet 解算器完全忽略，其他物体也无法与它碰撞，和 `active` 设为0不同（`active` 为0时物体仍可被碰撞）
       - `Compute Center of Mass`：创建并设置 `computecom` 属性，默认1；为1时根据物体的碰撞形状自动计算质心
+        - 作用：质心位置决定物体受力后绕哪个点旋转，因此会改变物体受力后的旋转和翻倒方式
+        - 为0时不自动计算，质心使用碎块自带的 `pivot` 位置
       - `Use Bounds`：各项右侧的开关；勾选后，边界内的图元设为指定值，边界外的图元设为相反值
       - `Collision Shapes`（碰撞形状）
         - `Geometry Representation`：创建并设置 `bullet_georep` 属性，默认 `Convex Hull`；用于为每个碰撞体选择最合适的几何表示

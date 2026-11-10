@@ -2457,24 +2457,139 @@ k帧
 
 **rbdconfigure节点**
 
-- 为刚体添加用于解算的属性
+- 作用：为刚体添加用于解算的属性；把输入的几何体（以及简模）打包，并在用于解算的几何体（有简模时为简模，否则为输入几何体）上创建驱动 Bullet 打包刚体的属性
   - 对碎块属性的设置只能通过该节点，否则会丢失简模、约束等信息
-  - 可以为不同的刚体（`merge`之后的）根据不同的`@name`属性分别设置属性
-  
-- 勾选`speedmin`设置初速度
-- 勾选`geometryrepresentation`设置刚体按凹面还是凸面解算
-  - `concave`凹面解算模式精度高，但是结算慢
-
-- 勾选`active`
-  - 设置为1，刚体参与解算
-  - 设置为0，刚体不参与解算
-    - 可以后连**rbdbulletsolver节点**的第四个输入端作为地面
-- 勾选`deforming`
-  - 设置为1继承上游节点的动画，带动画的刚体参与解算
-  - 动画刚体参与解算的流程
-    - **rbdmaterialfracture节点**切割未加动画前的模型→**assemble节点**分别`pack`打包高模和底模的对象→分别为高模和底模的对象设置同一个动画→**rbdconfigure节点**添加解算属性，勾选`deforming`并设置为1→高模和底模对象进入**rbdbulletsolver节点**进行解算
-
-- 会将模型进行打包
+  - 可以为不同的刚体（`merge`之后的）根据不同的`@name`属性分别设置属性（通过 `Attributes` 中每一项的 `Group` 实现）
+  - 会将模型进行打包
+    - 打包后无法再直接编辑几何体和简模，建议放在节点链的末端；需要编辑时先解包，解包后组和属性仍保留
+    - 组会被提升到打包后的几何体上，但 `inside`、`outside` 组会被省略（它们通常不覆盖整块碎块，提升后会得到错误结果）
+- 输入端（4个）
+  - `Geometry`：刚体几何体
+  - `Constraint Geometry`：约束几何体
+  - `Proxy Geometry`：简模
+  - `Static Bounds Geometry`：静态边界几何体；作为各参数 `Use Bounds` 的边界来源，仅当 `Bounding Type` 为 `Bounding Geometry` 或 `Bounding Volume` 时使用
+- 输出端（3个）
+  - `Geometry`：打包后的渲染几何体，只带 `P`、`name` 等基本属性
+  - `Constraint Geometry`：约束几何体；`Pin` 创建的约束在这里，例如1个碎块加胶水 `Pin` 得到1条长度为0的线，带 `constraint_name`、`restlength`、`constraint_tag` 属性
+  - `Proxy Geometry`：解算用几何体；接了简模时是打包后的简模，带所有解算属性（`bounce`、`density`、`__pin`、`bullet_georep` 等），`Pin` 的胶水目标图元 `__gluepin/...` 也在这里；没接简模时，解算属性在第1个输出上
+- `Visualization`（可视化）
+  - `Visualize`：可视化方式，默认 `None`
+    - `None`：不显示
+    - `Active`：`active` 为1的碎块显示绿色，为0显示黑色
+    - `Animated`：`animated` 为1显示红色，为0显示蓝色
+    - `Deforming`：`deforming` 为1显示红色，为0显示蓝色
+    - `Sleeping`：`bullet_sleeping` 为1显示红色，为0显示蓝色
+    - `Bounce`、`Density`、`Friction`、`Rotational Stiffness`：显示对应数值范围的直方图，并按数值着色
+    - `Pinned`：`__pin` 为1显示红色，为0显示蓝色
+  - `Exploded Scale`：爆炸显示的缩放，仅在 `Visualize` 不为 `None` 时可用；每个碎块按到中心的距离成比例移开，`1` 大约使物体尺寸翻倍
+- `Units`（单位）
+  - `Unit Mass (kg)`：质量单位，默认 `Kilograms`，用于换算密度
+    - `Grams`、`10 Grams`、`100 Grams`、`Kilograms`、`10 Kilograms`、`100 Kilograms`、`Metric Tons`
+  - `Unit Length (m)`：长度单位，默认 `Meters`，用于换算密度
+    - `Millimiters`、`Centimeters`、`Decimeters`、`Meters`、`10 Meters`、`100 Meters`、`Kilometers`
+- `Bounds`（边界）
+  - `Bounding Type`：边界体积的形状，配合各参数的 `Use Bounds` 使用，默认 `Bounding Geometry`
+    - `Bounding Box`：用 `Size`、`Center`、`Rotation` 定义的盒子作为边界，仅选此项时这三个参数才显示并启用，分别设置盒子的大小、中心和旋转
+    - `Bounding Geometry`：用第4个输入端（`Static Bounds Geometry`）的封闭多边形几何体作为边界，默认
+      - 例如第4个输入端接一个盒子，盒内的碎块取指定值，盒外的取相反值
+    - `Bounding Volume`：用第4个输入端的体积作为边界
+      - 必须是 SDF 体积，体积内部的碎块取指定值
+- `Attributes`（属性）
+  - `Name Prefix`：名称前缀，默认 `piece`
+    - 碎块的 `name` 属性 = 前缀 + 碎块序号，例如前缀设为 `abc` 时得到 `abc0`；有 `Pin` 的胶水约束时，还会多出一个 `__gluepin/abc0` 的目标图元
+  - `Transfer Attributes`：需要传递到打包几何体上的属性列表，默认 `v w`
+  - `Create Packed Fragments`：创建打包碎块，默认勾选；取消勾选则创建普通的打包几何体，发射刚体时打包几何体比打包碎块性能更好
+  - `Attributes`：多参数列表，数量默认1；每一项是一组独立的设置，通过 `Group` 对输入几何体的不同子集设置不同的属性值，一个节点即可完成；`+` 增加，`-` 减少，`Clear` 清空
+    - `Enable`：启用这一项，默认勾选
+    - `Group`：要编辑属性的图元组，留空表示全部
+    - `Bullet Data`（Bullet 数据）
+      - `Active`：创建并设置 `active` 属性，默认1；勾选后设置
+        - 设置为1，刚体参与解算
+        - 设置为0，刚体不参与解算
+          - 可以后连**rbdbulletsolver节点**的第四个输入端作为地面
+      - `Animated`：创建并设置 `animated` 属性；每个时间步从 SOP 几何体更新物体的**变换**（位置、旋转、缩放），碰撞形状不重新生成
+        - 只在 `active` 为0时有效，适合形状不变、整体运动的刚体（平移、旋转的挡板、地面等）
+        - 与 `deforming` 的区别见下面 `Deforming` 一项
+      - `Deforming`：创建并设置 `deforming` 属性；每个时间步从 SOP 几何体重新生成物体的**碰撞形状**；勾选后设置
+        - `Animated` 和 `Deforming` 的区别
+          - `Animated`：只更新变换，碰撞形状不变，开销小；适合形状不变的整体运动
+          - `Deforming`：每步重建碰撞形状，开销大；适合形状会变的物体，也能跟随整体运动
+            - 结论
+              - `animated` 仅更新物体的变换，只能响应打包图元自身变换的变化；`deforming` 每个时间步根据 SOP 几何体重新生成碰撞形状，无论动画体现为几何体点位置的变化还是打包图元变换的变化，均能被响应
+              - 二者均为0时，刚体不会跟随上游的任何动画
+              - 选择原则：物体仅整体运动且动画作用于打包图元的变换时，使用 `animated`，开销较小；物体形状发生变化，或动画作用于几何体点位置时，使用 `deforming`
+        - 设置为1继承上游节点的动画，带动画的刚体参与解算
+      - `Sleeping`：创建并设置 `bullet_sleeping` 属性，默认0；设置物体的初始休眠状态，为1时物体一开始就处于休眠（被停止模拟）状态，为0时正常模拟
+        - 与 `Enable Sleeping` 的区别：`Sleeping` 是物体当前是否处于休眠状态，`Enable Sleeping` 是物体不再运动时是否允许被自动休眠
+      - `Enable Sleeping`：创建并设置 `bullet_want_deactivate` 属性，默认1；为1时，不再运动的物体会被停止模拟，直到它再次运动（被撞到等）
+      - `Sleep Linear Threshold`：创建并设置 `bullet_linear_sleep_threshold` 属性，默认0.8；物体线速度低于该值并持续一段时间，会被视为不再运动
+      - `Sleep Angular Threshold`：创建并设置 `bullet_angular_sleep_threshold` 属性，默认1；物体角速度低于该值并持续一段时间，会被视为不再运动
+      - `Bullet Ignore`：创建并设置 `bullet_ignore` 属性，默认0；为1时，该物体被 Bullet 解算器完全忽略，其他物体也无法与它碰撞，和 `active` 设为0不同（`active` 为0时物体仍可被碰撞）
+      - `Compute Center of Mass`：创建并设置 `computecom` 属性，默认1；为1时根据物体的碰撞形状自动计算质心
+      - `Use Bounds`：各项右侧的开关；勾选后，边界内的图元设为指定值，边界外的图元设为相反值
+      - `Collision Shapes`（碰撞形状）
+        - `Geometry Representation`：创建并设置 `bullet_georep` 属性，默认 `Convex Hull`；用于为每个碰撞体选择最合适的几何表示
+          - 勾选后设置刚体按凹面还是凸面解算
+          - `concave`凹面解算模式精度高，但是结算慢
+        - `Collision Padding`：创建并设置 `bullet_collision_margin` 属性，默认0.02
+          - 作用：Bullet 给每个碰撞形状额外加的一圈距离，用来提高碰撞检测的可靠性和性能
+          - 影响：碰撞形状比模型大出一圈，大小等于该值；物体接触时模型之间会出现缝隙，不收缩时缝隙约等于两倍填充
+            - 例如填充为0.1且不收缩时，盒子落在地面上，静止后底部离地面0.1
+          - 与 `Shrink Amount` 配合使用：缝隙 = `Collision Padding` − `Shrink Amount`，官方文档建议使用填充时勾选收缩，避免碰撞形状变大
+          - 不支持 `Concave`、`Plane` 两种几何表示
+        - `Shrink Amount`：勾选后创建 `bullet_adjust_geometry`（设为1）和 `bullet_shrink_amount` 属性；`Shrink Amount` 为收缩量，默认0.02
+          - 作用：把碰撞形状向内收缩，抵消 `Collision Padding` 造成的碰撞形状变大
+          - 一般把 `Shrink Amount` 设为与 `Collision Padding` 相同，使物体接触时模型之间没有缝隙
+        - `Create Convex Hull per Set of Connected Primitives`：为每组相连的图元分别创建一个凸包，默认1，实测勾选后创建 `bullet_groupconnected` 整数属性
+          - 作用：`Geometry Representation` 为 `Convex Hull` 时，决定一个碎块的碰撞形状是整体一个凸包，还是每组相连图元各一个凸包（组合成复合形状）
+          - 实测：一个碎块由两个互不相连的盒子组成（相距较远、高度不同），固定不动，在上方放一个会落下的小盒子，位置正对两部分之间的空隙
+            - 不勾选（`bullet_groupconnected` 为0）：整个碎块是一个凸包，把两部分之间的空隙也包住；小盒子落在凸包的斜面上被弹开、滑出，最终落在地面上离碎块很远的位置
+            - 勾选（`bullet_groupconnected` 为1）：每个盒子各一个凸包，空隙保留；小盒子从空隙落下，直接落在两部分之间的地面上
+          - 碎块由多个互不相连的部分组成，又不想用 `Concave` 时，应勾选
+      - `Collisions`（碰撞）
+        - `Collision Group`：创建并设置 `collisiongroup` 属性
+        - `Collision Ignore`：创建并设置 `collisionignore` 属性，匹配的物体之间不发生碰撞
+        - `Min Activation Impulse`：碰撞冲量达到该值才会激活物体，默认0；勾选后创建 `min_activation_impulse` 属性
+        - `Activation Ignore`：启用 `Min Activation Impulse` 时，与匹配该模式的物体碰撞不会激活本物体，写法与 `collisionignore` 相同
+        - `Allow Initial Overlap`：允许初始时互相重叠
+      - `Sticky Collisions`（粘性碰撞）
+        - `Min Sticky Collision Impulse`：使物体粘在另一物体上所需的最小碰撞冲量，必须大于等于0才会粘住，默认-1
+        - `Max Sticky Collision Objects`：最多能粘住的其他物体数量，小于等于0表示不限制
+        - `Max Sticky Collision Points`：粘住另一物体最多使用的锚点（约束）数量
+        - `Sticky Collision Ignore`：与匹配该模式的物体碰撞时不发生粘连
+      - `Speed Limit`（速度限制）
+        - `Speed Min`、`Speed Max`：创建并设置 `speedmin`、`speedmax` 属性，限制最小、最大速度，默认-1表示无效果
+          - `speedmin` 只限制最小速度，不会给静止的刚体初速度
+            - 无重力、无初速度，设 `speedmin` 为3：刚体始终静止不动，与不设置时相同
+            - 无重力、`v` 为(1,0,0)，设 `speedmin` 为3：速度被提到3单位/秒（24帧下每帧移动0.125），不设置时为1单位/秒（每帧0.0417）
+            - 因此初速度要靠 `v`、`w` 属性给（`Transfer Attributes` 默认传递 `v w`），`speedmin` 的作用是把已经在运动但太慢的刚体加速到至少该速度
+        - `Spin Min`、`Spin Max`：创建并设置 `spinmin`、`spinmax` 属性，限制最小、最大旋转速度，默认-1
+        - `Acceleration Max`：创建并设置 `accelmax` 属性，限制最大加速度，默认-1
+        - `Angular Acceleration Max`：创建并设置 `angaccelmax` 属性，限制最大角加速度，默认-1
+    - `Physical Attributes`（物理属性）
+      - `Type`：按材质预设密度、弹性和摩擦，三个下拉菜单依次为材质类型、子类型、表面状态，即 `Concrete`、`Default`、`Dry and Clean Surfaces`
+        - 第一个菜单（材质类型）：`Concrete`、`Glass`、`Wood`、`Metal`
+        - 第二个菜单（具体材质）：选项随材质类型变化
+        - 第三个菜单（表面状态）：`Dry and Clean Surfaces`、`Lubricated and Greasy Surfaces`
+      - `Density (kg/m3)`：创建并设置 `density` 属性，显示预设的密度；`User Density` 可覆盖预设值
+      - `Bounce`：创建并设置 `bounce` 属性，显示预设的弹性；`User Bounce` 可覆盖预设值
+      - `Friction`：创建并设置 `friction` 属性，显示预设的摩擦系数；预设值是概括性的，因为摩擦系数实际是两种材质之间的值
+      - `Rotational Stiffness`：创建并设置 `inertialtensorstiffness` 属性，默认1；作用在惯性张量上的缩放系数，值越大物体越不容易旋转；不受 `Type` 预设影响，勾选后直接输入数值
+      - `Var`：在用户值基础上上下浮动的百分比，例如基础值1000、`Var` 为0.1时，结果在900到1100之间；`Var` 为1时在0到2000之间
+    - `Constraints`（约束）
+      - `Pin`：创建长度为0的约束几何体，并创建 `__pin` 属性驱动 sop 解算器使碎块保持原位；0表示不固定也不创建约束，1表示固定并创建 `Pin` 约束
+        - 与 **rbdmaterialfracture节点** 中 `Constraints` 的关系：二者作用不同，不能互相替代。**rbdmaterialfracture节点** 生成的是碎块与碎块之间的约束，只负责把碎块连接成整体，不会把整体固定在世界空间；`Pin` 创建的是碎块与固定世界位置之间的约束，负责把物体锚定住
+        - 只有碎块间约束、没有 `Pin` 时，整体在重力下会下落，并在碰撞后倾倒、发生形变
+        - 对全部碎块启用 `Pin` 时，所有碎块始终保持原位
+        - 仅对部分碎块启用 `Pin`（例如配合 `Use Bounds` 只固定边界内的碎块）时，其余碎块通过碎块间约束被带住，整体同样保持原位；因此需要固定的是部分结构时，碎块间约束与 `Pin` 需要同时使用
+      - `Type`：固定约束的类型，默认 `Glue`；菜单顺序为 `Glue`、`Soft`
+        - `Glue`：胶水约束，目标物体命名为 `__gluepin/` 加被固定碎块的名称，这些目标碎块由**rbdbulletsolver节点**动态生成，没有几何表示
+        - `Soft`：Bullet 软约束
+    - `Emission`（发射）
+      - `RBD Bullet Emit`：创建 `rbdbullet_emit` 点属性，用于在**rbdbulletsolver节点**开启发射（`Emit`）时区分哪些碎块被发射；0作为普通刚体，1每帧都发射，可以把可动画、变形的普通刚体和发射的刚体混用
+        - 发射的含义：**rbdbulletsolver节点** 开启 `Emit RBDs` 后，解算器每一帧都会把输入端当前帧的模拟几何体和约束几何体作为新物体加入模拟，新物体名称追加 `_帧数×100` 的后缀；因此物体数量逐帧累加，已加入的物体之后按自身物理运动，不再受输入端影响
+        - `rbdbullet_emit` 取值：属性值为1的碎块每帧都会被重新发射；属性值为0的碎块只在模拟开始时加入一次，之后按普通刚体处理，不再重复发射
+        - 未创建 `rbdbullet_emit` 属性、而 `Emit RBDs` 已开启时，所有碎块都会每帧发射
 
 **booleanfracture节点**
 

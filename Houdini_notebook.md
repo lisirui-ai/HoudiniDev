@@ -2597,14 +2597,151 @@ k帧
         - 只有碎块间约束、没有 `Pin` 时，整体在重力下会下落，并在碰撞后倾倒、发生形变
         - 对全部碎块启用 `Pin` 时，所有碎块始终保持原位
         - 仅对部分碎块启用 `Pin`（例如配合 `Use Bounds` 只固定边界内的碎块）时，其余碎块通过碎块间约束被带住，整体同样保持原位；因此需要固定的是部分结构时，碎块间约束与 `Pin` 需要同时使用
-      - `Type`：固定约束的类型，默认 `Glue`；菜单顺序为 `Glue`、`Soft`
+      - `Type`：固定约束的类型，默认 `Glue`；菜单顺序为 `Glue`、`Soft`、`Hard (Deprecated)`
         - `Glue`：胶水约束，目标物体命名为 `__gluepin/` 加被固定碎块的名称，这些目标碎块由**rbdbulletsolver节点**动态生成，没有几何表示
         - `Soft`：Bullet 软约束
+        - `Hard (Deprecated)`：硬约束，已被标记为弃用，不建议使用
     - `Emission`（发射）
       - `RBD Bullet Emit`：创建 `rbdbullet_emit` 点属性，用于在**rbdbulletsolver节点**开启发射（`Emit`）时区分哪些碎块被发射；0作为普通刚体，1每帧都发射，可以把可动画、变形的普通刚体和发射的刚体混用
         - 发射的含义：**rbdbulletsolver节点** 开启 `Emit RBDs` 后，解算器每一帧都会把输入端当前帧的模拟几何体和约束几何体作为新物体加入模拟，新物体名称追加 `_帧数×100` 的后缀；因此物体数量逐帧累加，已加入的物体之后按自身物理运动，不再受输入端影响
         - `rbdbullet_emit` 取值：属性值为1的碎块每帧都会被重新发射；属性值为0的碎块只在模拟开始时加入一次，之后按普通刚体处理，不再重复发射
         - 未创建 `rbdbullet_emit` 属性、而 `Emit RBDs` 已开启时，所有碎块都会每帧发射
+
+**rbdconstraintproperties节点**
+
+- 作用：在约束几何体的图元上创建属性，描述约束对应的 Bullet 约束类型及其参数（胶水、硬约束、软约束等）
+  - 约束几何体通常由 **rbdmaterialfracture节点**、**connectadjacentpieces节点**、**rbdconfigure节点** 等生成，本节点只负责设置约束的"性质"，不生成约束
+    - **rbdmaterialfracture节点**、**connectadjacentpieces节点** 生成碎块与碎块之间的约束，类型主要是 `Glue` 和 `Soft`
+      - `Glue`：胶水约束，用于碎块内部的约束线，把碎块粘成整体，受冲击后断开
+        - **rbdmaterialfracture节点** 的 `Enable Constraints` 生成的就是胶水约束（`Glue Constraint Name` 默认 `Glue`）
+        - **connectadjacentpieces节点** 的 `adjacentpiecesfromsurfacepoints` 模式生成内部约束线，一般是 `Glue`
+      - `Soft`：软约束，像弹簧一样把碎块弹性地连着，用于碎块外部（`outside` 边缘）的约束线，或胶水断开后的接替
+        - **rbdmaterialfracture节点** 勾选 `Switch to Soft Constraint when Broken` 后，胶水断开后切换为软约束
+        - **connectadjacentpieces节点** 的 `adjacentpiecesfrompoints` 模式生成外部约束线，一般是 `Soft`
+    - **rbdconfigure节点** 的 `Pin` 生成碎块与固定世界位置之间的约束（长度为0的线），属于 `Pin` 约束；其类型（`Glue`、`Soft`）也可以在本节点中修改
+  - 约束几何体中通常混有不同类型的约束（`Glue`、`Soft`、`Pin` 等），通过 `Constraint Group` 选中某一类约束的图元，可以对不同类型的约束分别设置属性，因此可以串联多个本节点，每个节点负责一类约束，例如分别设置 `Glue` 约束的强度和 `Soft` 约束的刚度
+  - 每个参数左侧的开关（`Action` 为 `Edit` 时显示）用于决定是否修改该参数对应的属性；`Set` 则保证所有相关属性都被写入
+- 输入端（3个）
+  - `Geometry`：刚体几何体；使用 `Filter by Pieces` 按碎块分组筛选约束时，以及按几何体属性缩放参数时使用
+  - `Constraint Geometry`：约束几何体，本节点编辑的对象
+  - `Proxy Geometry`：简模
+- 输出端（3个）
+  - `Geometry`：刚体几何体
+  - `Constraint Geometry`：写入了约束属性的约束几何体
+  - `Proxy Geometry`：简模
+- `Constraint Group`：要编辑约束属性的约束几何体图元组，留空表示全部
+- `Filter by Pieces`：按刚体几何体上的组，动态筛选约束图元，默认不勾选；勾选后下面的参数才可用
+  - `Groups`：筛选方式，默认 `All to Group`
+    - `All to Group`：筛选出有一个锚点连在 `Group 1` 内刚体上的所有约束图元
+    - `Group to Group`：筛选出一个锚点连在 `Group 1`、另一个锚点连在 `Group 2` 内刚体上的约束图元
+  - `Group 1`：锚点需要连接到的刚体组
+  - `Group 2`：选 `Group to Group` 时，另一个锚点需要连接到的刚体组
+- `Color`：给约束图元添加颜色，便于视觉区分；勾选后设置，默认白色
+- `Guide Scale`：视口中约束锚点处引导球体的半径，默认 `0`（不显示）
+  - 显示条件：`Action` 为 `Set` 且 `Constraint Type` 为 `Glue` 时隐藏；`Action` 为 `Edit`，或 `Set` 配合 `Soft`、`Hard` 时显示
+  - 约束马达：`Hard` 约束上的角度马达（`Angular Motor`），主动驱动两个被约束物体绕指定轴，以目标相对角速度相对转动，类似给铰链接上电机；普通约束只是被动地限制相对运动，马达则会持续施力，`Max Impulse` 限制它能施加的最大冲量
+  - 作用：显示锚点的引导几何体，是交互编辑 `Hard` 约束马达的前提，需要大于0，才能在视口中选中约束并用滚轮编辑马达轴的 `Relative Angular Velocity` 和 `Max Impulse`
+  - 是否显示锚点取决于约束类型
+- `Action`：操作方式，默认 `Set`
+  - `Edit`：编辑已有约束图元时，只修改一部分属性
+    - 只有勾选了左侧开关的参数才会被写入，其余已有属性保持不变，也不会新增其他属性
+  - `Set`：首次创建约束属性时，保证所选约束类型相关的属性都被写入
+    - 对已有约束图元同样可用
+      - 所选约束类型相关的属性会按本节点参数值重新写入，已有同名属性被覆盖
+      - 不属于所选约束类型的已有属性不会被删除，也不会被修改
+      - `constraint_name` 也会被覆盖为本节点的 `Constraint Name`
+    - 整体重设一类约束用 `Set`；只改其中几项、保留其余属性用 `Edit`
+  - `Clear Edits`、`Import Edits`：`Action` 为 `Edit`，或 `Set` 配合 `Hard` 时显示，`Set` 配合 `Glue`、`Soft` 时隐藏
+- `Constraint Properties`（约束属性）
+  - `Constraint Type`：约束类型，默认 `Glue`；本身不直接写属性，只决定下面哪些参数组显示
+    - `Glue`：胶水约束，碎块之间像粘在一起，受冲击超过强度时断开
+    - `Hard`：Bullet 硬约束，必须始终被满足的约束关系，解算器保证两个锚点始终取相同的值（`Rest Length` 非零时则保持该距离），不允许被拉开
+      - 与 `Glue`、`Soft` 的区别：`Glue` 受力超过强度就断开；`Soft` 像弹簧，允许被拉开再拉回；`Hard` 是刚性连接，适合铰链、钉死、连杆等机械结构
+      - 可带角度马达（`Angular Motor`），主动驱动相对转动
+      - **rbdconfigure节点** 的 `Pin` 类型菜单中也有 `Hard`，但被标记为 `Hard (Deprecated)`（已弃用），不建议使用
+    - `Soft`：Bullet 软约束，像弹簧
+  - `Constraint Name`：约束数据在 DOP 网络中使用的 `Data Name`，默认与约束类型同名（`Glue`），需要与 DOP 中对应约束关系的名称匹配
+  - `Degrees of Freedom`：约束影响位置、旋转还是两者，选 `Glue` 时置灰不可用，因为胶水约束是把粘住的碎块作为带复合碰撞形状的单个物体来模拟的
+    - `Position and Rotation`、`Position Only`、`Rotation Only`
+  - `Switch Constraint Type When Broken`：胶水约束被 **rbdbulletsolver节点** 打断后，是否切换为另一种约束，默认 `Disable`；本身不直接写属性，只决定下面 `Next` 开头的参数是否可用
+  - `Next Constraint Type`：约束断开后切换到的约束类型，默认 `Soft`
+  - `Next Constraint Name`：约束断开后使用的 `Data Name`，默认 `Soft`
+  - `Next Constraint Degrees of Freedom`：约束断开后新约束影响位置、旋转还是两者，默认 `Position and Rotation`
+  - `Constraint Iterations`：大于0时，覆盖约束求解器对这些约束的迭代次数，默认-1表示不覆盖
+    - 作用：部分约束需要更多迭代时，用它局部提高，而不是全局增加求解器迭代次数
+    - 哪些约束需要更多迭代：迭代求解器每次迭代只能修正一部分约束误差，修正量沿约束链逐级传递，收敛慢的情况需要更多迭代，否则结构会松垮、被拉长或抖动
+      - 链很长的结构：约束一个接一个串起来，例如长链条、绳索、许多碎块串成的细长结构，修正量要传得很远
+      - 承重的关键约束：例如悬挂重物的约束、支撑上方大量碎块的底部约束，负载大，误差修正慢
+      - 质量差别大的物体相连：例如很重的碎块连着很轻的碎块，难以同时满足两边
+      - 刚性要求高的约束：例如需要精确保持位置的 `Hard` 约束，或很硬的 `Soft` 约束
+  - `Collisions`：约束连接的两个物体之间是否碰撞，默认 `Enable`
+- `Glue`（胶水约束参数，`Constraint Type` 为 `Glue` 时显示）
+  - `Strength`：胶水的强度，默认 `10000`；值为 -1 时约束永远不会断开
+    - 右侧下拉菜单为设置方式：`Set`（直接设置）、`Scale by Attribute`（按属性缩放）、`Scale`（按系数缩放）
+  - `Strength Variance`：勾选后随机改变每条胶水的强度，默认 `0.8`
+  - `Half Life`：胶水冲量衰减一半所需的秒数，默认 `0.1`
+    - 胶水物体受到撞击时会累积冲量，该参数控制冲量衰减的快慢
+    - `Half Life` 越大，冲量攒得越多，胶水越容易断；越小，冲量很快衰减，胶水越不容易断
+      - 累积的不只是撞击，持续的接触（例如碎块静置、滑动时与地面的接触）每个解算步也会产生冲量，`Half Life` 大时这些小冲量会一直叠加，没有任何撞击也会断
+  - `Propagation Rate`：碰撞冲量沿约束网络传播的比例，默认 `1`，范围 0 到 1
+    - 解算器把撞击记录在物体（约束网络的点）上，再按约束网络传给相邻物体，最后加到约束的 `impact` 属性上
+    - `Propagation Rate` 越大，撞击的冲量传得越远，断开的胶水越多、破坏范围越大；越小，冲量集中在被撞碎块附近，破坏越局部
+  - `Propagation Iterations`：冲击传播的迭代次数，默认 `1`；小于0时使用约束网络上 `propagate_iteration` 细节属性的全局值
+    - 作用：使远处较弱的胶水先于近处较强的胶水断开；冲量每个解算步传播的距离不会超过该迭代次数对应的约束数
+    - `Propagation Iterations` 越大，冲量沿胶水链摊得越开，撞击点附近的胶水承受的冲量越小，所以断开的胶水反而可能变少
+    - 与 `Propagation Rate` 的区别和联系
+      - 区别：`Propagation Rate` 控制每一轮传出去多少（每条胶水的传播比例，0到1）；`Propagation Iterations` 控制传几轮（传多远）
+      - 联系：两者共同决定冲量的扩散结果，需要一起看
+        - `Propagation Rate` 为 `0` 时，每一轮传出去的都是0，迭代次数再大也传不出去
+        - `Propagation Rate` 越大、`Propagation Iterations` 越大，冲量扩散得越远，在碎块之间分摊得越均匀
+      - `Propagation Rate` 增大，断开的胶水增多；`Propagation Iterations` 增大，断开的胶水反而略有减少；两者调整的是冲量扩散的不同方面，表现不一定同向，要结合具体场景调试
+  - `Use VEXpressions`：勾选后用 VEX 表达式修改约束属性
+- `Soft`（软约束参数，`Constraint Type` 或 `Next Constraint Type` 为 `Soft` 时显示）
+  - `Stiffness`：让两个锚点的变换趋于一致的力的强度，默认 `10`，相当于弹簧的频率
+  - `Damping Ratio`：阻尼比，默认 `1`
+    - 0表示无阻尼；1表示刚好足以防止振荡；0到1之间允许带阻尼的振荡；大于1表示阻尼越来越大且不再振荡
+  - `Override Angular Stiffness and Damping Ratio`：线性和角度部分是否使用各自独立的 `Stiffness` 和 `Damping Ratio`
+    - 使用角度塑性时应开启，因为静止位置和朝向会各自变化，需要分别对应线性或角度刚度的变化
+    - `Angular Stiffness`：角度部分单独的刚度，默认 `10`
+    - `Angular Damping Ratio`：角度部分单独的阻尼比，默认 `1`
+- `Plasticity`（塑性）
+  - `Enable Plasticity`：是否为约束启用线性塑性
+    - 塑性的含义：约束的静止长度会逐渐调整为当前长度，使形变保留下来，不再弹回原状
+    - 永久形变：约束被拉伸后松手、稳定下来，两块之间的距离仍然没有回到原长的那部分，等于最终距离减去原长
+      - 例如原长为1，开启塑性后最终距离停在1.154，永久形变就是0.154；不开启塑性时约束像弹簧一样弹回，最终距离为1，没有永久形变
+      - 原因：约束把当前长度当成了新的静止长度，松手后拉回的目标不再是原来的长度
+    - 被拉伸的最大程度：拉伸过程中，两块之间的距离相对原长最大被拉长了多少
+      - 例如原长为1，被拉到最长时距离为1.34，最大拉伸程度就是0.34（原长的34%）
+      - 与 `Threshold` 对比：拉伸超过 `Threshold` 才会发生塑性；最大拉伸程度没有超过 `Threshold` 时，塑性始终不发生，约束完全弹回
+  - `Threshold`：触发塑性的距离阈值，默认 `0.1`
+    - `Threshold` 越大，弹性范围越大，保留的永久形变越小；超过被拉伸的最大程度时完全没有永久形变
+    - `Threshold` 越大，保留的永久形变越小；`Threshold`大于被拉伸的最大程度时，没有产生永久形变，约束完全弹回
+  - `Ratio of Current Rest Length`：阈值是约束静止长度的百分比，还是绝对距离；勾选为百分比，默认勾选
+  - `Rate`：约束静止长度向当前状态调整的速率，默认 `1`；0表示该约束不启用塑性
+    - `Rate` 越大，永久变形发生得越快、保留的形变越大；越小则变形来不及固定，大部分会弹回去
+    - `Rate` 越大，保留的永久形变越大，`Rate` 为0时完全没有塑性
+  - `Hardening`：静止长度随 `Rate` 调整时刚度的变化方式，默认 `1`；大于1刚度增大，小于1刚度减小
+    - `Hardening` 越大，约束发生永久变形后越硬、越能把物体拉回去，保留下来的永久形变越小；越小则越软，保留的永久形变越大
+  - `Angular Plasticity`（`Enable Angular Plasticity`）：是否启用角度塑性，默认 `Enable`
+  - `Angular Threshold`：触发角度塑性的角度阈值，单位为度，默认 `10`
+  - `Angular Rate`：角度塑性单独的 `Rate`，默认 `1`
+  - `Angular Hardening`：角度塑性单独的 `Hardening`，默认 `1`
+  - `Use VEXpressions`：勾选后用 VEX 表达式修改约束属性
+- `Hard`（硬约束参数，`Constraint Type` 为 `Hard` 时显示）
+  - `Constraint Force Mixing`：约束力混合，默认 `0`；控制硬约束有多"软"，值越大，约束越像海绵，受力时允许两个锚点偏离得越多，模拟越稳定
+    - 为 `0` 时：约束绝对刚性，两个锚点必须严格重合，不允许有任何偏差
+    - 调大后：允许约束被"拉开"一点，偏差的大小约等于 `Constraint Force Mixing` × 维持约束所需要的力
+      - 约束受的力越大，偏差越大；受力小，几乎没有偏差
+      - 同样的受力下，`Constraint Force Mixing` 越大，偏差越大
+    - 为什么能提高稳定性：约束要求太"死"时，求解器遇到大力、很重的物体、很长的链会很吃力，容易抖动甚至模拟爆炸；允许一点偏差后，求解器不用硬拼，模拟更平稳，代价是约束不再那么刚
+    - 类比：`0` 像用钢棒把两个物体焊死，调大像换成一根橡胶棒，越大越软
+  - `Error Reduction Parameter`：下一个模拟步修正约束误差的比例，默认 `0.2`；0时被约束物体会逐渐漂移分离，1时尝试一步修正全部误差（可能不稳定），一般推荐 0.1 到 0.8
+  - `Angular Motor`（角度马达）
+    - `Number of Motors`：启用角度马达的轴数
+    - `Axis 1`、`Axis 2`：第1、2根旋转轴在物体局部空间的方向，`Axis 2` 应与 `Axis 1` 垂直，第3根轴由两者叉乘得到
+    - `Relative Angular Velocity`：绕每根启用的旋转轴的目标相对角速度
+    - `Max Impulse`：解算器为达到目标角速度可施加的最大冲量，控制马达的强度
+    - `Clear Edits`、`Import Edits`：清除、导入对硬约束马达的逐个编辑；`Guide Scale` 大于0时可在视口选中约束，用滚轮编辑马达的 `Relative Angular Velocity` 和 `Max Impulse`
 
 **booleanfracture节点**
 

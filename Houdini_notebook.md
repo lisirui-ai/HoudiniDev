@@ -3658,7 +3658,10 @@ k帧
     - `Group`：受阻力影响的刚体组，即输入几何体上的点组，每个点代表一个碎块；留空表示所有碎块都受阻力影响
     - `Air Resistance`：空气阻力系数
     - `Wind Velocity`：风速
-    - `Ignore Mass`：忽略质量
+    - `Ignore Mass`：忽略质量，勾选后阻力的效果与碎块的质量无关
+      - 原理：阻力以力的形式存储，加速度等于力除以质量，质量大的碎块被同样的阻力减速得更慢；勾选后把阻力乘以碎块的`mass`，解算时再被除掉，相当于每个碎块都得到相同的减速效果
+      - 影响：勾选后大碎块和小碎块在阻力下以同样的速度运动，更容易控制；不勾选则大碎块几乎不受阻力影响，小碎块被明显减速
+      - 空气阻力系数也会受同样的影响
     - `Use VEXpressions`：使用 VEX 表达式
   - `Drag Spin`：旋转阻力
     - `Group`：受影响的刚体组
@@ -3666,13 +3669,16 @@ k帧
     - `Goal Axis`：目标旋转轴
     - `Goal Spin Speed`：目标旋转速度
     - `Axis Relative to Particle's Orientation`：旋转轴是否相对刚体自身朝向
+      - 不勾选：`Goal Axis`在世界空间中，例如`0, 1, 0`永远指向世界的上方
+      - 勾选：`Goal Axis`会被转到刚体自己的坐标系中，例如`0, 1, 0`指的是刚体自己的“上方”，刚体翻转后这个轴也跟着转
     - `Use VEXpressions`：使用 VEX 表达式
-- `Constraints`页：约束的断裂条件
+- `Constraints`：约束的断裂条件
   - `Break Thresholds`：开关，启用后设置约束的断裂阈值
-    - `Number of Breaks`：断裂阶段的数量，用“+”“-”按钮增减，`Clear`清空，每个阶段一个子页（截图中为 1）
-    - `constraints`选项
-    - `Constraint Names`：本阶段作用的约束名称，截图中为`Soft Hard`；胶水约束（`Glue`）会在冲量超过强度时隐式断裂，不需要在这里列出
-    - `Group`：限定图元组
+    - `Number of Breaks`：断裂阶段的数量，用“+”“-”按钮增减，`Clear`清空，每个阶段一个子页
+    - `Constraint Names`：本阶段作用的约束名称，默认`Soft Hard`；胶水约束（`Glue`）会在冲量超过强度时隐式断裂，不需要在这里列出
+    - `Group`：限定图元组，即只对第二个输入端（约束几何体）中属于该图元组的约束计算断裂；留空表示不限制，所有符合`Constraint Names`的约束都参与
+      - 与`Constraint Names`同时生效：先按名称筛选，再按图元组筛选
+      - 用途：同一类约束想分区域使用不同的断裂条件时，先给约束建图元组，再在不同阶段分别指定
     - `Mode`：约束断裂后的处理方式，`Delete Constraints`删除约束，`Switch to Next Constraint`切换为下一个约束
     - `At Frame`：在指定帧强制触发断裂
     - `From Frame`：从指定帧开始才检测断裂
@@ -3682,7 +3688,7 @@ k帧
     - `Distance Threshold`：距离阈值
       - `distancethreshold`控制`constraintnames`对应的约束的作用范围
         - 面与`constraintnames`对应的约束的面的间距超过这个阈值后，约束消失
-        - 官方文档说明：距离是约束两端锚点之间的距离，实际比较时要先减去约束的`restlength`；想用相对静止长度的比例，可把缩放方式设为相对属性`restlength`，阈值取 1+比例系数
+        - 距离是约束两端锚点之间的距离，实际比较时要先减去约束的`restlength`；想用相对静止长度的比例，需把`Distance Threshold`右侧的缩放菜单从`No Scaling`改为`Scale by Attribute`，再在出现的`Distance Attribute`中填`restlength`，阈值取 1+比例系数
     - `Force Threshold`：力阈值，约束受力超过后断裂，对胶水约束可乘以其`strength`来按强度的比例设置，阈值取 1+比例系数
     - `Impact Threshold`：冲量阈值
     - `Torque Threshold`：扭矩阈值

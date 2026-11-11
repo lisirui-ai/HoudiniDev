@@ -3600,7 +3600,7 @@ k帧
     - `Guide Sim`：第五个输入端，引导模拟，用于“引导模拟”（Guided Simulation）工作流，由低精度的引导模拟驱动高精度的模拟
 - 输出端（共 4 个）
   - `Geometry`：第一个输出端，模拟后的刚体模型
-  - `Constraint Geometry`：第二个输出端，模拟后的约束（约束断裂后对应的线会被删除或切换为下一个约束，可用于统计破坏进度）
+  - `Constraint Geometry`：第二个输出端，模拟后的约束（约束断裂后对应的线会被删除或切换为下一个约束）
   - `Proxy Geometry`：第三个输出端，模拟后的简模
   - `Simulation Points`：第四个输出端，模拟点，可通过`Output`页的`Transfer Attributes`把属性传递到这里
 - `Reset Simulation`：重置模拟，清除所有已缓存的模拟结果
@@ -3629,32 +3629,33 @@ k帧
     - `Bounce`：弹性，碰撞后反弹的程度
     - `Friction`：摩擦力
   - `Override Attributes`
-    - `Attributes`：勾选后，列表中指定的点属性每一帧都会从输入几何体复制到模拟中的刚体上，可以在 SOP 层给这些属性设置动画，例如让`active`在某一帧变化来激活碎块；UI 中默认值为`active animated deforming __pin __guide_* bullet_collision_margin`
+    - `Attributes`：勾选后，列表中指定的点属性每一帧都会从输入几何体复制到模拟中的刚体上，可以在 SOP 层给这些属性设置动画，例如让`active`在某一帧变化来激活碎块；UI 中默认值为`active animated deforming __pin __guide_*`
       - 列表只决定属性是否每一帧都重新从输入复制，不影响初始值：刚体创建时，输入几何体上已有的属性值会作为初始值，不管它在不在列表中
     - `Override Activation with Min Activation Impulse`：用最小激活冲量覆盖激活状态，被碰撞的冲量大于该值时才激活，用来控制被动刚体何时开始运动
   - `Sleeping`
     - `Linear Threshold`：线速度低于该值时可进入休眠
     - `Angular Threshold`：角速度低于该值时可进入休眠
-- `Collision`页：碰撞体与地面
-  - `collision`选项
+- `Collision`：碰撞体与地面
+  - 这里的碰撞体指第四个输入端连入的被动碰撞刚体，即`active`为0、不受力、只用来挡住其他刚体的物体（如墙、障碍物），不是第一个输入端里参与解算的碎块
   - `Collision Geometry`：开关，启用后第四个输入端的碰撞体参与模拟
     - `Collision Type`：碰撞体类型，`Static`静止、`Animated`有动画（刚体整体变换）、`Deforming`变形（点级别动画）
     - `Collision Shape`：碰撞形状
     - `Collision Padding`：碰撞外扩
-    - `Bounce`：碰撞体的弹性（截图中为 0.5）
+    - `Bounce`：碰撞体的弹性
     - `Friction`：碰撞体的摩擦力
-    - `Override Attributes`：覆盖碰撞体的属性
+    - `Override Attributes`：勾选后，`Attributes`中指定的点属性每一帧都会从第四个输入端的几何体复制到模拟中的碰撞体上，覆盖碰撞体上上一帧的值
+      - 作用：可以在 SOP 层给这些属性设置动画，例如让碰撞体的`active`在某一帧变化
+      - 与`Properties`页的`Override Attributes`相同，区别是读取来源是第四个输入端，不是第一个或第三个输入端；默认值为`active animated deforming`
   - `Ground Collision`：地面碰撞
-    - `groundcollision`添加碰撞地面
-      - 对应 UI 中的`Ground Type`，菜单项：`None`没有地面、`Ground Plane`无限大的平面、`Height Field`使用高度场作为地面
+    - `Ground Type`：`None`没有地面、`Ground Plane`无限大的平面、`Height Field`使用高度场作为地面
     - `Position`、`Rotation`：地面的位置和旋转（`Ground Plane`）
     - `Height Field`：高度场的 SOP 路径，`Use Deforming Geometry`表示高度场是否随时间变化
     - `Bounce`、`Friction`：地面的弹性与摩擦力
     - `Dynamic Friction Scale`：动摩擦力的缩放系数
-- `Forces`页：受力
+- `Forces`：受力
   - `Gravity`：重力开关，`Force`是重力加速度，默认`0, -9.80665, 0`
   - `Drag`：空气阻力
-    - `Group`：受阻力影响的刚体组
+    - `Group`：受阻力影响的刚体组，即输入几何体上的点组，每个点代表一个碎块；留空表示所有碎块都受阻力影响
     - `Air Resistance`：空气阻力系数
     - `Wind Velocity`：风速
     - `Ignore Mass`：忽略质量

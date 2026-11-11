@@ -3586,34 +3586,248 @@ k帧
 
 **rbdbulletsolver节点**
 
-- 第一个输入端是模型，第二个输入端是约束，第三个输入端是简模，第四个输入端是地面/被动碰撞刚体
-  - 多个刚体都要输出动画时，需先用 merge 合并后再连入第一个输入端，因为`rbdbulletsolver`只从第一个输入端输出动画
-- 前接**rbdconfigure节点**
-- `collision`选项
-  - `groundcollision`添加碰撞地面
-- `visualization`选项
-  - 勾选`showcollisionshape`显示碰撞刚体的外形
-  - 勾选`showactive`显示参与碰撞的刚体
-  - 勾选`ground`显示地面
-  - 勾选`constraintgeometry`显示约束
-    - 勾选`showguides`
-  - 勾选`showgeometry`显示被动碰撞刚体
-    - 当第四个输入端连`active`为0的刚体即被动碰撞刚体时，显示被动碰撞刚体
-- `advanced`选项
-  - `glue`设置胶水约束
-    - 胶水约束相当于钢筋
-    - `dataname`要与s`@constraint_name`一致
-  - `soft`设置软约束
-    - 软约束相当于钢筋的粘连效果
-- `constraints`选项
-  - `distancethreshold`控制`constraintnames`对应的约束的作用范围
-    - 面与`constraintnames`对应的约束的面的间距超过这个阈值后，约束消失
-  - `anglethreshold`控制`constraintnames`对应的约束的作用范围
-    - 面与`constraintnames`对应的约束的面的角度超过这个阈值后，约束消失
-  - 勾选`usevexsnippet`开启`vex`控制约束，针对于当前页的约束
-    - `vex`中该约束对应的线编号是0
-  - `vexsnippetsoppath`指定辅助`sop`对象
-    - `vex`中对应的线编号是2
+- 节点作用
+  - 对 Bullet 刚体解算的高层封装：接收破碎后的刚体、约束、简模、碰撞体，在内部的 DOP 网络中完成 Bullet 刚体动力学模拟，并把模拟结果（刚体的位置和旋转、约束的状态、简模、模拟点）输出为 SOP 几何体
+  - 前接**rbdconfigure节点**
+  - 节点内部是一个 DOP 网络，可以双击进入（见本节最后的“内层”）
+- 输入端（共 5 个）
+  - 第一个输入端是模型，第二个输入端是约束，第三个输入端是简模，第四个输入端是地面/被动碰撞刚体
+    - `Geometry`：第一个输入端，参与模拟的刚体模型（带有`name`、`active`、`mass`等属性，通常由**rbdconfigure节点**输出）
+      - 多个刚体都要输出动画时，需先用 merge 合并后再连入第一个输入端，因为`rbdbulletsolver`只从第一个输入端输出动画
+    - `Constraint Geometry`：第二个输入端，约束，由 2 个点的折线构成，两端点通过点属性`name`指向被约束的刚体，图元属性`constraint_name`决定约束类型（如`Glue`、`Soft`、`Hard`）
+    - `Proxy Geometry`：第三个输入端，简模，即碰撞计算所使用的低模，输入后碰撞计算使用简模，模型只负责跟随显示
+    - `Collision Geometry`：第四个输入端，地面/被动碰撞刚体，即不参与受力解算的碰撞体（如障碍物、墙）
+    - `Guide Sim`：第五个输入端，引导模拟，用于“引导模拟”（Guided Simulation）工作流，由低精度的引导模拟驱动高精度的模拟
+- 输出端（共 4 个）
+  - `Geometry`：第一个输出端，模拟后的刚体模型
+  - `Constraint Geometry`：第二个输出端，模拟后的约束（约束断裂后对应的线会被删除或切换为下一个约束，可用于统计破坏进度）
+  - `Proxy Geometry`：第三个输出端，模拟后的简模
+  - `Simulation Points`：第四个输出端，模拟点，可通过`Output`页的`Transfer Attributes`把属性传递到这里
+  - 视口中可以通过热键（1/2/3/4）在这几个输出之间切换查看
+- 约定
+  - 点属性`name`与图元属性`name`的取值必须保持一致，否则刚体与约束、简模无法对应
+  - 内层的碰撞忽略组`collisionignore`中使用的对象名：`rbd_object`、`collision_object`、`groundplane`
+  - 内层的`OUT_IMPACT_POINTS`空节点存放碰撞点（冲击点）数据
+
+> 以下参数按节点 UI 中的标签页顺序列出：`Setup`、`Properties`、`Collision`、`Forces`、`Constraints`、`Guide`、`Visualization`、`Advanced`、`Output`
+
+- 标签页上方
+  - `Reset Simulation`：重置模拟，清除所有已缓存的模拟结果
+  - `Start Frame`：模拟开始的帧，此帧输出的是初始状态，不进行模拟
+- `Setup`页：模拟的总体设置
+  - `General`
+    - `Bullet World Scale`：缩放 Bullet 的世界尺度，对与尺度相关的属性（如距离、速度、质量等）一起缩放，场景尺寸过大或过小导致模拟不稳定时使用
+    - `Time Scale`：时间缩放，物理时间相对于时间轴的倍率，2 表示物体下落速度加快一倍，0.1 表示放慢到十分之一
+  - `Simulation`
+    - `Global Substeps`：整个 DOP 网络解算的子步数
+    - `Bullet Substeps`：Bullet 内部每个模拟步中的子步数，提高后分辨率更高，可改善高速物体穿透（截图中为 10）
+    - `Constraint Iterations`：约束解算的迭代次数，次数越多约束和碰撞越精确，耗时越长（截图中为 10）
+    - `Solve on Creation Frame`：是否在创建帧也进行解算
+    - `Emit RBDs`：模拟过程中发射新刚体，发射出的刚体`name`会追加后缀`_`+int(帧号*100)
+    - `Replicate RBDs`：复制刚体，复制出的刚体`name`会追加后缀`_r`+序号
+    - `Cache Memory (MB)`：模拟缓存占用的内存上限，单位 MB（截图中为 5000）
+- `Properties`页：刚体本身的物理属性
+  - `Pieces`
+    - `Collision Padding`：碰撞外扩，碰撞形状向外扩出的距离，提高稳定性但碎块之间会有缝隙（截图中为 0.02）
+  - `Physical`
+    - `Density`：密度，用于从体积计算质量（截图中为 1000）
+    - `Rotational Stiffness`：旋转刚度，值越大越不容易旋转
+    - `Bounce`：弹性，碰撞后反弹的程度（截图中为 0.25）
+    - `Friction`：摩擦力（截图中为 1）
+  - `Override Attributes`
+    - `Attributes`：指定使用节点上的参数覆盖输入几何体上哪些同名属性，默认值为`active animated deforming __pin __guide_*`
+    - `Override Activation with Min Activation Impulse`：用最小激活冲量覆盖激活状态，被碰撞的冲量大于该值时才激活，用来控制被动刚体何时开始运动
+  - `Sleeping`
+    - `Linear Threshold`：线速度低于该值时可进入休眠
+    - `Angular Threshold`：角速度低于该值时可进入休眠
+- `Collision`页：碰撞体与地面
+  - `collision`选项
+  - `Collision Geometry`：开关，启用后第四个输入端的碰撞体参与模拟
+    - `Collision Type`：碰撞体类型，`Static`静止、`Animated`有动画（刚体整体变换）、`Deforming`变形（点级别动画）
+    - `Collision Shape`：碰撞形状
+    - `Collision Padding`：碰撞外扩
+    - `Bounce`：碰撞体的弹性（截图中为 0.5）
+    - `Friction`：碰撞体的摩擦力
+    - `Override Attributes`：覆盖碰撞体的属性
+  - `Ground Collision`：地面碰撞
+    - `groundcollision`添加碰撞地面
+      - 对应 UI 中的`Ground Type`，菜单项：`None`没有地面、`Ground Plane`无限大的平面、`Height Field`使用高度场作为地面
+    - `Position`、`Rotation`：地面的位置和旋转（`Ground Plane`）
+    - `Height Field`：高度场的 SOP 路径，`Use Deforming Geometry`表示高度场是否随时间变化
+    - `Bounce`、`Friction`：地面的弹性与摩擦力
+    - `Dynamic Friction Scale`：动摩擦力的缩放系数
+- `Forces`页：受力
+  - `Gravity`：重力开关，`Force`是重力加速度，默认`0, -9.80665, 0`
+  - `Drag`：空气阻力
+    - `Group`：受阻力影响的刚体组
+    - `Air Resistance`：空气阻力系数
+    - `Wind Velocity`：风速
+    - `Ignore Mass`：忽略质量
+    - `Use VEXpressions`：使用 VEX 表达式
+  - `Drag Spin`：旋转阻力
+    - `Group`：受影响的刚体组
+    - `Spin Resistance`：旋转阻力系数
+    - `Goal Axis`：目标旋转轴
+    - `Goal Spin Speed`：目标旋转速度
+    - `Axis Relative to Particle's Orientation`：旋转轴是否相对刚体自身朝向
+    - `Use VEXpressions`：使用 VEX 表达式
+- `Constraints`页：约束的断裂条件
+  - `Break Thresholds`：开关，启用后设置约束的断裂阈值
+    - `Number of Breaks`：断裂阶段的数量，用“+”“-”按钮增减，`Clear`清空，每个阶段一个子页（截图中为 1）
+    - `constraints`选项
+    - `Constraint Names`：本阶段作用的约束名称，截图中为`Soft Hard`；胶水约束（`Glue`）会在冲量超过强度时隐式断裂，不需要在这里列出
+    - `Group`：限定图元组
+    - `Mode`：约束断裂后的处理方式，`Delete Constraints`删除约束，`Switch to Next Constraint`切换为下一个约束
+    - `At Frame`：在指定帧强制触发断裂
+    - `From Frame`：从指定帧开始才检测断裂
+    - `Angle Threshold`：角度阈值
+      - `anglethreshold`控制`constraintnames`对应的约束的作用范围
+        - 面与`constraintnames`对应的约束的面的角度超过这个阈值后，约束消失
+    - `Distance Threshold`：距离阈值
+      - `distancethreshold`控制`constraintnames`对应的约束的作用范围
+        - 面与`constraintnames`对应的约束的面的间距超过这个阈值后，约束消失
+        - 官方文档说明：距离是约束两端锚点之间的距离，实际比较时要先减去约束的`restlength`；想用相对静止长度的比例，可把缩放方式设为相对属性`restlength`，阈值取 1+比例系数
+    - `Force Threshold`：力阈值，约束受力超过后断裂，对胶水约束可乘以其`strength`来按强度的比例设置，阈值取 1+比例系数
+    - `Impact Threshold`：冲量阈值
+    - `Torque Threshold`：扭矩阈值
+    - `Plastic Flow Threshold`：塑性流阈值，仅对启用了塑性的软约束有意义
+    - `Angular Plastic Flow Threshold`：角度塑性流阈值
+    - 上面每个阈值右侧的缩放菜单（截图中为`No Scaling`）决定阈值是否按某个图元属性缩放
+    - `Use VEX Snippet`
+      - 勾选`usevexsnippet`开启`vex`控制约束，针对于当前页的约束
+        - `vex`中该约束对应的线编号是0
+    - `VEX Snippet SOP Path`
+      - `vexsnippetsoppath`指定辅助`sop`对象
+        - `vex`中对应的线编号是2
+  - `Override Attributes`
+    - `Enable Attribute Updates from SOPs`：允许每个时间步从 SOP 更新约束的属性
+    - `Attributes`：要更新的属性
+    - `Group`：限定图元组
+    - `Export Broken Constraints`：把已断裂的约束放入图元组`broken`导出
+- `Guide`页：引导模拟
+  - `Enable Guides`：启用引导
+  - `Guide Method`：引导方式，`Velocity`速度、`Target Velocity`目标速度
+  - `Guide Blending`：引导混合
+    - `Blend`、`Positions`、`Rotations`：整体混合比例、位置混合、旋转混合
+  - `Release Thresholds`：释放阈值，超过后刚体脱离引导
+    - `Instantaneous`：瞬时的`Linear`线速度、`Angular`角速度、`Distance`距离
+    - `Accumulated`：累积的`Linear`、`Angular`、`Distance`
+  - `Remove Intra-Guide Constraints`：移除同一引导块内部的约束，`Constraint Group`指定约束组
+  - `Post-Guide VEXpression`：引导之后执行的 VEX 表达式，`VEXpression Group`默认`__guided`，即只作用于被引导的刚体
+- `Visualization`页：视口显示
+  - `visualization`选项
+  - `Visualize Geometries`：总开关
+    - `Geometry`
+      - 勾选`showcollisionshape`显示碰撞刚体的外形
+        - 对应 UI 中的`Show Collision Shape`
+      - 勾选`showactive`显示参与碰撞的刚体
+        - 对应 UI 中的`Show Active (Green)`，活动刚体显示为绿色
+      - `Show Sleeping (Red)`：休眠中的刚体显示为红色
+    - `Ground`
+      - 勾选`ground`显示地面
+        - 对应 UI 中的`Show Ground as Wireframe`，也可显示为实体（Shaded）
+    - `Collision Geometry`
+      - 勾选`showgeometry`显示被动碰撞刚体
+        - 当第四个输入端连`active`为0的刚体即被动碰撞刚体时，显示被动碰撞刚体
+      - `Show Collision Shape`、`Color`：显示被动碰撞体的碰撞形状及其颜色
+    - `Constraint Geometry`
+      - 勾选`constraintgeometry`显示约束
+        - 勾选`showguides`
+          - 对应 UI 中的`Show Guides`，显示约束的引导几何体，勾选后可设置`Show Object Links`（显示约束与刚体的连线）和`Guide Radius`（引导球半径）
+      - `False Color Mode`：约束伪彩色，菜单项：`None`、`Angle`、`Angular Plastic Flow`、`Distance`、`Force`、`Impact`、`Plastic Flow`、`Torque`、`Constraint Name`、`Custom`
+    - `Guide`
+      - `Show Guided (Blue)`：被引导的刚体显示为蓝色
+      - `Show Guide Capture`、`Guide Capture Frame`、`Guide Capture Blend`：显示引导捕获及其帧、混合
+      - `Show Guide Neighbor Count`：显示引导邻居数量
+    - `Impact Data`：显示碰撞冲量数据
+  - `Inspector`：视口检查器，选中刚体后在视口中显示属性值
+    - `Attributes`：要显示的属性，默认`* ^P ^pivot ^rest ^N ^scale ^orient ^xform ^path`
+    - `Font Size`：字号
+    - `Float Precision`：浮点数精度
+- `Advanced`页：高级设置
+  - `advanced`选项
+  - `Bullet Solver`
+    - `Sleeping Time`：速度低于休眠阈值的持续时间超过该值后，刚体才进入休眠（要等相邻刚体和相连约束的刚体也满足条件）
+    - `Contact Breaking Threshold`：缓存的接触点超过该距离后被丢弃，也影响包围盒外扩，按场景尺度调整可提升性能
+    - `Use Implicit Drag`：使用更精确的隐式阻尼来施加阻力，而不是显式的力
+    - `Split Impulse`：分离冲量，让相互穿插的物体分开时不增加速度，避免物体爆炸式飞散，代价是堆叠稳定性略降
+    - `Penetration Threshold`：穿插深度超过该距离（为负数）时才启用分离冲量
+    - `Split Impulse ERP`：启用分离冲量时覆盖接触约束的误差修正率
+  - `Constraint Solver`
+    - `Constraint Solver`：约束解算器，`Graph Coloring`适合大而少的“岛”（如整栋楼倒塌），`Islands`适合多而小的“岛”
+    - `Solve Tolerance`：解算容差，足够接近解时提前结束迭代，越大越快但越不精确
+    - `Constraint Force Mixing`：接触约束的 CFM，越大接触越软越稳定
+    - `Error Reduction`：接触约束的 ERP，下一步修正多少比例的误差，推荐 0.1~0.8
+    - `Randomize Constraint Order`：每次迭代前随机打乱约束顺序，可能提高稳定性
+    - `Ensure Islands are Independent`：保证一个岛的变化不影响其他互不接触的岛的结果
+  - `Emission Solver`
+    - `Emission Cache Memory`：发射解算器的缓存内存
+  - `Collision`
+    - `Solve on Creation Frame`：同`Setup`页的同名参数
+  - `Constraints`
+    - `Overwrite with SOP`：使用 SOP 输入的约束属性覆盖下面各约束类型的参数
+    - 各约束类型的参数右侧都有一个菜单，决定参数如何设置：`Set Initial`只在数据创建时设置一次、`Set Always`每个时间步都设置、`Set Never`从不设置
+    - `Glue`：设置胶水约束
+      - `glue`设置胶水约束
+        - 胶水约束相当于钢筋
+        - `dataname`要与s`@constraint_name`一致
+      - `Data Name`、`Strength`、`Half-Life`、`Propagation Rate`、`Propagation Iterations`
+        - 含义与**rbdconstraintproperties节点**的`Glue`页同名参数一致
+        - 官方文档：胶水约束只会被撞击产生的冲量打断；`Strength`为 -1 时永不断裂
+    - `Soft`：设置软约束
+      - `soft`设置软约束
+        - 软约束相当于钢筋的粘连效果
+      - `Data Name`、`Stiffness`、`Damping Ratio`、`Override Angular Stiffness and Damping Ratio`、`Rest Length`、`Constraint Iterations`、`Disable Collisions`
+        - `Rest Length`：静止长度，约束的两个锚点希望保持的距离，非 0 时两端会被推开
+        - `Constraint Iterations`：该约束单独使用的迭代次数，-1 表示使用全局的`Constraint Iterations`
+        - `Disable Collisions`：被约束的两个刚体之间不发生碰撞
+      - `Plasticity`：塑性，含义见**rbdconstraintproperties节点**
+      - `Guide Scale`：约束引导几何体的显示大小
+    - `Hard`：硬约束
+      - `Data Name`、`Constraint Force Mixing`、`Error Reduction`、`Rest Length`、`Constraint Iterations`、`Disable Collisions`、`Guide Scale`
+      - `Angular Motor`：角马达，`Number of Motors`设置马达数量，每个马达有`Axis`轴向、`Relative Angular Velocity`相对角速度、`Max Impulse`最大冲量
+    - `ConeTwist`：圆锥扭转约束，在一个椭圆锥范围内允许旋转，常用于人体肩、髋关节等
+      - `Enable Soft Constraint`：把位置限制、旋转限制、马达目标都当作软约束，各自有刚度和阻尼比
+      - `Rotation Limits`：旋转限制
+        - `Max Twist`最大扭转角度，`Max Out Rotation`左右方向最大旋转角度，`Max Up Rotation`上下方向最大旋转角度
+        - `Softness`：角度超过 softness 乘最大角度后约束开始起作用，越小边界越软
+        - `Allow Initial Violation of Limits`：允许初始就超出限制，避免模拟开始时突然运动
+        - `Angular Limit Stiffness`、`Angular Limit Damping Ratio`：旋转限制的刚度、阻尼比
+      - `Translation Limits`：平移限制
+        - `Twist/Out/Up Translation Range`：沿三个目标轴的最小、最大平移范围
+        - `Position Limit Stiffness`、`Position Limit Damping Ratio`：位置限制的刚度、阻尼比
+      - `Anchors`：锚点轴向
+        - `Goal Twist Axis`、`Goal Up Axis`：目标侧的扭转轴（默认 X 轴）和上轴（默认 Y 轴，需垂直于扭转轴）
+        - `Constrained Twist Axis`、`Constrained Up Axis`：被约束刚体的初始扭转轴和上轴
+      - `Motor`：马达，引导被约束刚体朝目标姿态和位置运动
+        - `Target Current Pose`、`Target Rotation`、`Target Position`、`Target Angular Stiffness`、`Target Angular Damping Ratio`、`Target Position Stiffness`、`Target Position Damping Ratio` 等
+    - `Slider`：滑动约束，沿一条铰链轴限制平移和旋转
+      - `Max Rotation`：绕铰链轴的最大旋转角度（度）
+      - `Slide Range`：可滑动的范围
+      - `Axes`：`Goal Hinge Axis`、`Goal Up Axis`、`Constrained Hinge Axis`、`Constrained Up Axis`
+      - `Hinge`：超出铰链轴方向的限制时的约束行为，`Position Softness/Damping/CFM`、`Angle Softness/Damping/CFM`
+      - `Orthogonal`：在铰链轴以外的方向发生位移或旋转时的约束行为，`Position Softness/CFM`、`Angle Softness/CFM`
+  - `Guide`
+    - `Use Pre-Configured Setup`：使用由 RBD Guide Setup SOP 预先配置的引导
+    - `Group`、`Start Frame`、`End Frame`、`Release on End Frame`：引导作用的刚体组、起止帧、到结束帧时是否释放
+    - `Mode`：`Near Point`或`Near Surface`，按最近点或最近表面确定引导目标
+    - `Max Distance`、`Strength`：最大距离、引导强度
+    - `Distance to Strength`：距离到强度的映射（`Distance`、`Strength Multiplier`）
+    - `Blend`、`Transfer Attributes`、`Use VEXpressions`：混合、传递属性、使用 VEX 表达式
+    - `Guided Neighbors`：被引导刚体的邻居设置，`Points per Area`、`Search Radius`、`Max Search Points`、`Max Connections`、`Ensure Neighbor`、`Minimum Neighbors`
+  - `Checkpoints`：检查点，定期把模拟状态保存到磁盘，方便中途恢复
+- `Output`页：输出设置
+  - `Impact Data`：碰撞冲击数据
+    - `Time Threshold`、`Impact Threshold`、`Distance Threshold`：筛选冲击数据的时间、冲量、距离阈值
+    - `Add Impact Analysis`：添加冲击分析
+    - `Force Impact Object`：强制输出冲击对象
+    - `Fetch Impacts`：获取冲击数据
+  - `Attributes`
+    - `Age Attribute`：年龄属性
+  - `Attribute Transfer`
+    - `Transfer Attributes`：要传递的属性，默认`age w`
+    - `Transfer to Geometry`：传递到第一个输出端的模型
+    - `Transfer to Proxy Geometry`：传递到简模
 - 内层
   - **presolve节点**
     - 前连**popwrangle节点**

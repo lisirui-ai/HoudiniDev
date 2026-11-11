@@ -3592,10 +3592,10 @@ k帧
   - 节点内部是一个 DOP 网络，可以双击进入（见本节最后的“内层”）
 - 输入端（共 5 个）
   - 第一个输入端是模型，第二个输入端是约束，第三个输入端是简模，第四个输入端是地面/被动碰撞刚体
-    - `Geometry`：第一个输入端，参与模拟的刚体模型（带有`name`、`active`、`mass`等属性，通常由**rbdconfigure节点**输出）
+    - `Geometry`：第一个输入端，参与模拟的刚体模型（实际只带有两个点属性：字符串类型的`name`和位置`P`，通常由**rbdconfigure节点**输出）
       - 多个刚体都要输出动画时，需先用 merge 合并后再连入第一个输入端，因为`rbdbulletsolver`只从第一个输入端输出动画
     - `Constraint Geometry`：第二个输入端，约束，由 2 个点的折线构成，两端点通过点属性`name`指向被约束的刚体，图元属性`constraint_name`决定约束类型（如`Glue`、`Soft`、`Hard`）
-    - `Proxy Geometry`：第三个输入端，简模，即碰撞计算所使用的低模，输入后碰撞计算使用简模，模型只负责跟随显示
+    - `Proxy Geometry`：第三个输入端，简模，即实际解算所使用的几何体，提供解算需要的全部属性，第一个输入端的模型只负责跟随显示
     - `Collision Geometry`：第四个输入端，地面/被动碰撞刚体，即不参与受力解算的碰撞体（如障碍物、墙）
     - `Guide Sim`：第五个输入端，引导模拟，用于“引导模拟”（Guided Simulation）工作流，由低精度的引导模拟驱动高精度的模拟
 - 输出端（共 4 个）
@@ -3603,39 +3603,34 @@ k帧
   - `Constraint Geometry`：第二个输出端，模拟后的约束（约束断裂后对应的线会被删除或切换为下一个约束，可用于统计破坏进度）
   - `Proxy Geometry`：第三个输出端，模拟后的简模
   - `Simulation Points`：第四个输出端，模拟点，可通过`Output`页的`Transfer Attributes`把属性传递到这里
-  - 视口中可以通过热键（1/2/3/4）在这几个输出之间切换查看
-- 约定
-  - 点属性`name`与图元属性`name`的取值必须保持一致，否则刚体与约束、简模无法对应
-  - 内层的碰撞忽略组`collisionignore`中使用的对象名：`rbd_object`、`collision_object`、`groundplane`
-  - 内层的`OUT_IMPACT_POINTS`空节点存放碰撞点（冲击点）数据
-
-> 以下参数按节点 UI 中的标签页顺序列出：`Setup`、`Properties`、`Collision`、`Forces`、`Constraints`、`Guide`、`Visualization`、`Advanced`、`Output`
-
-- 标签页上方
-  - `Reset Simulation`：重置模拟，清除所有已缓存的模拟结果
-  - `Start Frame`：模拟开始的帧，此帧输出的是初始状态，不进行模拟
-- `Setup`页：模拟的总体设置
+- `Reset Simulation`：重置模拟，清除所有已缓存的模拟结果
+- `Start Frame`：模拟开始的帧，该帧及之前的帧都不进行模拟，输出的都是输入的初始状态，从下一帧起才开始解算
+- `Setup`：模拟的总体设置
   - `General`
     - `Bullet World Scale`：缩放 Bullet 的世界尺度，对与尺度相关的属性（如距离、速度、质量等）一起缩放，场景尺寸过大或过小导致模拟不稳定时使用
     - `Time Scale`：时间缩放，物理时间相对于时间轴的倍率，2 表示物体下落速度加快一倍，0.1 表示放慢到十分之一
   - `Simulation`
     - `Global Substeps`：整个 DOP 网络解算的子步数
-    - `Bullet Substeps`：Bullet 内部每个模拟步中的子步数，提高后分辨率更高，可改善高速物体穿透（截图中为 10）
-    - `Constraint Iterations`：约束解算的迭代次数，次数越多约束和碰撞越精确，耗时越长（截图中为 10）
+    - `Bullet Substeps`：Bullet 内部每个模拟步中的子步数，提高后分辨率更高，可改善高速物体穿透
+    - `Constraint Iterations`：约束解算的迭代次数，次数越多约束和碰撞越精确，耗时越长
     - `Solve on Creation Frame`：是否在创建帧也进行解算
     - `Emit RBDs`：模拟过程中发射新刚体，发射出的刚体`name`会追加后缀`_`+int(帧号*100)
     - `Replicate RBDs`：复制刚体，复制出的刚体`name`会追加后缀`_r`+序号
     - `Cache Memory (MB)`：模拟缓存占用的内存上限，单位 MB（截图中为 5000）
-- `Properties`页：刚体本身的物理属性
+- `Properties`：刚体本身的物理属性
   - `Pieces`
-    - `Collision Padding`：碰撞外扩，碰撞形状向外扩出的距离，提高稳定性但碎块之间会有缝隙（截图中为 0.02）
+    - `Collision Padding`：碰撞外扩，碰撞形状向外扩出的距离，提高稳定性但碎块之间会有缝隙
+      - 与**rbdconfigure节点**的`Collision Padding`对应同一个属性`bullet_collision_margin`，默认值都是0.02
+      - 碎块上已有`bullet_collision_margin`属性时，以属性的值为准，此处的值被覆盖
+        - 与`Override Attributes`的`Attributes`列表无关
   - `Physical`
-    - `Density`：密度，用于从体积计算质量（截图中为 1000）
+    - `Density`：密度，用于从体积计算质量
     - `Rotational Stiffness`：旋转刚度，值越大越不容易旋转
-    - `Bounce`：弹性，碰撞后反弹的程度（截图中为 0.25）
-    - `Friction`：摩擦力（截图中为 1）
+    - `Bounce`：弹性，碰撞后反弹的程度
+    - `Friction`：摩擦力
   - `Override Attributes`
-    - `Attributes`：指定使用节点上的参数覆盖输入几何体上哪些同名属性，默认值为`active animated deforming __pin __guide_*`
+    - `Attributes`：勾选后，列表中指定的点属性每一帧都会从输入几何体复制到模拟中的刚体上，可以在 SOP 层给这些属性设置动画，例如让`active`在某一帧变化来激活碎块；UI 中默认值为`active animated deforming __pin __guide_* bullet_collision_margin`
+      - 列表只决定属性是否每一帧都重新从输入复制，不影响初始值：刚体创建时，输入几何体上已有的属性值会作为初始值，不管它在不在列表中
     - `Override Activation with Min Activation Impulse`：用最小激活冲量覆盖激活状态，被碰撞的冲量大于该值时才激活，用来控制被动刚体何时开始运动
   - `Sleeping`
     - `Linear Threshold`：线速度低于该值时可进入休眠
@@ -3830,6 +3825,7 @@ k帧
     - `Transfer to Proxy Geometry`：传递到简模
 - 内层
   - **presolve节点**
+    - 位置：双击进入**rbdbulletsolver节点**后，网络里只有两个**output节点**，分别名为`PRESOLVE`（`Output #0`）和`POSTSOLVE`（`Output #1`），分别在解算之前、之后执行；当前版本中它们的输入端默认没有连接任何节点
     - 前连**popwrangle节点**
       - 可以修改解算中的属性的值
 

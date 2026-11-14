@@ -3719,7 +3719,9 @@ k帧
 - `Constraints`：约束的断裂条件
   - `Break Thresholds`：开关，启用后设置约束的断裂阈值
     - `Number of Breaks`：断裂阶段的数量，用“+”“-”按钮增减，`Clear`清空，每个阶段一个子页
-    - `Constraint Names`：本阶段作用的约束名称，默认`Soft Hard`；胶水约束（`Glue`）会在冲量超过强度时隐式断裂，不需要在这里列出
+    - `Constraint Names`：本阶段作用的约束名称，默认`Soft Hard`；胶水约束（`Glue`）是唯一有隐式断裂的约束，所以默认不列出
+      - 隐式断裂：冲量超过`strength`时由求解器自动断开，不需要在这里列出；若带有`next_constraint_name`、`next_constraint_type`属性（**rbdconstraintproperties节点**开启`Switch Constraint Type When Broken`后写入），断开瞬间会直接切换为下一个约束，该切换是自动的，不依赖`Mode`的`Switch to Next Constraint`
+      - 想让胶水约束也按本页的阈值（如`Force Threshold`）断裂，需要把`Glue`写进`Constraint Names`；`Mode`决定超过阈值后的处理：`Delete Constraints`删除，`Switch to Next Constraint`切换为其`next_constraint_name`（没有该属性则删除）
     - `Group`：限定图元组，即只对第二个输入端（约束几何体）中属于该图元组的约束计算断裂；留空表示不限制，所有符合`Constraint Names`的约束都参与
       - 与`Constraint Names`同时生效：先按名称筛选，再按图元组筛选
       - 用途：同一类约束想分区域使用不同的断裂条件时，先给约束建图元组，再在不同阶段分别指定

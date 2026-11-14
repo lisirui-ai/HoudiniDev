@@ -2644,7 +2644,7 @@ k帧
   - 约束几何体中通常混有不同类型的约束（`Glue`、`Soft`、`Pin` 等），通过 `Constraint Group` 选中某一类约束的图元，可以对不同类型的约束分别设置属性，因此可以串联多个本节点，每个节点负责一类约束，例如分别设置 `Glue` 约束的强度和 `Soft` 约束的刚度
   - 每个参数左侧的开关（`Action` 为 `Edit` 时显示）用于决定是否修改该参数对应的属性；`Set` 则保证所有相关属性都被写入
 - 输入端（3个）
-  - `Geometry`：刚体几何体；使用 `Filter by Pieces` 按碎块分组筛选约束时，以及按几何体属性缩放参数时使用
+  - `Geometry`：刚体几何体；使用 `Filter by Pieces` 按碎块分组筛选约束时使用；`Scale by Attribute`缩放的属性不取自这一端，而是取自`Constraint Geometry`
   - `Constraint Geometry`：约束几何体，本节点编辑的对象
   - `Proxy Geometry`：简模
 - 输出端（3个）
@@ -2704,7 +2704,11 @@ k帧
   - `Collisions`：约束连接的两个物体之间是否碰撞，默认 `Enable`
 - `Glue`（胶水约束参数，`Constraint Type` 为 `Glue` 时显示）
   - `Strength`：胶水的强度，默认 `10000`；值为 -1 时约束永远不会断开
+    - 本质是约束能承受的累计冲量（`impact`）上限，冲量会沿约束网络传播，并按`Half-Life`衰减
+    - 是冲量而不是力：同样的撞击，质量大的碎块产生的冲量更大，更容易撞断胶水，调整时需结合碎块的密度和体积
     - 右侧下拉菜单为设置方式：`Set`（直接设置）、`Scale by Attribute`（按属性缩放）、`Scale`（按系数缩放）
+      - `Scale by Attribute`缩放的属性取自第二个输入端（`Constraint Geometry`）的图元属性，对每条约束逐个相乘；第一个输入端的属性不会被读取
+      - 属性不存在时不是忽略缩放，而是按0处理，结果变成0
   - `Strength Variance`：勾选后随机改变每条胶水的强度，默认 `0.8`
   - `Half Life`：胶水冲量衰减一半所需的秒数，默认 `0.1`
     - 胶水物体受到撞击时会累积冲量，该参数控制冲量衰减的快慢
@@ -3779,13 +3783,10 @@ k帧
   - `Visualize Geometries`：总开关
     - `Geometry`
       - 勾选`showcollisionshape`显示碰撞刚体的外形
-        - 对应 UI 中的`Show Collision Shape`
-      - 勾选`showactive`显示参与碰撞的刚体
-        - 对应 UI 中的`Show Active (Green)`，活动刚体显示为绿色
-      - `Show Sleeping (Red)`：休眠中的刚体显示为红色
-    - `Ground`
-      - 勾选`ground`显示地面
-        - 对应 UI 中的`Show Ground as Wireframe`，也可显示为实体（Shaded）
+      - 勾选`Show Active (Green)`显示参与碰撞的刚体，活动刚体显示为绿色
+      - 勾选`Show Sleeping (Red)`：休眠中的刚体显示为红色
+    - 勾选`Ground`显示地面
+      - `Show Ground as`：地面的显示方式，菜单项有`Wireframe`（线框，默认）和`Shaded`（实体）
     - `Collision Geometry`
       - 勾选`showgeometry`显示被动碰撞刚体
         - 当第四个输入端连`active`为0的刚体即被动碰撞刚体时，显示被动碰撞刚体
@@ -3793,7 +3794,7 @@ k帧
     - `Constraint Geometry`
       - 勾选`constraintgeometry`显示约束
         - 勾选`showguides`
-          - 对应 UI 中的`Show Guides`，显示约束的引导几何体，勾选后可设置`Show Object Links`（显示约束与刚体的连线）和`Guide Radius`（引导球半径）
+          - 显示约束的引导几何体，勾选后可设置`Show Object Links`（显示约束与刚体的连线）和`Guide Radius`（引导球半径）
       - `False Color Mode`：约束伪彩色，即按某个属性值的大小，给视口中的约束线上色，用来直观看出哪些约束受力大、拉得长，方便调整断裂阈值
         - 菜单项：`None`、`Angle`、`Angular Plastic Flow`、`Distance`、`Force`、`Impact`、`Plastic Flow`、`Torque`、`Constraint Name`、`Custom`
         - `None`：不上色

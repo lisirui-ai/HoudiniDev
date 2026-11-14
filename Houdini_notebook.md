@@ -2652,6 +2652,8 @@ k帧
   - `Constraint Geometry`：写入了约束属性的约束几何体
   - `Proxy Geometry`：简模
 - `Constraint Group`：要编辑约束属性的约束几何体图元组，留空表示全部
+  - 留空时作用于第二个输入端（`Constraint Geometry`）上的所有图元
+  - 选择第二个输入端（`Constraint Geometry`）上的对应图元组进行编辑时，其他图元组会保留且保持不变
 - `Filter by Pieces`：按刚体几何体上的组，动态筛选约束图元，默认不勾选；勾选后下面的参数才可用
   - `Groups`：筛选方式，默认 `All to Group`
     - `All to Group`：筛选出有一个锚点连在 `Group 1` 内刚体上的所有约束图元
@@ -2685,7 +2687,7 @@ k帧
       - **rbdconfigure节点** 的 `Pin` 类型菜单中也有 `Hard`，但被标记为 `Hard (Deprecated)`（已弃用），不建议使用
     - `Soft`：Bullet 软约束，像弹簧
   - `Constraint Name`：约束数据在 DOP 网络中使用的 `Data Name`，默认与约束类型同名（`Glue`），需要与 DOP 中对应约束关系的名称匹配
-    - 注意：`Constraint Group`留空时，不会按`Constraint Type`进行过滤，而是作用在输入端的所有图元，会将它们的`constraint_name`属性都修改为该值
+    - 注意：`Constraint Group`留空时，不会按`Constraint Type`进行过滤，而是作用在第二个输入端（`Constraint Geometry`）上的所有图元，会将它们的`constraint_name`属性都修改为该值
   - `Degrees of Freedom`：约束影响位置、旋转还是两者，选 `Glue` 时置灰不可用，因为胶水约束是把粘住的碎块作为带复合碰撞形状的单个物体来模拟的
     - `Position and Rotation`、`Position Only`、`Rotation Only`
   - `Switch Constraint Type When Broken`：胶水约束被 **rbdbulletsolver节点** 打断后，是否切换为另一种约束，默认 `Disable`；本身不直接写属性，只决定下面 `Next` 开头的参数是否可用

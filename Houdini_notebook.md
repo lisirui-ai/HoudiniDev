@@ -3770,15 +3770,50 @@ k帧
     - `Group`：限定图元组
     - `Export Broken Constraints`：把已断裂的约束放入图元组`broken`导出
 - `Guide`：引导模拟
+  - 引导的含义：用一份已有的运动（低模模拟结果，或手动做的动画）带动高模模拟中的碎块，碎块先沿用引导的速度和整体运动，直到碰撞或超过释放阈值后才脱离引导，自行模拟并破碎
+  - 几个基本概念
+    - 引导几何体：提供运动的那份几何体，连在第五个输入端
+    - 被引导的碎块：模拟中跟着引导几何体运动的碎块；视口里开`Show Guided (Blue)`会显示成蓝色
+    - 引导簇：每个碎块按`Mode`找到的对应引导碎块，同一个引导碎块带动的所有碎块属于同一簇
+    - 脱离引导（变为非引导、释放）：碎块不再跟着引导，之后完全由物理模拟决定，脱离后不会再被重新引导
+    - 引导强度`strength`：每个碎块一个，是释放阈值的乘数，强度越大越难脱离引导
+  - 典型用途：先做一个低模的粗略模拟或手动做一段动画，再让高模的精细破碎跟着它走，这样高模既保留了低模已经调好的整体运动，又有自己的细节破碎；官方文档用**bend节点**做出的扭转动画带动一根被炸成碎块的柱子，作为最简单的例子
+  - 最简上手流程（依据官方文档的例子）
+    - 1：用**rbdmaterialfracture节点**炸出碎块，把前三个输出分别接到**rbdbulletsolver节点**的前三个输入端
+    - 2：做一份引导几何体，例如用**bend节点**对碎块做扭转动画，接到第五个输入端；不用**rbdguidesetup节点**时，需要关闭`Advanced`页`Guide`中的`Use Pre-Configured Setup`
+    - 3：勾选`Guide`页的`Enable Guides`，并在`Advanced`页`Guide`中把`Group`填为`*`（留空没有碎块被引导）；这时就能看到碎块跟着引导运动，但可能碎得很奇怪，还需要调参
+      - **bend节点**做扭转时：`Capture Direction`设为柱子的长度方向（例如`0, 1, 0`），`Capture Length`设为柱子长度，勾选`Twist`的`Enable`并给`Twist`设随帧变化的值（例如`$FF*3`），否则扭转看不出来
+    - 4：把`Blend`降到小于 1（例如 0.7）：数值越小引导的影响越弱，碎块更容易受碰撞影响
+    - 5：关闭`Release Thresholds`里`Instantaneous`的`Linear`和`Angular`：它们对应的是求解器内部把碎块钉在引导几何体上的约束，关掉后碎块不再被强行拉回引导位置
+    - 6：打开`Accumulated`的`Distance`，设一个较小的值（例如 0.15）：碎块偏离原位置的累积距离超过它就脱离引导
+    - 7：到`Advanced`页勾选`Guided Neighbors`和`Ensure Neighbor`，让邻居都脱离了的碎块也一起脱离
+  - 需要第五个输入端（`Guide Sim`）
+    - 第五个输入端提供引导几何体，可以是模拟结果，也可以是动画几何体
+    - 引导几何体按每个碎块的变换矩阵驱动被引导的碎块：已打包的几何体使用自身的内在变换；未打包的几何体在`Start Frame`按`name`属性（没有则按连通性）打包后再变换
+    - 单个变形网格作为引导几何体时，需要先拆成多个簇，否则引导无法正常工作
+    - 没有连第五个输入端，只勾选`Enable Guides`不会产生引导（实测：`Group`填`*`但不连第五个输入端，结果与不开引导完全一致）
+  - 引导的设置有两种方式
+    - 在本节点内设置：需要关闭`Advanced`页`Guide`中的`Use Pre-Configured Setup`，在`Advanced`页`Guide`中设置`Group`、`Start Frame`、`End Frame`等
+    - 使用上游的**rbdguidesetup节点**预先配置：勾选`Use Pre-Configured Setup`，所有相关参数都在**rbdguidesetup节点**里，可以更精细地控制引导的帧范围、邻居、强度
   - `Enable Guides`：启用引导
-  - `Guide Method`：引导方式，`Velocity`速度、`Target Velocity`目标速度
+  - `Guide Method`：引导方式
+    - `Velocity`：直接更新`v`和`w`，引导最精确，但碰撞挡路时容易抖动
+    - `Target Velocity`：更新`targetv`和`targetw`，配合`Air Resistance`和`Drag`算出力和扭矩，把碎块推向目标速度；更宽容，允许碎块偏离引导位置，能减少抖动；需要打开求解器的`Implicit Drag`
   - `Guide Blending`：引导混合
-    - `Blend`、`Positions`、`Rotations`：整体混合比例、位置混合、旋转混合
-  - `Release Thresholds`：释放阈值，超过后刚体脱离引导
-    - `Instantaneous`：瞬时的`Linear`线速度、`Angular`角速度、`Distance`距离
-    - `Accumulated`：累积的`Linear`、`Angular`、`Distance`
-  - `Remove Intra-Guide Constraints`：移除同一引导块内部的约束，`Constraint Group`指定约束组
-  - `Post-Guide VEXpression`：引导之后执行的 VEX 表达式，`VEXpression Group`默认`__guided`，即只作用于被引导的刚体
+    - `Blend`：把引导速度和角速度与碎块自身的自然速度、角速度做线性插值的比例；降低后像带阻尼的弹簧，可减少引导与碰撞冲突时的抖动；1表示引导完全控制
+    - `Positions`、`Rotations`：分别单独控制位置、旋转的混合，是`Blend`的乘数
+  - `Release Thresholds`：释放阈值，超过后碎块变为非引导（脱离引导），每个阈值都要乘以引导强度
+    - 意义：碎块被引导时，碰撞会让它偏离引导位置；偏得太多，说明它被撞到了，不应该继续跟着引导，这时就让它脱离
+    - 瞬时和累积的区别：瞬时只看当前这一刻的偏差，累积把过去每一步的偏差加起来，适合捕捉“每次偏一点，但一直在偏”的情况
+    - 每个阈值前面各有一个启用开关（参数名为`Use Linear Threshold`、`Use Angular Threshold`、`Use Distance Threshold`，瞬时和累积各一组），默认都未勾选，不启用的阈值不参与判断；所以默认碎块不会因为偏差过大而脱离引导，需要手动勾选才会释放
+    - 阈值默认值：`Linear`为 0.85，`Angular`为 8，`Distance`为 0.25，瞬时和累积相同
+    - `Instantaneous`：瞬时偏差
+      - `Linear`：计算出的引导位置与解算后实际位置的距离超过阈值
+      - `Angular`：引导朝向与实际朝向的夹角（度）超过阈值
+      - `Distance`：引导碎块到刚体图元的距离与静止时的距离相比，增大量超过阈值
+    - `Accumulated`：累积偏差，含义同上，但比较的是累积值
+  - `Remove Intra-Guide Constraints`：删除属于不同引导簇的碎块之间的约束；引导碎块与非引导碎块之间的约束不受影响；`Constraint Group`指定参与判断的约束图元
+  - `Post-Guide VEXpression`：引导计算之后执行的 VEX 表达式，用于修改算出的速度或目标速度，`VEXpression Group`默认`__guided`，即只作用于被引导的刚体
 - `Visualization`：视口显示
   - `Visualize Geometries`：总开关
     - `Geometry`
@@ -3802,7 +3837,7 @@ k帧
         - `Constraint Name`：左上角显示每种`constraint_name`对应的颜色，约束线按名称上色
         - `Custom`：用户自定义的属性值，同样显示直方图并上色
     - `Guide`
-      - 这一组参数在UI中显示为灰色时点不了，需要先满足各自的启用条件（这些条件是在节点参数里读到的）
+      - 这一组参数在UI中显示为灰色（不可编辑）时，需要先满足各自的启用条件（这些条件是从节点参数的启用关系中读取到的）
         - `Show Guided (Blue)`、`Show Guide Capture`：需要同时满足`Visualize Geometries`已勾选、`Guide`页的`Enable Guides`已勾选
         - `Guide Capture Frame`：在上面的基础上，还需要勾选`Show Guide Capture`
         - `Guide Capture Blend`：在上面的基础上，还需要`Advanced`页`Guide`中的`Blend`已勾选
@@ -3811,8 +3846,9 @@ k帧
       - `Show Guide Capture`、`Guide Capture Frame`、`Guide Capture Blend`：显示引导捕获及其帧、混合
       - `Show Guide Neighbor Count`：显示引导邻居数量
     - `Impact Data`：开启冲击数据分析的参数，`Time Threshold`、`Impact Threshold`、`Distance Threshold`、`Force Impact Object`、`Fetch Impacts`的含义与`Output`页的同名参数一致
-      - 灰色点不了时：需要`Visualize Geometries`已勾选，并且`Output`页的`Impact Data`开关已勾选（这个开关是总开关，`Output`页下面的`Time Threshold`等参数也依赖它）
-  - `Inspector`：视口检查器，选中刚体后在视口中显示属性值
+      - 参数在UI中显示为灰色（不可编辑）时，需要同时满足以下条件才能启用：`Visualize Geometries`已勾选，并且`Output`页的`Impact Data`开关已勾选；该开关是总开关，`Output`页下的`Time Threshold`等参数也依赖它
+  - `Inspector`：视口检查器，鼠标悬停在输出图元上时，在视口中显示该图元的属性值（不需要点击选中）
+    - 使用方法：节点状态（选中节点后，把鼠标移到视口中按`Enter`进入）下在视口右键打开检查器，悬停在图元上查看；查看约束属性需把输出视图切到`Constraint Geometry`（视口按`1`、`2`、`3`切换，`4`循环）
     - `Attributes`：要显示的属性，默认`* ^P ^pivot ^rest ^N ^scale ^orient ^xform ^path`
     - `Font Size`：字号
     - `Float Precision`：浮点数精度
@@ -3884,14 +3920,33 @@ k帧
       - `Axes`：`Goal Hinge Axis`、`Goal Up Axis`、`Constrained Hinge Axis`、`Constrained Up Axis`
       - `Hinge`：超出铰链轴方向的限制时的约束行为，`Position Softness/Damping/CFM`、`Angle Softness/Damping/CFM`
       - `Orthogonal`：在铰链轴以外的方向发生位移或旋转时的约束行为，`Position Softness/CFM`、`Angle Softness/CFM`
-  - `Guide`
-    - `Use Pre-Configured Setup`：使用由 RBD Guide Setup SOP 预先配置的引导
-    - `Group`、`Start Frame`、`End Frame`、`Release on End Frame`：引导作用的刚体组、起止帧、到结束帧时是否释放
-    - `Mode`：`Near Point`或`Near Surface`，按最近点或最近表面确定引导目标
-    - `Max Distance`、`Strength`：最大距离、引导强度
-    - `Distance to Strength`：距离到强度的映射（`Distance`、`Strength Multiplier`）
-    - `Blend`、`Transfer Attributes`、`Use VEXpressions`：混合、传递属性、使用 VEX 表达式
-    - `Guided Neighbors`：被引导刚体的邻居设置，`Points per Area`、`Search Radius`、`Max Search Points`、`Max Connections`、`Ensure Neighbor`、`Minimum Neighbors`
+  - `Guide`：设置“谁被引导、跟着哪块引导几何体、引导有多强”，即为每个碎块建立与引导几何体的对应关系
+    - 这一页的设置有两种来源：在本节点内直接设置（关闭`Use Pre-Configured Setup`），或交给上游的**rbdguidesetup节点**（勾选`Use Pre-Configured Setup`），两者的参数含义相同
+    - `Use Pre-Configured Setup`：使用由**rbdguidesetup节点**预先配置的引导；勾选后，本页下面建立对应关系的参数不再使用，改由上游节点写在碎块上的属性决定
+    - `Group`：要被引导的碎块（已打包的刚体图元）
+      - 留空时没有任何碎块被引导，即使连了第五个输入端、勾选了`Enable Guides`也没有效果（实测）；要让全部碎块被引导，需填`*`
+    - `Start Frame`：参考起始帧，在这一帧记录碎块与引导几何体的对应关系，之后碎块跟着各自对应的引导碎块一起运动；应设为引导动画开始时、碎块与引导几何体位置对得上的那一帧
+    - `End Frame`：引导动画的结束帧
+    - `Release on End Frame`：勾选后，到达`End Frame`时所有碎块立即脱离引导，不再受任何引导影响
+    - `Mode`：每个碎块按什么规则找到自己的引导碎块，所属的引导碎块称为该碎块的引导簇
+      - `Near Point`：按碎块质心到引导碎块质心的远近来找，适合引导碎块和模拟碎块大小接近、数量对应的情况
+      - `Near Surface`：按碎块到引导几何体表面最近的位置来找，适合引导几何体是一整块形状（如扭转的柱子）、碎块比引导碎块小很多的情况
+    - `Max Distance`：碎块离引导几何体超过这个距离就找不到引导，不被引导；-1 表示不限制距离
+    - `Strength`：引导强度，是后面各释放阈值的乘数；强度越大，碎块越难脱离引导
+    - `Distance to Strength`：按碎块到引导几何体的距离再调整强度，通常让离得远的碎块更容易脱离引导
+      - `Distance`：起止两个距离，强度乘数在这两个距离之间线性变化
+      - `Strength Multiplier`：距离小于等于起始距离时的强度乘数，以及距离大于等于结束距离时的强度乘数
+    - `Blend`：给每个碎块添加一个`blend`属性，会与`Guide`页（本节点最前面那一页）的全局`Blend`相乘，用来让不同碎块的混合程度不同
+    - `Transfer Attributes`：把引导碎块上的属性传给被引导的碎块
+    - `Use VEXpressions`：用 VEX 表达式修改引导强度和混合属性
+    - `Guided Neighbors`：邻居检查，防止“孤儿”碎块；引导是按簇划分的，若一个碎块周围同一簇的邻居都已脱离，它自己还被引导，就会像悬在空中一样不自然，用这个功能可以让它一起脱离
+      - 勾选后，才会记录每个碎块的邻居信息
+      - `Points per Area`：找邻居时，先在所有碎块表面撒点，再靠点与点的距离判断哪些碎块相邻，这是撒点的密度；密度需要足够大才能检测到靠得近的表面，几何体放大 10 倍时密度应缩小为 1/100（与面积成反比）
+      - `Search Radius`：找邻近点时允许的最大距离
+      - `Max Search Points`：最多检查多少个邻近点；数值小性能好，但可能只找到同一碎块自己的点，漏掉相邻碎块
+      - `Max Connections`：每个种子点最多连接多少个碎块；调大有助于识别相邻碎块，但会降低性能
+      - `Ensure Neighbor`：勾选后，若被引导的碎块在自己的引导簇里没有邻居，会继承最近碎块的引导目标，同时也用来检查邻居是否已脱离引导，已脱离的话它也会一起脱离
+      - `Minimum Neighbors`：同一引导簇里相连的邻居数量低于这个值时，碎块脱离引导；静止时本来就没有被引导邻居的碎块会被忽略
   - `Checkpoints`：检查点，定期把模拟状态保存到磁盘，方便中途恢复
 - `Output`：输出设置
   - `Impact Data`：开启碰撞冲击数据的分析参数，分析得到的冲击点以点的形式输出

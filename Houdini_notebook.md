@@ -3700,8 +3700,13 @@ k帧
   - `Gravity`：重力开关，`Force`是重力加速度，默认`0, -9.80665, 0`
   - `Drag`：空气阻力
     - `Group`：受阻力影响的刚体组，即输入几何体上的点组，每个点代表一个碎块；留空表示所有碎块都受阻力影响
-    - `Air Resistance`：空气阻力系数
-    - `Wind Velocity`：风速
+    - `Air Resistance`：空气阻力系数，决定碎块向`Wind Velocity`靠拢的快慢，即风对碎块的影响强度；数值越大，碎块越快追上风速，数值很小时效果几乎看不出
+    - `Wind Velocity`：风速，碎块被拖向的目标速度（方向和大小）
+      - 为0：碎块被拖到停下，即普通的空气阻力
+        - 此时`Air Resistance`决定速度向0衰减的快慢，下坠的速度同样会被拖慢：数值小时接近自由落体，数值大时下坠明显变慢，与重力平衡后接近匀速下落
+        - 风速在竖直方向没有分量时，竖直目标速度仍为0，下坠同样受影响
+      - 不为0：碎块逐渐加速到该风速，不会冲过头
+    - 两者的关系：`Wind Velocity`是目标，`Air Resistance`是力度，相乘生效，缺一不可；风速再大，阻力系数接近0也吹不动
     - `Ignore Mass`：忽略质量，勾选后阻力的效果与碎块的质量无关
       - 原理：阻力以力的形式存储，加速度等于力除以质量，质量大的碎块被同样的阻力减速得更慢；勾选后把阻力乘以碎块的`mass`，解算时再被除掉，相当于每个碎块都得到相同的减速效果
       - 影响：勾选后大碎块和小碎块在阻力下以同样的速度运动，更容易控制；不勾选则大碎块几乎不受阻力影响，小碎块被明显减速
@@ -3836,14 +3841,16 @@ k帧
     - `Glue`：设置胶水约束
       - `glue`设置胶水约束
         - 胶水约束相当于钢筋
-        - `dataname`要与s`@constraint_name`一致
+        - `dataname`要与`@constraint_name`一致
       - `Data Name`、`Strength`、`Half-Life`、`Propagation Rate`、`Propagation Iterations`
+        - `Data Name`只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数
         - 含义与**rbdconstraintproperties节点**的`Glue`页同名参数一致
         - 官方文档：胶水约束只会被撞击产生的冲量打断；`Strength`为 -1 时永不断裂
     - `Soft`：设置软约束
       - `soft`设置软约束
         - 软约束相当于钢筋的粘连效果
       - `Data Name`、`Stiffness`、`Damping Ratio`、`Override Angular Stiffness and Damping Ratio`、`Rest Length`、`Constraint Iterations`、`Disable Collisions`
+        - `Data Name`只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数；胶水断开后切换的`next_constraint_name`也必须与它一致，否则会报`Required data ... not found or the wrong type`
         - `Rest Length`：静止长度，约束的两个锚点希望保持的距离，非 0 时两端会被推开
         - `Constraint Iterations`：该约束单独使用的迭代次数，-1 表示使用全局的`Constraint Iterations`
         - `Disable Collisions`：被约束的两个刚体之间不发生碰撞
@@ -3851,8 +3858,10 @@ k帧
       - `Guide Scale`：约束引导几何体的显示大小
     - `Hard`：硬约束
       - `Data Name`、`Constraint Force Mixing`、`Error Reduction`、`Rest Length`、`Constraint Iterations`、`Disable Collisions`、`Guide Scale`
+        - `Data Name`只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数
       - `Angular Motor`：角马达，`Number of Motors`设置马达数量，每个马达有`Axis`轴向、`Relative Angular Velocity`相对角速度、`Max Impulse`最大冲量
     - `ConeTwist`：圆锥扭转约束，在一个椭圆锥范围内允许旋转，常用于人体肩、髋关节等
+      - `Data Name`：只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数
       - `Enable Soft Constraint`：把位置限制、旋转限制、马达目标都当作软约束，各自有刚度和阻尼比
       - `Rotation Limits`：旋转限制
         - `Max Twist`最大扭转角度，`Max Out Rotation`左右方向最大旋转角度，`Max Up Rotation`上下方向最大旋转角度
@@ -3868,6 +3877,7 @@ k帧
       - `Motor`：马达，引导被约束刚体朝目标姿态和位置运动
         - `Target Current Pose`、`Target Rotation`、`Target Position`、`Target Angular Stiffness`、`Target Angular Damping Ratio`、`Target Position Stiffness`、`Target Position Damping Ratio` 等
     - `Slider`：滑动约束，沿一条铰链轴限制平移和旋转
+      - `Data Name`：只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数
       - `Max Rotation`：绕铰链轴的最大旋转角度（度）
       - `Slide Range`：可滑动的范围
       - `Axes`：`Goal Hinge Axis`、`Goal Up Axis`、`Constrained Hinge Axis`、`Constrained Up Axis`

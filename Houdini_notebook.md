@@ -2805,11 +2805,28 @@ k帧
 
 **connectadjacentpieces节点**
 
-- 根据**rbdfractionmaterial节点**输出的简模，生成约束形状
+- 根据**rbdmaterialfracture节点**输出的简模/高模，生成约束形状
 
 - 模式设置为`adjacentpiecesfromsurfacepoints`
 
   - 用于生成内部约束形状(碎块内部的约束线)，一般是`Glue`约束
+  - 先在各碎块表面撒点以辅助检测相邻表面，再把相邻碎块的质心连接起来
+  - 该模式下的参数
+    - `Piece Attribute`（`name`）：用于判断每个图元属于哪个碎块的字符串图元属性，会被传递到输出点上；`name`是刚体的标准属性
+    - `Find Boundary Connections`（关闭）：只在`Cluster Attribute`值不同的相邻碎块之间生成连接，适合在不同材质的交界处生成约束
+      - 勾选后会出现`Cluster Attribute`：指定判断碎块所属簇的图元属性，可以是整数或字符串
+    - `Points per Area`（`100`）：每单位面积在表面撒的点数，点要足够多才能检测到相近的表面
+    - `Relax Iterations`（默认关闭，值为`1`）：对撒出的点做松弛，使点互相推开避免聚堆；迭代次数越多，点分布越分散
+    - `Search Radius`（`0.005`）：搜索邻近点的最大距离
+    - `Max Search Points`（`100`）：搜索时最多检查的邻近点数量；越小越快，但可能只搜到同一碎块的点而漏掉相邻碎块的连接
+    - `Cone Angle`（开启，`90`）：只搜索查询点法线方向锥角范围内的点，避免连到位于背面的点；关闭则向各个方向搜索
+      - 角度越小，连接线越多、越长，且会出现跨越较远碎块的长连接；角度越大越接近关闭的结果，`180`等价于关闭
+      - 想只保留紧邻碎块的约束就关闭或调大角度，想让更多碎块间产生连接再开启并调小角度
+    - `Minimum Distance`（默认关闭，值为`0.05`）：只考虑与查询点距离不小于该值的点
+    - `Max Connections`（`1`）：每个种子点最多可连接的碎块数量；增大会降低性能
+    - `Centroid Method`（`Center of Mass`）：计算碎块质心的方式
+    - `Offset From Centroid`（`0`）：连接点沿连接方向从质心向外偏移的程度，`0`保持在质心，`1`移到碎块表面
+    - `Length Attribute`（开启，`restlength`）：开启后创建图元属性记录每条连接线的长度，右侧为属性名
 
 - 模式设置为`adjacentpoints`
 

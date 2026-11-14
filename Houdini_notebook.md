@@ -2240,8 +2240,30 @@ k帧
 
 - 输入/输出端口
   - 第一个输入/输出为高模几何体
-  - 第二个输入/输出为约束，第三个输入/输出为简模（不带`interiordetail`的结果），第四个输入为切割基于的点云
-    - 只有该节点正确连接（高模连高模，约束连约束，简模连简模）后续的`rbd`系列节点时，后续`rbd`系列节点才能正确输出简模
+    - 第一个输出端上的属性
+      - 图元属性（Primitive Attribute）：`name`（字符串，标识每个碎块，会受`Fracture Namespace`前缀影响）
+      - 图元组（Primitive Groups）：
+        - `concrete_fracturekinside`：切割产生的内部面，受`Fracture ID`影响（`k`为对应的切割级数）
+        - `concrete_fracturekoutside`：原模型的外表面，受`Fracture ID`影响（`k`为对应的切割级数）
+        - `inside`：切割产生的内部面
+        - `outside`：原模型的外表面
+  - 第二个输入/输出为约束
+    - 第二个输出端上的属性
+      - 点属性（Point Attributes）：`name`（字符串，与第一个输出端图元属性`name`相同，同样会受`Fracture Namespace`前缀影响）
+      - 图元属性（Primitive Attributes）：
+        - `constraint_name`（字符串）、`constraint_tag`（字符串）、`constraint_type`（字符串）
+        - `impulse_halflife`（浮点）、`propagate_rate`（浮点）、`propagationiterations`（整数）
+        - `restlength`（浮点）、`strength`（浮点）
+      - 图元组（Primitive Group）：组名为`Fracture Namespace`的值
+  - 第三个输入/输出为简模（不带`interiordetail`的结果），第四个输入为切割基于的点云
+    - 第三个输出端上的属性
+      - 图元属性（Primitive Attribute）：`name`（字符串，与第一个输出端的`name`相同，同样会受`Fracture Namespace`前缀影响）
+      - 图元组（Primitive Groups）：与第一个输出端相同
+        - `concrete_fracturekinside`：切割产生的内部面，受`Fracture ID`影响（`k`为对应的切割级数）
+        - `concrete_fracturekoutside`：原模型的外表面，受`Fracture ID`影响（`k`为对应的切割级数）
+        - `inside`：切割产生的内部面
+        - `outside`：原模型的外表面
+
 
 - 节点顶部通用参数（所有标签页共用）
   - `Group`：指定要切割的几何体分组，不指定则切割全部输入几何体
@@ -3689,7 +3711,7 @@ k帧
       - `distancethreshold`控制`constraintnames`对应的约束的作用范围
         - 面与`constraintnames`对应的约束的面的间距超过这个阈值后，约束消失
         - 距离是约束两端锚点之间的距离，实际比较时要先减去约束的`restlength`；想用相对静止长度的比例，需把`Distance Threshold`右侧的缩放菜单从`No Scaling`改为`Scale by Attribute`，再在出现的`Distance Attribute`中填`restlength`，阈值取 1+比例系数
-    - `Force Threshold`：力阈值，约束受力超过后断裂，对胶水约束可乘以其`strength`来按强度的比例设置，阈值取 1+比例系数
+    - `Force Threshold`：力阈值，约束受力超过后断裂，对胶水约束可乘以其`strength`来按强度的比例设置：需把`Force Threshold`右侧的缩放菜单从`No Scaling`改为`Scale by Attribute`，再在出现的`Force Attribute`中填`strength`，阈值设为 1 即表示受力达到`strength`时断裂
     - `Impact Threshold`：冲量阈值
     - `Torque Threshold`：扭矩阈值
     - `Plastic Flow Threshold`：塑性流阈值，仅对启用了塑性的软约束有意义
@@ -3698,6 +3720,14 @@ k帧
     - `Use VEX Snippet`
       - 勾选`usevexsnippet`开启`vex`控制约束，针对于当前页的约束
         - `vex`中该约束对应的线编号是0
+        - 这段`vex`运行在节点内部的一个 attribvop 上，共有4个输入端（编号0~3），含义如下
+          - 0号：当前页中名称符合`Constraint Names`的约束（就是被`vex`修改的约束图元）
+            - 是解算内部正在使用的约束，带有解算过程中更新的属性（如`force`、`impact`、`distance`等），修改它就会改变模拟结果；约束断裂被删除后，图元编号会变化
+            - 与3号的区别：0号是解算中“当前正在用的约束”，3号是 SOP 里“原始输入的约束”，只读用来参考；因为0号的图元编号会变，不能用0号自己的图元编号`@primnum`去3号里查找，而要把0号图元上`i@__primid`的值，作为图元编号去3号里取对应的约束图元
+              - `__primid`属性的值，它在约束创建时就记录下来，约束断裂后不会改变；3号是原始输入，没有约束被删除，它的图元编号等于自身的`__primid`，所以0号的`i@__primid`的值就是该约束在3号中的图元编号
+          - 1号：解算中的刚体几何体（`Bullet Packed Geo`，即刚体点，由`name`等属性标识碎块）
+          - 2号：辅助`sop`对象的几何体（`SOP Geometry`，由`VEX Snippet SOP Path`指定）
+          - 3号：**rbdbulletsolver节点**第二个输入端的约束几何体（`SOP Constraint Geometry`，查找对应约束图元时用`i@__primid`）
     - `VEX Snippet SOP Path`
       - `vexsnippetsoppath`指定辅助`sop`对象
         - `vex`中对应的线编号是2
@@ -3706,7 +3736,7 @@ k帧
     - `Attributes`：要更新的属性
     - `Group`：限定图元组
     - `Export Broken Constraints`：把已断裂的约束放入图元组`broken`导出
-- `Guide`页：引导模拟
+- `Guide`：引导模拟
   - `Enable Guides`：启用引导
   - `Guide Method`：引导方式，`Velocity`速度、`Target Velocity`目标速度
   - `Guide Blending`：引导混合
@@ -3716,8 +3746,7 @@ k帧
     - `Accumulated`：累积的`Linear`、`Angular`、`Distance`
   - `Remove Intra-Guide Constraints`：移除同一引导块内部的约束，`Constraint Group`指定约束组
   - `Post-Guide VEXpression`：引导之后执行的 VEX 表达式，`VEXpression Group`默认`__guided`，即只作用于被引导的刚体
-- `Visualization`页：视口显示
-  - `visualization`选项
+- `Visualization`：视口显示
   - `Visualize Geometries`：总开关
     - `Geometry`
       - 勾选`showcollisionshape`显示碰撞刚体的外形
@@ -3736,17 +3765,28 @@ k帧
       - 勾选`constraintgeometry`显示约束
         - 勾选`showguides`
           - 对应 UI 中的`Show Guides`，显示约束的引导几何体，勾选后可设置`Show Object Links`（显示约束与刚体的连线）和`Guide Radius`（引导球半径）
-      - `False Color Mode`：约束伪彩色，菜单项：`None`、`Angle`、`Angular Plastic Flow`、`Distance`、`Force`、`Impact`、`Plastic Flow`、`Torque`、`Constraint Name`、`Custom`
+      - `False Color Mode`：约束伪彩色，即按某个属性值的大小，给视口中的约束线上色，用来直观看出哪些约束受力大、拉得长，方便调整断裂阈值
+        - 菜单项：`None`、`Angle`、`Angular Plastic Flow`、`Distance`、`Force`、`Impact`、`Plastic Flow`、`Torque`、`Constraint Name`、`Custom`
+        - `None`：不上色
+        - `Angle`、`Angular Plastic Flow`、`Distance`、`Force`、`Impact`、`Plastic Flow`、`Torque`：视口左上角显示直方图，标出对应属性在所有约束上的取值范围、最小值和最大值，约束线按属性值上色
+        - `Constraint Name`：左上角显示每种`constraint_name`对应的颜色，约束线按名称上色
+        - `Custom`：用户自定义的属性值，同样显示直方图并上色
     - `Guide`
+      - 这一组参数在UI中显示为灰色时点不了，需要先满足各自的启用条件（这些条件是在节点参数里读到的）
+        - `Show Guided (Blue)`、`Show Guide Capture`：需要同时满足`Visualize Geometries`已勾选、`Guide`页的`Enable Guides`已勾选
+        - `Guide Capture Frame`：在上面的基础上，还需要勾选`Show Guide Capture`
+        - `Guide Capture Blend`：在上面的基础上，还需要`Advanced`页`Guide`中的`Blend`已勾选
+        - `Show Guide Neighbor Count`：需要`Visualize Geometries`和`Enable Guides`已勾选，并且`Advanced`页`Guided Neighbors`的开关已勾选
       - `Show Guided (Blue)`：被引导的刚体显示为蓝色
       - `Show Guide Capture`、`Guide Capture Frame`、`Guide Capture Blend`：显示引导捕获及其帧、混合
       - `Show Guide Neighbor Count`：显示引导邻居数量
-    - `Impact Data`：显示碰撞冲量数据
+    - `Impact Data`：开启冲击数据分析的参数，`Time Threshold`、`Impact Threshold`、`Distance Threshold`、`Force Impact Object`、`Fetch Impacts`的含义与`Output`页的同名参数一致
+      - 灰色点不了时：需要`Visualize Geometries`已勾选，并且`Output`页的`Impact Data`开关已勾选（这个开关是总开关，`Output`页下面的`Time Threshold`等参数也依赖它）
   - `Inspector`：视口检查器，选中刚体后在视口中显示属性值
     - `Attributes`：要显示的属性，默认`* ^P ^pivot ^rest ^N ^scale ^orient ^xform ^path`
     - `Font Size`：字号
     - `Float Precision`：浮点数精度
-- `Advanced`页：高级设置
+- `Advanced`：高级设置
   - `advanced`选项
   - `Bullet Solver`
     - `Sleeping Time`：速度低于休眠阈值的持续时间超过该值后，刚体才进入休眠（要等相邻刚体和相连约束的刚体也满足条件）
@@ -3818,12 +3858,14 @@ k帧
     - `Blend`、`Transfer Attributes`、`Use VEXpressions`：混合、传递属性、使用 VEX 表达式
     - `Guided Neighbors`：被引导刚体的邻居设置，`Points per Area`、`Search Radius`、`Max Search Points`、`Max Connections`、`Ensure Neighbor`、`Minimum Neighbors`
   - `Checkpoints`：检查点，定期把模拟状态保存到磁盘，方便中途恢复
-- `Output`页：输出设置
-  - `Impact Data`：碰撞冲击数据
-    - `Time Threshold`、`Impact Threshold`、`Distance Threshold`：筛选冲击数据的时间、冲量、距离阈值
-    - `Add Impact Analysis`：添加冲击分析
-    - `Force Impact Object`：强制输出冲击对象
-    - `Fetch Impacts`：获取冲击数据
+- `Output`：输出设置
+  - `Impact Data`：开启碰撞冲击数据的分析参数，分析得到的冲击点以点的形式输出
+    - `Time Threshold`：两个冲击点之间的最小时间间隔（秒），值越大，冲击点越少，时间上的间隔越大
+    - `Impact Threshold`：记录冲击点所需的最小冲击力，值越大，只为更强的冲击生成点，忽略较弱的冲击
+    - `Distance Threshold`：两个冲击点之间的最小距离，值越大，冲击点越少，空间上的间隔越大
+    - `Add Impact Analysis`：添加冲击分析（官方文档中没有找到该项的说明）
+    - `Force Impact Object`：只为与指定的 DOP 对象发生的碰撞生成冲击点
+    - `Fetch Impacts`：创建一个 object merge 节点，把冲击点导入进来
   - `Attributes`
     - `Age Attribute`：年龄属性
   - `Attribute Transfer`

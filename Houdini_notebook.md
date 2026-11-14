@@ -2667,6 +2667,8 @@ k帧
 - `Action`：操作方式，默认 `Set`
   - `Edit`：编辑已有约束图元时，只修改一部分属性
     - 只有勾选了左侧开关的参数才会被写入，其余已有属性保持不变，也不会新增其他属性
+    - UI中会显示所有约束类型的参数，可以只用单个节点修改所有类型的约束
+    - `Set`模式下受`Constraint Type`限制，只显示所选类型的相关参数，因此无法用单个节点修改所有类型的约束
   - `Set`：首次创建约束属性时，保证所选约束类型相关的属性都被写入
     - 对已有约束图元同样可用
       - 所选约束类型相关的属性会按本节点参数值重新写入，已有同名属性被覆盖
@@ -2683,6 +2685,7 @@ k帧
       - **rbdconfigure节点** 的 `Pin` 类型菜单中也有 `Hard`，但被标记为 `Hard (Deprecated)`（已弃用），不建议使用
     - `Soft`：Bullet 软约束，像弹簧
   - `Constraint Name`：约束数据在 DOP 网络中使用的 `Data Name`，默认与约束类型同名（`Glue`），需要与 DOP 中对应约束关系的名称匹配
+    - 注意：`Constraint Group`留空时，不会按`Constraint Type`进行过滤，而是作用在输入端的所有图元，会将它们的`constraint_name`属性都修改为该值
   - `Degrees of Freedom`：约束影响位置、旋转还是两者，选 `Glue` 时置灰不可用，因为胶水约束是把粘住的碎块作为带复合碰撞形状的单个物体来模拟的
     - `Position and Rotation`、`Position Only`、`Rotation Only`
   - `Switch Constraint Type When Broken`：胶水约束被 **rbdbulletsolver节点** 打断后，是否切换为另一种约束，默认 `Disable`；本身不直接写属性，只决定下面 `Next` 开头的参数是否可用

@@ -4921,7 +4921,7 @@ k帧
 - `bulletdata`选项
   - `geometryrepresentation`设置为`concave`可提高解算精度，但耗时
   - 勾选`showguidegeometry`显示刚体轮廓
-  
+
 **rigidbodysolver节点**
 - 输出解算结果
 - 前连**rbdpackedobject节点**，后连**output节点**

@@ -3861,7 +3861,6 @@ k帧
     - `Font Size`：字号
     - `Float Precision`：浮点数精度
 - `Advanced`：高级设置
-  - `advanced`选项
   - `Bullet Solver`
     - `Sleeping Time`：速度低于休眠阈值的持续时间超过该值后，刚体才进入休眠（要等相邻刚体和相连约束的刚体也满足条件）
     - `Contact Breaking Threshold`：缓存的接触点超过该距离后被丢弃，也影响包围盒外扩，按场景尺度调整可提升性能

@@ -4010,60 +4010,34 @@ k帧
 
 **matchsize节点**
 
-- 把输入几何体缩放并移动，使其匹配一个参考包围盒
-- 参考包围盒可以是第二个输入的包围盒、第一个输入中某个组的包围盒，或直接用数值指定
+- 把输入几何体缩放并移动，使其匹配参考包围盒
+- 导入外部模型后，模型的位置和大小往往不统一（偏离原点、尺寸过大或过小），需要用这个节点把模型对齐到原点并缩放到合适的大小，再进行后续处理
 - 输入端口
-  - 第一个输入端（`Source Geometry`）：被缩放、移动的源几何体
-  - 第二个输入端（`Destination Size`）：提供参考包围盒的几何体，其包围盒用来决定源几何体的位置和大小
+  - 第一个输入端：被缩放、移动的源几何体
+  - 第二个输入端：提供参考包围盒的几何体，可不接
 - 输出端口
   - 第一个输出端：匹配后的几何体
-- `Group`：要移动到参考大小的几何体子集
-  - 未勾选`Use Groups to Determine Justification Bounds`时，整个输入都作为源位置的计算依据
-- `Group Type`：`Group`中元素的类型，默认`Guess from Group`（根据组自动判断）
-- `Justify With`：如何计算参考包围盒
-  - `Origin and Unit Size`：参考包围盒是原点处的单位包围盒，大小为单位尺寸
-  - `Second Input`：使用第二个输入的包围盒作为参考；没有第二个输入时，使用原点处大小为 0 的包围盒
-  - `Location and Size`：参考包围盒锚定在指定位置并使用指定大小，锚定包围盒的哪个角取决于下面的`Justify`选项
-  - `Input If Wired`：接了第二个输入就用它的包围盒，没接就用`Target`页的位置和大小，截图中为该选项
-- `Use Groups to Determine Justification Bounds`：默认用整个输入计算参考包围盒；勾选后可以分别指定源组和目标组，只对齐或只变换输入的一部分
-  - `Source Group`：第一个输入中用来建立包围盒的部分，这个包围盒会与参考包围盒对齐，可用来选择锚点几何体，控制源的哪一部分对齐到目标
-  - `Source Group Type`：`Source Group`中元素的类型
-  - `Target Group`：第二个输入中用来建立参考包围盒的部分，指定目标的子集可以保证两个组件之间对齐方式一致，与其余几何体无关
-  - `Target Group Type`：`Target Group`中元素的类型
-  - 三项仅在勾选后出现，截图中未显示
-- `Target`：目标，仅在没有第二个输入时使用
-  - `Target Position`：参考包围盒的锚点，三个分量分别为`X`、`Y`、`Z`
-    - 默认表示包围盒的中心；当对应轴的`Justify`为`Min`或`Max`时，表示参考包围盒的边
-  - `Target Size`：参考包围盒的大小，三个分量分别为`X`、`Y`、`Z`
-- `Matching`：匹配
-  - `Translate`：是否平移物体以匹配参考包围盒
-  - `Justify X`、`Justify Y`、`Justify Z`：控制每个轴如何平移以匹配参考包围盒，每行由`Justify`、`to`、`Offset by`三部分组成
-    - 第一个菜单（`Justify`）：物体包围盒用哪一侧去对齐
-      - `None`：该轴不移动
-      - `Min`：物体包围盒的最小值对齐
-      - `Center`：物体包围盒的中心对齐，截图中为该选项
-      - `Max`：物体包围盒的最大值对齐
-    - `to`菜单：对齐到参考包围盒的哪一侧
-      - `Same`：与左侧菜单的对齐方式一致，即最小值对最小值、中心对中心，截图中为该选项
-      - `Min`：对齐到参考包围盒的最小值
-      - `Center`：对齐到参考包围盒的中心
-      - `Max`：对齐到参考包围盒的最大值
-    - `Offset by`：在对齐基础上附加的偏移，可用来设置固定大小的间隙或重叠
-  - `Scale to Fit`：是否缩放几何体以匹配参考包围盒的大小
-    - `Uniform Scale`：勾选后各轴等比缩放，保持几何体的长宽比，仅在勾选`Scale to Fit`后可编辑
-    - `Scale Axis`：等比缩放时不一定能让所有轴都匹配，这个选项决定以哪个轴为准，仅在勾选`Uniform Scale`后出现，截图中未显示
-      - `X`、`Y`、`Z`：匹配对应的轴
-      - `Best Fit`：物体完全包含在参考包围盒内
-      - `Perimeter`：让两个模型的边长总和一致，任一模型没有边时没有明确定义
-      - `Area`：让两个模型的表面积总和一致，任一模型没有表面时没有明确定义
-      - `Volume`：让两个模型的体积总和一致，任一模型没有体积时没有明确定义
-    - `Scale X`、`Scale Y`、`Scale Z`：取消`Uniform Scale`后出现，分别控制每个轴是否缩放到参考包围盒
-  - `Restore Transform`：左侧复选框勾选后，应用存储在指定 detail 属性中的变换的逆变换；如果该属性由本节点的`Stash Transform`创建，则可把几何体恢复到原来的空间，默认属性名`xform`
-  - `Stash Transform`：左侧复选框勾选后，把应用到几何体的变换存储到指定的 detail 属性，默认属性名`xform`
-    - 之后可以用另一个**matchsize节点**的`Restore Transform`撤销，或直接用**xform节点**（`Transform by Attribute`）应用
-    - 右侧菜单为`Replace Existing`（截图中），决定属性已存在时的处理方式
-- 相关节点：**bound节点**、**xform节点**
-
+- `Justify With`：如何确定参考包围盒
+  - `Origin and Unit Size`：以原点处的单位包围盒为参考
+  - `Second Input`：以第二个输入的包围盒为参考
+  - `Location and Size`：以`Target Position`和`Target Size`指定的包围盒为参考
+  - `Input If Wired`：接了第二个输入就用它，没接就用`Target Position`和`Target Size`，默认值
+- `Target`
+  - `Target Position`：参考包围盒的位置，是参考包围盒上被`Justify`选中的锚点，三个轴各自独立判断
+    - 该轴的`Justify`为`Center`：表示参考包围盒在该轴上的中心坐标
+    - 该轴的`Justify`为`Min`：表示参考包围盒在该轴上的最小坐标，例如Y轴上是底面的高度
+    - 该轴的`Justify`为`Max`：表示参考包围盒在该轴上的最大坐标，例如Y轴上是顶面的高度
+  - `Target Size`：参考包围盒的大小
+- `Matching`
+  - `Translate`：是否平移几何体以对齐参考包围盒
+  - `Justify X`、`Justify Y`、`Justify Z`：每个轴的对齐方式，由`Justify`、`to`、`Offset by`三部分组成
+    - `Justify`：取模型包围盒在该轴上的哪个坐标去对齐，`None`表示该轴不移动，`Min`为最小坐标，`Center`为中心坐标，`Max`为最大坐标
+    - `to`：对齐到参考包围盒在该轴上的哪个坐标，`Same`表示与左侧的`Justify`一致，也可选`Min`（最小坐标）、`Center`（中心坐标）、`Max`（最大坐标）
+    - `Offset by`：在对齐基础上附加的偏移
+    - 例如`Justify Y`设为`Min`、`to`设为`Same`，`Target Position`的Y为0时，模型底部落在Y=0的平面上
+  - `Scale to Fit`：缩放几何体以匹配参考包围盒的大小
+    - `Uniform Scale`：各轴等比缩放，保持几何体的长宽比
+    - `Scale Axis`：等比缩放时以哪个轴为准，`Best Fit`表示几何体完全包含在参考包围盒内
 ## dop
 
 **solver节点**

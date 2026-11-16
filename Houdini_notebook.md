@@ -3820,6 +3820,7 @@ k帧
         - 碎块被明显推离引导碎块时，两者都会增大，通常差别不大；一般关心“偏离了多少”，用`Linear`更直接
     - `Accumulated`：累积偏差，含义同上，但比较的是累积值
   - `Remove Intra-Guide Constraints`：删除属于不同引导簇的碎块之间的约束；一端是被引导的碎块、另一端是未被引导的碎块（没有被引导，或已脱离引导）的约束不受影响，不会被删除；`Constraint Group`指定参与判断的约束图元
+    - 删除后结果偏向引导，不删除则偏向解算
   - `Post-Guide VEXpression`：引导计算之后执行的 VEX 表达式，用于修改算出的速度或目标速度，`VEXpression Group`默认`__guided`，即只作用于被引导的刚体
 - `Visualization`：视口显示
   - `Visualize Geometries`：总开关

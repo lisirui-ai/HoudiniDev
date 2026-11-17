@@ -3920,7 +3920,7 @@ k帧
       - 软约束相当于钢筋的粘连效果
       - `Data Name`、`Stiffness`、`Damping Ratio`、`Override Angular Stiffness and Damping Ratio`、`Rest Length`、`Constraint Iterations`、`Disable Collisions`
         - `Data Name`只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数；胶水断开后切换的`next_constraint_name`也必须与它一致，否则会报`Required data ... not found or the wrong type`
-        - 面板值与第二个输入端同名图元属性的关系同`Glue`：`Set Initial`、`Set Always`下一起起作用，`Set Never`下忽略面板值（只实测了`Glue`的`Strength`，此处按同理处理，未单独验证）
+        - 面板值与第二个输入端同名图元属性的关系同`Glue`：`Set Initial`、`Set Always`下一起起作用，`Set Never`下忽略面板值
         - `Rest Length`：静止长度，约束的两个锚点希望保持的距离，非 0 时两端会被推开
         - `Constraint Iterations`：该约束单独使用的迭代次数，-1 表示使用全局的`Constraint Iterations`
         - `Disable Collisions`：被约束的两个刚体之间不发生碰撞
@@ -3929,11 +3929,11 @@ k帧
     - `Hard`：硬约束
       - `Data Name`、`Constraint Force Mixing`、`Error Reduction`、`Rest Length`、`Constraint Iterations`、`Disable Collisions`、`Guide Scale`
         - `Data Name`只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数
-        - 面板值与第二个输入端同名图元属性的关系同`Glue`：`Set Initial`、`Set Always`下一起起作用，`Set Never`下忽略面板值（只实测了`Glue`的`Strength`，此处按同理处理，未单独验证）
+        - 面板值与第二个输入端同名图元属性的关系同`Glue`：`Set Initial`、`Set Always`下一起起作用，`Set Never`下忽略面板值
       - `Angular Motor`：角马达，`Number of Motors`设置马达数量，每个马达有`Axis`轴向、`Relative Angular Velocity`相对角速度、`Max Impulse`最大冲量
     - `ConeTwist`：圆锥扭转约束，在一个椭圆锥范围内允许旋转，常用于人体肩、髋关节等
       - `Data Name`：只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数
-      - 面板值与第二个输入端同名图元属性的关系同`Glue`：`Set Initial`、`Set Always`下一起起作用，`Set Never`下忽略面板值（只实测了`Glue`的`Strength`，此处按同理处理，未单独验证）
+      - 面板值与第二个输入端同名图元属性的关系同`Glue`：`Set Initial`、`Set Always`下一起起作用，`Set Never`下忽略面板值
       - `Enable Soft Constraint`：把位置限制、旋转限制、马达目标都当作软约束，各自有刚度和阻尼比
       - `Rotation Limits`：旋转限制
         - `Max Twist`最大扭转角度，`Max Out Rotation`左右方向最大旋转角度，`Max Up Rotation`上下方向最大旋转角度
@@ -3950,7 +3950,7 @@ k帧
         - `Target Current Pose`、`Target Rotation`、`Target Position`、`Target Angular Stiffness`、`Target Angular Damping Ratio`、`Target Position Stiffness`、`Target Position Damping Ratio` 等
     - `Slider`：滑动约束，沿一条铰链轴限制平移和旋转
       - `Data Name`：只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数
-      - 面板值与第二个输入端同名图元属性的关系同`Glue`：`Set Initial`、`Set Always`下一起起作用，`Set Never`下忽略面板值（只实测了`Glue`的`Strength`，此处按同理处理，未单独验证）
+      - 面板值与第二个输入端同名图元属性的关系同`Glue`：`Set Initial`、`Set Always`下一起起作用，`Set Never`下忽略面板值
       - `Max Rotation`：绕铰链轴的最大旋转角度（度）
       - `Slide Range`：可滑动的范围
       - `Axes`：`Goal Hinge Axis`、`Goal Up Axis`、`Constrained Hinge Axis`、`Constrained Up Axis`
@@ -3972,12 +3972,16 @@ k帧
     - `Distance to Strength`：按碎块到引导几何体的距离再调整强度，通常让离得远的碎块更容易脱离引导
       - `Distance`：起止两个距离，强度乘数在这两个距离之间线性变化
       - `Strength Multiplier`：距离小于等于起始距离时的强度乘数，以及距离大于等于结束距离时的强度乘数
-    - `Blend`：给每个碎块添加一个`blend`属性，会与`Guide`页（本节点最前面那一页）的全局`Blend`相乘，用来让不同碎块的混合程度不同
+    - `Blend`：勾选后给每个碎块添加一个混合属性（内部为点属性`__guide_blend`），会与`Guide`页的全局`Blend`相乘
+      - 这里设置的值是全局的，所有碎块拿到的是同一个值，本身不区分碎块；属性是逐碎块存在的，所以之后可以通过`Use VEXpressions`等方式再让不同碎块取不同的值
     - `Transfer Attributes`：把引导碎块上的属性传给被引导的碎块
+      - 把引导碎块的速度属性`v`传给被引导的碎块，被引导的碎块就能带上引导碎块的运动速度
     - `Use VEXpressions`：用 VEX 表达式修改引导强度和混合属性
+      - 典型用途：让不同碎块的引导强度或混合值不同；面板上的`Strength`、`Blend`是全局的，所有碎块拿到同一个值，需要逐碎块区别时靠这个表达式
+      - 表达式对每个碎块（每个点）执行，能读到`ptnum`、`id`、`P`等逐点信息，可按编号、位置、随机值或分组给每个碎块算出不同的值
     - `Guided Neighbors`：邻居检查，防止“孤儿”碎块；引导是按簇划分的，若一个碎块周围同一簇的邻居都已脱离，它自己还被引导，就会像悬在空中一样不自然，用这个功能可以让它一起脱离
       - 勾选后，才会记录每个碎块的邻居信息
-      - `Points per Area`：找邻居时，先在所有碎块表面撒点，再靠点与点的距离判断哪些碎块相邻，这是撒点的密度；密度需要足够大才能检测到靠得近的表面，几何体放大 10 倍时密度应缩小为 1/100（与面积成反比）
+      - `Points per Area`：找邻居时，先在所有碎块表面撒点，再靠点与点的距离判断哪些碎块相邻，这是撒点的密度；密度需要足够大才能检测到靠得近的表面
       - `Search Radius`：找邻近点时允许的最大距离
       - `Max Search Points`：最多检查多少个邻近点；数值小性能好，但可能只找到同一碎块自己的点，漏掉相邻碎块
       - `Max Connections`：每个种子点最多连接多少个碎块；调大有助于识别相邻碎块，但会降低性能
@@ -3985,24 +3989,31 @@ k帧
       - `Minimum Neighbors`：同一引导簇里相连的邻居数量低于这个值时，碎块脱离引导；静止时本来就没有被引导邻居的碎块会被忽略
   - `Checkpoints`：检查点，定期把模拟状态保存到磁盘，方便中途恢复
 - `Output`：输出设置
-  - `Impact Data`：开启碰撞冲击数据的分析参数，分析得到的冲击点以点的形式输出
+  - `Impact Data`：开启碰撞冲击数据的分析参数，分析得到的冲击点以点的形式保存在节点内部的`OUT_IMPACT_POINTS`（`null`）里，不通过输出端输出，需要用 object merge 取出（可用`Fetch Impacts`自动创建）
     - `Time Threshold`：两个冲击点之间的最小时间间隔（秒），值越大，冲击点越少，时间上的间隔越大
     - `Impact Threshold`：记录冲击点所需的最小冲击力，值越大，只为更强的冲击生成点，忽略较弱的冲击
     - `Distance Threshold`：两个冲击点之间的最小距离，值越大，冲击点越少，空间上的间隔越大
-    - `Add Impact Analysis`：添加冲击分析（官方文档中没有找到该项的说明）
+    - `Add Impact Analysis`：添加冲击分析
     - `Force Impact Object`：只为与指定的 DOP 对象发生的碰撞生成冲击点
     - `Fetch Impacts`：创建一个 object merge 节点，把冲击点导入进来
   - `Attributes`
-    - `Age Attribute`：年龄属性
+    - `Age Attribute`：年龄属性，给刚体添加点属性`age`，记录刚体加入模拟后经过的时间；约束图元上也会添加`age`属性，可用来驱动自定义力、一段时间后删除物体等
+    - `Add Active Age Attribute`：添加激活年龄属性，给刚体添加点属性`active_age`，只在刚体处于激活状态（`active`为 1）时累加时间，未激活时清零，即刚体被激活后经过的时间
+    - `Just Activated`：标记刚被激活的刚体，填入一个名称，刚体在被激活的那一个时间步会被标记，其余时间步清除标记；留空则不标记，需先勾选`Add Active Age Attribute`
+      - `Type`：标记的形式，`Group`表示加入名为该名称的点组，`Attribute`表示把名为该名称的点属性设为 1（其余为 0）
   - `Attribute Transfer`
-    - `Transfer Attributes`：要传递的属性，默认`age w`
+    - `Transfer Attributes`：要传递的解算属性（来自节点内部 DOP 网络解算出的刚体点属性），默认`age w`
     - `Transfer to Geometry`：传递到第一个输出端的模型
     - `Transfer to Proxy Geometry`：传递到简模
 - 内层
-  - **presolve节点**
-    - 位置：双击进入**rbdbulletsolver节点**后，网络里只有两个**output节点**，分别名为`PRESOLVE`（`Output #0`）和`POSTSOLVE`（`Output #1`），分别在解算之前、之后执行；当前版本中它们的输入端默认没有连接任何节点
-    - 前连**popwrangle节点**
-      - 可以修改解算中的属性的值
+  - **output节点**（两个）
+    - 双击进入**rbdbulletsolver节点**后，网络里只有两个**output节点**，分别名为`PRESOLVE`（`Output #0`）和`POSTSOLVE`（`Output #1`），分别在解算之前、之后执行
+    - 对应节点内部 DOP 网络里`dopnet`下的`forces`子网络，`PRESOLVE`的输出接到刚体解算器的预解算输入，`POSTSOLVE`的输出接到解算之后的合并
+    - 在`PRESOLVE`或`POSTSOLVE`的输入端之前连接微解算器（如**popwrangle节点**、**popforce节点**、**sopsolver节点**等）
+      - 可以在解算前（接在`PRESOLVE`之前）或解算后（接在`POSTSOLVE`之前）修改刚体的属性或几何，或对刚体施力
+      - 区别：只在运行时机不同，对应内部刚体解算器的`Pre-Solve`和`Post-Solve`输入
+        - `PRESOLVE`：接在这个输入上的微解算器在主解算步骤之前运行
+        - `POSTSOLVE`：接在这个输入上的微解算器在主解算步骤之后运行
 
 **skin节点**
 

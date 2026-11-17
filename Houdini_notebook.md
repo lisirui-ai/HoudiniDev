@@ -1193,15 +1193,15 @@ k帧
   - `group`：指定要编号的点/面组
   - `group type`：组的元素类型（点、面、顶点）
   - `piece attribute`：指定一个整数或字符串属性作为分块依据，同值元素视为同一块，配合 `mode` 对各块分别编号
-  - `mode`：分块编号模式
-    - `enumerate piece elements`：对每块内的元素独立从 0 开始顺序编号
-    - `enumerate pieces`：同一块内所有元素写入相同的编号，适合将字符串分块属性（如 `@name`）转换为唯一整数编号
+    - `mode`：分块编号模式
+      - `enumerate piece elements`：对每块内的元素依次递增编号，编号接自上一块（不会在每块开头重新从 0 开始）
+      - `enumerate pieces`：同一块内所有元素写入相同的编号，适合将字符串分块属性（如 `@name`）转换为唯一整数编号
   - `attribute`：存储编号结果的属性名
   - `type`：属性类型，整数或字符串
   - `prefix`：类型为字符串时，在编号前拼接的前缀字符串
 - 常见用途
   - 配合 `piece attribute` 将 `@name` 字符串属性转换为整数 `@piece` 属性，便于后续 VEX 计算
-  - 对组内元素生成局部序号（而非全局 `@ptnum`），用于驱动动画偏移或交错效果
+  - 对组内元素生成局部序号（而非全局 `@ptnum`）
 
 **switch节点**
 

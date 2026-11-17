@@ -4929,16 +4929,35 @@ k帧
 
 
 **rbdpackedobject节点**
-- `geometrysource`处导入外部已经设置解算属性的模型（带动画）
-- `initialobjecttype`设置为`createanimatedstaticobjects`或`deforming`
-  - 减少解算量
-- `bulletdata`选项
-  - `geometryrepresentation`设置为`concave`可提高解算精度，但耗时
-  - 勾选`showguidegeometry`显示刚体轮廓
+- 作用：在 DOP 里把一份 SOP 几何创建成一个DOP 对象，几何中每个带变换且只有一个点的图元代表一个刚体；图元提供碰撞形状，图元所在点上的属性（如`active`、`mass`、`v`）保存朝向、质量、速度等信息
+  - 目前只被 **rigidbodysolver节点** 的 Bullet 引擎（`Solver Engine`选`Bullet`）识别
+- 节点结构
+  - 输入端：无，几何通过`Geometry Source`指定来源
+  - 输出端：输出创建出的对象，后连 **rigidbodysolver节点** 的`Objects`输入端
+- 常用参数
+  - `Geometry Source`、`SOP Path`：几何来源，导入要作为刚体的模型（可带动画）
+    - 几何必须是打包图元（每个图元带变换且只含一个点，一个图元对应一个刚体），普通多边形（polygon）模型要先用 **pack节点**或 **rbdconfigure节点** 打包才能解算；整份几何可以有多个打包图元
+    - 模型上不一定要预先设置解算属性：没有设置的属性，使用本节点同名参数的值作为默认值；模型上设置了同名点属性，则按点属性
+  - `Initial Object Type`：决定刚体的初始类型，也是`active`、`animated`、`deforming`属性的默认值
+    - `Create Active Objects`：主动刚体，受力和碰撞影响
+    - `Create Static Objects`：静态刚体，不动，只参与碰撞
+    - `Create Animated Static Objects`：静态刚体，每个时间步按 SOP 几何更新变换，用于带动画的碰撞体，不需要每步重建碰撞形状
+    - `Create Deforming Static Objects`：静态刚体，每个时间步按 SOP 几何重建碰撞形状，用于会变形的碰撞体
+    - `Create Deforming Active Objects`：主动刚体，且每个时间步重建碰撞形状
+    - 带动画的碰撞体不需要变形时用`Create Animated Static Objects`，比`Create Deforming Static Objects`解算量更小
+  - `Geometry Representation`：碰撞形状的表示方式，可选`Convex Hull`（默认）、`Concave`、`Box`、`Capsule`、`Cylinder`、`Compound`、`Sphere`、`Plane`
+    - `Concave`：能更准确地贴合凹形几何，提高解算精度，但耗时更多
+  - `Show Guide Geometry`：勾选后显示刚体的碰撞形状轮廓，方便检查碰撞形状是否合适
 
 **rigidbodysolver节点**
-- 输出解算结果
-- 前连**rbdpackedobject节点**，后连**output节点**
+- 作用：给 DOP 中的对象设置刚体动力学（Rigid Body Dynamics）解算器，对象会按 RBD 对象的方式演化并输出解算结果；节点内同时包含 RBD 和 Bullet 两种引擎，由`Solver Engine`选择
+- 节点结构
+  - 输入端（3 个）
+    - `Objects`（第 1 个输入端）：要解算的对象，前连**rbdpackedobject节点**
+    - `Pre-Solve`（第 2 个输入端）：接在这里的微解算器在主解算步骤之前运行，如用 **sopsolver节点** 修改物体几何，用 POP 力节点给指定物体施力
+    - `Post-Solve`（第 3 个输入端）：接在这里的微解算器在主解算步骤之后运行
+  - 输出端（1 个）
+    - 输出解算后的对象，后连**output节点**
 
 **flipobject节点**
 

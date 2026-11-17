@@ -3661,7 +3661,9 @@ k帧
     - `Global Substeps`：整个 DOP 网络解算的子步数
     - `Bullet Substeps`：Bullet 内部每个模拟步中的子步数，提高后分辨率更高，可改善高速物体穿透
     - `Constraint Iterations`：约束解算的迭代次数，次数越多约束和碰撞越精确，耗时越长
-    - `Solve on Creation Frame`：是否在创建帧也进行解算
+    - `Solve on Creation Frame`：是否在起始帧（`Start Frame`）那一帧也进行解算，创建帧即刚体对象被创建的起始帧
+      - 关闭：起始帧只输出初始状态，从下一帧起才开始解算
+      - 开启：起始帧创建对象后同一帧也解算一次，物体早一帧开始运动，初始穿插也会在起始帧开始修正；差别通常只有一帧，影响很小
     - `Emit RBDs`：模拟过程中发射新刚体，发射出的刚体`name`会追加后缀`_`+int(帧号*100)
     - `Replicate RBDs`：复制刚体，复制出的刚体`name`会追加后缀`_r`+序号
     - `Cache Memory (MB)`：模拟缓存占用的内存上限，单位 MB（截图中为 5000）
@@ -3864,12 +3866,29 @@ k帧
   - `Bullet Solver`
     - `Sleeping Time`：速度低于休眠阈值的持续时间超过该值后，刚体才进入休眠（要等相邻刚体和相连约束的刚体也满足条件）
     - `Contact Breaking Threshold`：缓存的接触点超过该距离后被丢弃，也影响包围盒外扩，按场景尺度调整可提升性能
+      - 什么是接触点：物理引擎碰撞检测后算出的点，表示两个物体表面接触或靠得很近的位置，求解器把每个接触点当作一个约束来算推力
+        - 一个接触点包含：位置、法线（把两个物体推开的方向）、穿透深度或距离（正距离表示还没碰到，只是靠近）、求解器算出的冲量
+        - 作用：碰撞检测生成接触点，约束求解时沿法线施加推力防止穿插，并按摩擦系数产生切向摩擦力，最后更新物体速度和位置
+        - 为什么要缓存：方块放在地面上，底面有 3~4 个接触点，若每帧重新算，位置会有细微跳变导致堆叠抖动，所以 Bullet 会把接触点保留几帧沿用
+      - 调大该值的影响
+        - 物体分开后接触点仍会保留一段时间，物体看起来像“提前碰撞”或“粘住”
+        - 包围盒外扩更多，更多“快碰到”的物体对进入精细碰撞检测，计算量增加，模拟变慢
+      - 调小该值的影响
+        - 接触点很快被丢弃，计算量减少，模拟更快
+        - 堆叠物体更容易抖动、滑动，物体移动较快时可能漏掉碰撞
+      - 调整建议：一般不用大幅调整，出现抖动或明显变慢时再微调；该值是绝对距离（场景单位），要和物体尺寸匹配，物体很小（碎石、颗粒）时可适当调小，物体很大时可适当调大
     - `Use Implicit Drag`：使用更精确的隐式阻尼来施加阻力，而不是显式的力
     - `Split Impulse`：分离冲量，让相互穿插的物体分开时不增加速度，避免物体爆炸式飞散，代价是堆叠稳定性略降
     - `Penetration Threshold`：穿插深度超过该距离（为负数）时才启用分离冲量
+      - 该值为负数；仅在勾选`Split Impulse`时有效
+      - 调整建议：初始互相穿插或出现炸开飞散时调到更接近 0；堆叠发软、慢慢下沉时调得更负；该值是绝对距离，与物体尺寸有关
     - `Split Impulse ERP`：启用分离冲量时覆盖接触约束的误差修正率
   - `Constraint Solver`
     - `Constraint Solver`：约束解算器，`Graph Coloring`适合大而少的“岛”（如整栋楼倒塌），`Islands`适合多而小的“岛”
+      - 什么是岛：物体之间通过接触或约束连在一起就组成一个岛，不同岛之间没有接触，互不影响（如一堆砖块是一个岛，远处另一堆是另一个岛，被约束连起来的整栋楼是一个岛）
+      - 岛会随模拟变化：整栋楼倒塌时，开始是一个大岛，约束断开、碎块散开后变成很多小岛，所以最优选择可能随时间变化，按模拟中耗时最长的阶段选择，或两种都试一下对比速度
+      - `Islands`：把每个岛单独解算，不同岛可分给不同线程并行，适合岛很多且很小的场景（如满地散落的碎石）；只有一个大岛时只能单线程，很慢
+      - `Graph Coloring`：给每个接触或约束“染色”，同色的互不冲突可同时并行，即使只有一个大岛也能多线程，适合岛很少但很大的场景（如整栋楼倒塌）；岛很多且很小时，染色和同步开销反而更大
     - `Solve Tolerance`：解算容差，足够接近解时提前结束迭代，越大越快但越不精确
     - `Constraint Force Mixing`：接触约束的 CFM，越大接触越软越稳定
     - `Error Reduction`：接触约束的 ERP，下一步修正多少比例的误差，推荐 0.1~0.8
@@ -3878,23 +3897,30 @@ k帧
   - `Emission Solver`
     - `Emission Cache Memory`：发射解算器的缓存内存
   - `Collision`
-    - `Solve on Creation Frame`：同`Setup`页的同名参数
+    - `Solve on Creation Frame`：同`Setup`页的同名参数，默认关联
   - `Constraints`
-    - `Overwrite with SOP`：使用 SOP 输入的约束属性覆盖下面各约束类型的参数
+    - `Overwrite with SOP`：勾选后每帧重新从 SOP 的第二个输入端（`Constraint Geometry`）导入约束网络，使约束属性可以随时间变化，实现完全动画化的约束行为
+      - 不勾选：约束网络只在创建时从第二个输入端导入一次，之后由求解器自己维护（如约束断开后就被删除），SOP 中后来改的属性不会影响模拟里的约束
+      - 勾选：约束每帧重新导入，SOP 中属性的变化（如强度随时间变化）会同步到模拟里的约束
+      - 勾选后的限制：`Constraints`页的`Break Thresholds`（求解器层面的断裂阈值）和`Enable Attribute Updates from SOPs`会被自动禁用，不再生效
+      - 与`Emit RBDs`的关系：`Emit RBDs`开启时，该选项被忽略，不会重新导入
     - 各约束类型的参数右侧都有一个菜单，决定参数如何设置：`Set Initial`只在数据创建时设置一次、`Set Always`每个时间步都设置、`Set Never`从不设置
     - `Glue`：设置胶水约束
-      - `glue`设置胶水约束
-        - 胶水约束相当于钢筋
-        - `dataname`要与`@constraint_name`一致
+      - 胶水约束相当于钢筋
+      - `dataname`要与`@constraint_name`一致
       - `Data Name`、`Strength`、`Half-Life`、`Propagation Rate`、`Propagation Iterations`
         - `Data Name`只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数
         - 含义与**rbdconstraintproperties节点**的`Glue`页同名参数一致
-        - 官方文档：胶水约束只会被撞击产生的冲量打断；`Strength`为 -1 时永不断裂
+        - 与第二个输入端上的同名图元约束属性的关系：不是二选一，这里的参数和第二个输入端图元上的同名属性会一起起作用
+          - 图元上有同名属性：面板值不是被忽略，而是和图元属性共同决定强度
+          - 图元上没有同名属性：面板值直接作为强度
+          - `Set Initial`和`Set Always`：两种模式下，面板值都和同名图元属性一起起作用；两者的区别在面板值随时间变化时（`Set Always`每个时间步都重新设置，`Set Initial`只取创建时的值）
+          - `Set Never`：面板值被忽略，只用图元属性，没有该属性时使用默认强度
     - `Soft`：设置软约束
-      - `soft`设置软约束
-        - 软约束相当于钢筋的粘连效果
+      - 软约束相当于钢筋的粘连效果
       - `Data Name`、`Stiffness`、`Damping Ratio`、`Override Angular Stiffness and Damping Ratio`、`Rest Length`、`Constraint Iterations`、`Disable Collisions`
         - `Data Name`只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数；胶水断开后切换的`next_constraint_name`也必须与它一致，否则会报`Required data ... not found or the wrong type`
+        - 面板值与第二个输入端同名图元属性的关系同`Glue`：`Set Initial`、`Set Always`下一起起作用，`Set Never`下忽略面板值（只实测了`Glue`的`Strength`，此处按同理处理，未单独验证）
         - `Rest Length`：静止长度，约束的两个锚点希望保持的距离，非 0 时两端会被推开
         - `Constraint Iterations`：该约束单独使用的迭代次数，-1 表示使用全局的`Constraint Iterations`
         - `Disable Collisions`：被约束的两个刚体之间不发生碰撞
@@ -3903,9 +3929,11 @@ k帧
     - `Hard`：硬约束
       - `Data Name`、`Constraint Force Mixing`、`Error Reduction`、`Rest Length`、`Constraint Iterations`、`Disable Collisions`、`Guide Scale`
         - `Data Name`只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数
+        - 面板值与第二个输入端同名图元属性的关系同`Glue`：`Set Initial`、`Set Always`下一起起作用，`Set Never`下忽略面板值（只实测了`Glue`的`Strength`，此处按同理处理，未单独验证）
       - `Angular Motor`：角马达，`Number of Motors`设置马达数量，每个马达有`Axis`轴向、`Relative Angular Velocity`相对角速度、`Max Impulse`最大冲量
     - `ConeTwist`：圆锥扭转约束，在一个椭圆锥范围内允许旋转，常用于人体肩、髋关节等
       - `Data Name`：只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数
+      - 面板值与第二个输入端同名图元属性的关系同`Glue`：`Set Initial`、`Set Always`下一起起作用，`Set Never`下忽略面板值（只实测了`Glue`的`Strength`，此处按同理处理，未单独验证）
       - `Enable Soft Constraint`：把位置限制、旋转限制、马达目标都当作软约束，各自有刚度和阻尼比
       - `Rotation Limits`：旋转限制
         - `Max Twist`最大扭转角度，`Max Out Rotation`左右方向最大旋转角度，`Max Up Rotation`上下方向最大旋转角度
@@ -3922,6 +3950,7 @@ k帧
         - `Target Current Pose`、`Target Rotation`、`Target Position`、`Target Angular Stiffness`、`Target Angular Damping Ratio`、`Target Position Stiffness`、`Target Position Damping Ratio` 等
     - `Slider`：滑动约束，沿一条铰链轴限制平移和旋转
       - `Data Name`：只接收一个名称（单行字符串，不是列表），只有`constraint_name`与它相同的图元才会使用该区块的参数
+      - 面板值与第二个输入端同名图元属性的关系同`Glue`：`Set Initial`、`Set Always`下一起起作用，`Set Never`下忽略面板值（只实测了`Glue`的`Strength`，此处按同理处理，未单独验证）
       - `Max Rotation`：绕铰链轴的最大旋转角度（度）
       - `Slide Range`：可滑动的范围
       - `Axes`：`Goal Hinge Axis`、`Goal Up Axis`、`Constrained Hinge Axis`、`Constrained Up Axis`

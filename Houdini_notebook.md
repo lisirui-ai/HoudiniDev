@@ -6308,6 +6308,22 @@ importpoint/primitive/vertex/**detailattribute节点**
 - 调整体素的大小`voxelsize`
   - `usingvoxelsizeonly`模式
 
+**vdbreshapesdf节点**
+
+- 作用：沿法线方向把 SDF（符号距离场）`vdb`的表面向外或向内移动，从而改变形状
+- 节点结构
+  - 输入端（2 个）
+    - 第 1 个输入端：包含要处理的`vdb`的几何
+    - 第 2 个输入端（可选）：作为`Alpha Mask`的`vdb`，体素值应在 0 到 1 之间
+  - 输出端（1 个）：输出处理后的`vdb`
+- 核心参数
+  - `Operation`：对 SDF 做哪种形状处理
+    - `Dilate`：沿法线向外扩张表面（默认）
+    - `Erode`：沿法线向内收缩表面
+    - `Open`：先向内收缩再向外扩张相同的量，孤立的小凸起和小岛会被抹掉
+    - `Close`：先向外扩张再向内收缩相同的量，孔洞和凹坑会被填平
+  - `Offset`：表面移动的量，默认 1
+
 **pyrobakevolume节点**
 
 - 为`vdb`体积赋予材质

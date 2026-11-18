@@ -1193,6 +1193,7 @@ k帧
   - `group`：指定要编号的点/面组
   - `group type`：组的元素类型（点、面、顶点）
   - `piece attribute`：指定一个整数或字符串属性作为分块依据，同值元素视为同一块，配合 `mode` 对各块分别编号
+    - 通常配合 **connectivity节点**（输出整数属性，默认名 `class`）或 **assemble节点**（输出字符串属性 `name`）产生分块属性
     - `mode`：分块编号模式
       - `enumerate piece elements`：对每块内的元素依次递增编号，编号接自上一块（不会在每块开头重新从 0 开始）
       - `enumerate pieces`：同一块内所有元素写入相同的编号，适合将字符串分块属性（如 `@name`）转换为唯一整数编号

@@ -1054,7 +1054,7 @@ k帧
   - 在视口中选中节点后按回车键进入可视化状态，可看到颜色和数值分布直方图
 - `Output`
   - `Attribute Name`：生成的属性名，使用默认名时切换`Measure`会自动改成对应的名称，自定义名称不会改变
-  - `Total Attribute Name`：勾选后额外生成一个细节属性，保存整个几何体（或分组）的总测量值
+  - `Total Attribute Name`：勾选后额外生成一个`detail`属性，保存整个几何体（或分组）所有元素测量值加起来的总和，例如总面积、总体积，与`Accumulate`的选项无关
   - `Range Group`：勾选后，把测量值在`Visualized Range`中设置的`Minimum`和`Maximum`之间的元素放进指定的分组，超出这个区间的元素不放入，例如筛选出面积在某范围内的面
   - `Bake Visualized Range Into Output`：默认`Visualized Range`只影响视口显示，勾选后，超出`Minimum`、`Maximum`的测量值会被改成最小值或最大值，并写入输出属性
   - `Remap Range`：把限制后的输出值按比例换算到新的最小值和最大值之间，例如换算到0到1作为权重，需要先勾选上一项

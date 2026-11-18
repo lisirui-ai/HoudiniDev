@@ -4137,6 +4137,30 @@ k帧
   - `Uniform`：整个几何体使用固定的目标边长
   - `Adaptive`：根据局部曲率改变边长，曲率低的地方用大三角形，细节多的地方用小三角形
 - `Target Size`：`Uniform`模式下的目标边长，值越小三角形越密，是控制面数最关键的参数
+
+**bound节点**
+
+- 为输入几何体创建包围盒、包围球或包围矩形
+- 输入端口
+  - 第一个输入端：需要被包围的几何体
+- 输出端口
+  - 第一个输出端：包围几何体（勾选`Keep Original`时同时包含原几何体）
+- `Group`：只包围该分组内的元素，留空表示整个几何体
+- `Group Type`：`Group`中引用的元素类型，默认为`Guess from Group`（根据分组自动判断）
+- `Keep Original`：保留输入几何体，输出中同时有原几何体和包围几何体
+- `Create Bounding Geometry`：是否创建包围几何体；关闭后只在原几何体上记录`Transform Attribute`、`Radii Attribute`等属性，不生成包围几何体
+- `Create When Bounds Empty`：输入为空时，勾选则在原点创建一个大小为0的包围盒，不勾选则输出空几何体
+- `Bounding Type`：包围几何体的类型，默认为`Box`（包围盒），也可选包围球、包围矩形
+- `Oriented Bounding Box (points only)`：勾选后包围盒的朝向与输入几何体的轴对齐，而不是世界轴，使包围盒更贴合倾斜的模型
+  - 只基于点计算，不适用于球体图元、打包几何体这类没有顶点的图元
+- `Divisions`：包围盒沿`x`、`y`、`z`轴的分段数，勾选后才可编辑，默认3
+  - 勾选后输出的包围盒没有面，只剩分段后的边
+- `Enforcement Bars`：在分段后的包围盒内部加斜向的支撑线，需要先勾选`Divisions`
+- `Minimum Size`：包围盒在`x`、`y`、`z`三个轴上的最小尺寸
+- `Lower Padding`、`Upper Padding`：把计算得到的包围盒在各轴的最小端、最大端向外扩大的距离，用于让包围盒比模型略大
+- `Bounds Group`：勾选后创建一个图元分组，包含构成包围几何体的图元，在勾选`Keep Original`时可用来区分包围几何体和原几何体
+- `Transform Attribute`：勾选后创建一个`detail`属性，保存包围几何体的平移和旋转（4x4矩阵）
+- `Radii Attribute`：勾选后创建一个`detail`属性，保存包围几何体的范围，包围盒和包围矩形是各轴方向上的半边长，包围球是`x`、`y`、`z`三个半径
 ## dop
 
 **solver节点**

@@ -1101,7 +1101,7 @@ k帧
   - `Edge Angle Uses Angle Between Edges`：勾选后（仅当 `Group Type` 为 `Edges` 时有效），`Min/Max Edge Angle` 的含义变为该边与所有共点的其他边之间的夹角，不再是共享该边的两个面的夹角
   - `Min/Max Edge Length`：按边长范围筛选
   - `Edge Depth`：从 `Point Group` 指定的点组出发按边数扩展纳入周围元素，仅当 `Group Type` 为 `Points` 时可用
-  - `Unshared Edges`：将含有非共享边的点/面/边加入组
+  - `Unshared Edges`：将含有非共享边的点/面/边加入组（非共享边指只被一个面使用的边，只出现在模型的开口边缘，被两个面共用的边是共享边）
   - `Create Boundary Groups`：额外创建表面边界点组（表面边界点指模型开口边缘上的点，即位于非共享边上的点，封闭模型没有边界点）
 - `Keep by Random Chance`：按随机概率筛选
   - `Enable`：启用随机概率筛选

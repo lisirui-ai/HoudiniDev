@@ -464,7 +464,7 @@ chf("path")                    // 明确读取 float 类型参数，返回 float
 chi("path")                    // 读取 int 类型参数，返回 int
 chs("path")                    // 读取 string 类型参数，返回 string
 chu("path")                    // 读取 vector2 类型参数，返回 vector2
-chv("path")                    // 读取 vector 类型参数，返回 vector
+chv("path")                    // 读取 vector 类型参数，返回 vector；在 Edit Parameter Interface 中可将参数的 Type 切换为 Color，使其以颜色选择器的形式显示
 chp("path")                    // 读取 vector4 类型参数，返回 vector4
 ch2("path")                    // 读取 matrix2 类型参数，返回 matrix2（2×2）
 ch3("path")                    // 读取 matrix3 类型参数，返回 matrix3（3×3）
@@ -1649,6 +1649,8 @@ k帧
 - 修改层级的属性
 - 对粒子（解算后的点）属性的修改，是在点层级
 - 不同层级的属性不共享
+- `Group` 栏用于指定对哪些元素执行代码，可以跨层级使用，例如：填入面组或边组且 `Run Over` 为 `Points` 时，Houdini 会自动把组转换为当前层级的元素，对组内涉及的点执行操作
+  - 这只是筛选执行范围，不同于在 VEX 中用 `@group_组名` 读写组：后者只能操作当前执行层级的组，跨层级写组仍需使用 `setprimgroup` 等 set 系列函数
 
 **grouppromote节点**
 

@@ -915,7 +915,34 @@ k帧
 
 **normal节点**
 
-- 计算法线
+- 计算、修改几何体的法线属性`N`
+- 输入端
+  - `Geometry to add normals to`：需要添加法线的几何体
+- 输出端
+  - `Output 1`：带有法线属性的几何体
+- 参数
+  - `Group`：要修改法线的元素子集，可以是点、顶点、图元或边组
+    - 若输入几何体没有`N`且`Add Normals to`为`Vertices`，会先按`Cusp Angle`为`180`的完全平滑方式计算所有顶点法线，再对该组计算
+    - 若输入几何体没有`N`且`Add Normals to`为其他选项，该组会被忽略，对所有相关元素计算法线
+  - `Group Type`：`Group`的类型（`Guess from Group` / `Vertices` / `Edges` / `Points` / `Primitives`），选`Guess from Group`且类型有歧义时按图元组处理
+  - `Override Normal`：要创建或修改的法线属性名称，默认为`N`
+  - `Compute Normals`：勾选后，根据`Add Normals to`、`Cusp Angle`、`Weighting Method`对`Group`计算法线
+  - `Add Normals to`：法线添加到哪种元素上
+    - `Points`：每个点一个法线，为点周围各顶点法线按顶点夹角加权的平均值，因此三角化不会改变结果
+    - `Vertices`：每个顶点一个法线，同一个点周围的顶点法线夹角小于`Cusp Angle`时，会按各多边形中的顶点夹角加权平均
+    - `Primitives`：每个图元一个法线
+    - `Detail`：整个几何体只有一个法线，为各图元法线按图元面积加权的平均值
+  - `Cusp Angle`：尖角角度（单位：度），仅在`Add Normals to`为`Vertices`时生效
+    - 同一个点周围的顶点法线夹角小于或等于该值时会被平均（平滑边），大于该值则保持分离（硬边）
+    - 值越小硬边越多，值为`180`时完全平滑
+    - `Add Normals to`为`Points`时，`Cusp Angle`不起作用（每个点只有一个法线，不会产生硬边）
+  - `Weighting Method`：加权方式
+    - `Each Vertex Equally`：每个顶点权重相同，速度快但精度较低
+    - `By Vertex Angle`：按顶点夹角加权，可避免细长多边形带来的问题，三角化不会明显改变法线
+    - `By Face Area`：面积大的面权重更高，常用于模拟简单倒角几何体的平滑倒角效果
+  - `Keep Original Normal Where Computed Normal Is Zero`：计算出的法线为零（如孤立点）时，保留输入的原有法线
+  - `Make Normals Unit Length`：将`Group`内已有法线归一化为长度`1`；`Compute Normals`开启时无效（计算出的法线本身已归一化）
+  - `Reverse Normals`：将`Group`内法线反向（乘以`-1`）
 
 **blast节点**
 

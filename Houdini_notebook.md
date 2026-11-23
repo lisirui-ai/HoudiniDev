@@ -6244,6 +6244,20 @@ importpoint/primitive/vertex/**detailattribute节点**
   - `Shadow Intensity`：阴影强度倍率；`1` 为完整阴影，`0` 为无阴影，中间值产生半透明阴影效果
   - `Shadow Color`：阴影颜色（默认黑色 0, 0, 0）；调整为非黑色可模拟彩色阴影或间接光填充效果
   - `Transparent Shadows`：勾选后允许透明/半透明材质投射带颜色的透明阴影（如彩色玻璃）；取消勾选则透明对象按不透明处理，阴影全黑
+- 照亮与阴影投射的区别：两者是独立的两件事，各用一组参数控制；灯光链接要让灯光只影响指定对象，用的是 `Categories` 加 `Light Selection`，不是 `Shadow Mask`
+
+  | 对比项 | 照亮（Illuminate） | 阴影投射（Cast Shadow） |
+  |---|---|---|
+  | 含义 | 灯光的光能不能到达该对象 | 该对象会不会挡住这盏灯的光并留下影子 |
+  | 参数所在位置 | 对象节点（Render → Shading） | 灯光节点（`Shadow` 选项卡） |
+  | 控制参数 | 对象的 `Light Mask`、`Light Selection`；灯光的 `Categories` 作为标签配合 | 灯光的 `Shadow Mask`（谁投射）、`Shadow Selection`（谁接收） |
+  | 匹配对象 | `Light Selection` 匹配灯光的 `Categories` 标签 | `Shadow Mask` 匹配对象路径；`Shadow Selection` 匹配对象的 `categories` 标签 |
+  | 默认值 | `*`（接受所有灯光） | `Shadow Mask` 为 `*`，`Shadow Selection` 为 `-noshadow` |
+  | 被排除的结果 | 该灯对此对象没有明暗和高光贡献 | `Shadow Mask` 排除的对象不挡光；`Shadow Selection` 排除的对象不接收阴影 |
+
+  - 阴影要出现，需要同时满足：投射者在 `Shadow Mask` 内、接收者没被 `Shadow Selection` 排除、该灯光照亮接收者
+  - 只让某盏灯影响某个对象的做法：灯光 `Categories` 填自定义标签（如 `toylight`），其他对象的 `Light Selection` 填 `* -toylight`；环境灯 `envlight` 同理
+  - 灯光链接只管灯光本身的光照；被排除的对象仍会通过材质的环境采样反射环境贴图
 - `Spot Light Options` 选项卡
   - `Enable Spot Light`：勾选后将灯光切换为聚光灯模式，照射范围限定在锥形区域内；取消勾选则按面积光/点光等原始类型发光
   - `Use cone angle for field of view`：勾选后以 `Cone Angle` 替代 `Projection Angle` 作为实际投影视角；取消勾选时投影视角由 `Projection Angle` 单独控制（默认勾选）

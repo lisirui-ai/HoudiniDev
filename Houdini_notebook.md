@@ -3646,7 +3646,7 @@ k帧
 - 对几何体施加弯曲、扭转、缩放、锥化等形变；形变仅作用于 `Capture Region`（捕获区域）内的点，区域外的点完全不受影响
 - 顶部公共参数
   - `Group` / `Group Type`：指定参与形变的元素子集及其类型；留空则对所有元素操作
-  - `Mask`：遮罩属性名（截图中默认为 `bend_attrib`），用浮点属性的值（0～1）按权重调制形变强度；`Mask Off` 关闭遮罩，全权重生效
+  - `Mask`：遮罩属性名，用浮点属性的值（0～1）按权重调制形变强度；`Mask Off` 关闭遮罩，全权重生效
 - `Deformation` 选项卡
   - `Enable Deformation`：总开关，取消勾选则节点直通输入不做任何形变
   - `Limit Deformation to Capture Region`：勾选后仅对位于 `Capture Region` 内的点施加形变，区域外点保持原位；取消勾选则对所有点均应用形变

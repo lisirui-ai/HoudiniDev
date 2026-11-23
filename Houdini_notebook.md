@@ -5766,7 +5766,7 @@ attribute **vop节点**
 
 **worley noise节点**
 
-- 生成`worley` noise
+- 生成`worley noise`
   - 又称细胞噪波（cell noise）：在空间中按泊松分布随机撒点，根据到这些点的距离生成类似细胞的图案
   - 生成的噪波没有抗锯齿；若需要更好的着色效果，应使用带抗锯齿的**cellular noise节点**
 - 锐化边缘的方法

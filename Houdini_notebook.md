@@ -1192,11 +1192,37 @@ k帧
 
 **polywire节点**
 
-- 放样线为管道
+- 作用：沿多段线（曲线/折线）扫掠圆截面，生成带平滑弯折与分叉的多边形管道；类似 **wire节点**，但在分叉、急转弯处比 **wire节点** 更平滑（尤其适合 L-system 等分叉曲线），可用于渲染曲线、藤蔓、线缆、树枝等
+- 输入端：1 个输入，接入要转换为管道的多边形线（折线）几何体
+- 输出端：1 个输出，生成的多边形管道几何体
+- 多数参数支持用点属性覆盖（下拉菜单切到 `Attribute`，如 `Wire Radius`、`Smooth Point`、`Divisions`、`Segments`、`V Texture`、`Use Up Vector`），可实现逐点控制
+- 参数同时也支持局部变量（`PTDIST`、`NSEG`）
+  - `$PTDIST`：当前这一段（相邻两点之间的边）的长度，即两端点间的距离，每条边各自独立
+  - `$NSEG`：当前这一段 `Segments` 求值后的实际段数
+  - 注意：`$PTDIST`、`$NSEG` 只在 `Segment Scales` 中有效
 - 带有展`uv`功能
-  - 相当于把管道剖开为一张平面，u为横向，v为竖向
-  - u不用管，v的展`uv`模式需要调整
-    - v `texture`设置为`attrib`模式
+  - 相当于把管道剖开为一张平面，`u` 为横向（绕管一圈），`v` 为竖向（沿管长度方向）
+  - `u` 不用管，`v` 的展 `uv` 模式需要调整
+    - `V Texture` 设置为 `Attrib` 模式（默认读取点属性 `arc`），再用点属性提供 `v` 值
+- 节点参数
+  - `Group`：要转换为管道的多边形分组；为空则处理全部
+  - `Wire Radius`：管道半径；右侧下拉可选 `Constant` / `Attribute`，选 `Attribute` 时出现 `Scale Attrib`（默认 `pscale`），该点浮点属性会与半径相乘
+  - `Prevent Joint Buckling`：防止关节塌陷；勾选后放大边的交点，使其落在两根管的交线上，避免急转弯时折叠
+    - `Max Joint Scale`：关节处点的最大缩放（默认 2），避免缩放超出首段管道而塌陷；可按点控制
+  - `Smooth Point`：逐点生效（“点”指输入折线上线段相接的关节点）；某点该值非 0 时，经过此点的管道在此处连成一体、平滑过渡；为 0 时管道在此点断开，各边的管道各自独立，且端点不封口（默认 1）；右侧下拉可选 `Constant` / `Attribute`，选 `Attribute` 时读取 `Smooth Attrib`（默认 `smooth`，点浮点属性小于 0.5 视为断开），从而逐点控制
+  - `Max Valence`：某个点上连接的边数（英文 valence，也叫“度”：折线端点为 1，普通折线中间点为 2，Y 形分叉点为 3，十字交叉点为 4）超过该值时，该点按 `Smooth Point` 为 0 处理，即在此点断开（默认 25）；连接过多的点结果通常较差，且耗时耗内存剧增
+  - `Divisions`：管道截面圆的分段数（默认 4，即方形截面）；右侧下拉可选 `Constant` / `Attribute`，选 `Attribute` 时读取 `Div Attrib`（默认 `div`，整型点属性覆盖）
+  - `Segments`：每条边沿长度方向分成的段数（默认 1）；右侧下拉可选 `Constant` / `Attribute`，选 `Attribute` 时读取 `Segs Attrib`（默认 `segs`，整型点属性覆盖，取两端点平均值）
+  - `Segment Scales`：每段第一个截面圆与继续延伸位置（0 为段起点，1 为段终点，两个值均在 0~1）；可用局部变量 `$NSEG`（该段实际段数）；默认为 `1.0 / $NSEG` 与 `1.0 - 1.0 / $NSEG`
+  - `Do Vertex Textures`：是否生成顶点级 `uv`（纹理）；为使分叉处纹理最佳，线的点序应让“主干”一侧点号最小（如 Y 形分叉底部点号最小）
+    - `U Seam Offset`：按段设置，决定接缝绕管旋转多远，接缝始终吸附到最近的多边形边（默认 0）
+    - `U Textures`：每段 `u` 纹理坐标的起止值（默认 0 与 1）
+    - `V Texture`：`v` 坐标来源，下拉可选 `Constant` / `Attrib`；`Constant` 按段起止值，`Attrib` 时读取点浮点属性 `V Texture Attrib`（默认 `arc`），分叉点生成的点共用该值
+    - `V Textures`：`Constant` 模式下每段 `v` 坐标的起止值（默认 0 与 1）
+    - `Use Up Vector`：设置关节处的上方向，下拉可选 `None`（默认）/ `Constant` / `Attrib`；`Constant` 时出现 `Joint Up Vector`（默认 `0, 1, 0`），`Attrib` 时读取 `Joint Up Attrib`（默认 `up`，点向量属性），会影响分支在连接处的扭转
+- 局部变量
+  - `PTDIST`：解析该段时，段两端点之间的距离
+  - `NSEG`：该段 `Segments` 实际求值的段数
 
 **mountain节点**
 

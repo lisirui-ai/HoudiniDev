@@ -6100,6 +6100,61 @@ importpoint/primitive/vertex/**detailattribute节点**
     - 直觉理解：`Gamma` 值控制"亮度响应曲线的弯曲方向"，类似于 Photoshop 色阶中间的灰场滑块——向左（提高 Gamma）提亮中间调，向右（降低 Gamma）压暗中间调
 - `Bias` 与 `Gamma` 的区别：两者都是弯曲亮度曲线的非线性变换，两端（纯黑 `0`、纯白 `1`）均锚定不动，区别在于弯曲重心不同；`Gamma` 是幂函数，弯曲量与输入值成比例，暗部变化幅度大、亮部变化幅度小，适合大幅调整暗部而不影响高光；`Bias` 以中点 `0.5` 为基准弯曲，对中间调影响最集中，暗部和亮部受影响相对均匀，适合平滑偏移中间调同时保持高光和暗部稳定
 
+**modulo节点**
+
+- 计算两个值的取模（余数），常用于将数值限制在循环区间内，如循环 UV、周期性重复、条纹与棋盘格图案
+- 输入端
+  - `input1`：被除数（`Input 1`），由上游连入
+  - `input2`：除数（`Input 2`，参数面板中显示为 `Divisor`），可连线也可直接在参数面板中设置，默认 `1`
+- 输出端
+  - `mod`：取模结果（`Modulo`），与输入的数据类型一致
+- 参数
+  - `Signature`：数据类型签名，决定输入输出的数据类型，默认 `Float`
+    - `Float`：浮点
+    - `Integer`：整数
+    - `2D Vector`：二维向量
+    - `3D Vector`：三维向量
+    - `3D Point`：三维点
+    - `3D Normal`：三维法线
+    - `RGB Color`：RGB 颜色
+    - `4D Vector`：四维向量
+    - `Uniform Float`、`Uniform 3D Vector`、`Uniform 3D Point`、`Uniform 3D Normal`、`Uniform RGB Color`：对应的 `Uniform` 类型；`Uniform` 表示该值在整个被着色的表面上是恒定的（不随采样点变化），与之相对的是逐点变化的 `varying` 值
+  - `Divisor`：除数，未连接 `input2` 时生效；默认值为各分量 `1`，分量个数随 `Signature` 变化
+  - 取模规则与 Python 一致：`mod(a, b)` 的结果始终落在 `[0, b)` 区间内，因此负数被除数也能得到正确的循环结果，例如 `mod(-3, 5) == 2`；若 `b` 为负数，结果则始终在负数区间内
+
+**ceiling节点**
+
+- 向上取整，返回大于等于输入值的最小整数，如 `1.2` 得 `2`，`-1.2` 得 `-1`
+- 输入端
+  - `val`：输入值（`Input Value`）
+- 输出端
+  - `ceil`：向上取整结果
+- 参数
+  - `Signature`：数据类型签名，默认 `Float`，另有各类向量、点、法线、颜色及对应 `Uniform` 类型
+  - `Value`：输入值，未连线时生效，默认 `1`
+
+**floor节点**
+
+- 向下取整，返回小于等于输入值的最大整数，如 `1.8` 得 `1`，`-1.2` 得 `-2`
+- 输入端
+  - `val`：输入值（`Input Value`）
+- 输出端
+  - `floor`：向下取整结果
+- 参数
+  - `Signature`：数据类型签名，默认 `Float`，另有各类向量、点、法线、颜色及对应 `Uniform` 类型
+  - `Value`：输入值，未连线时生效，默认 `1`
+
+**frac节点**
+
+- 取小数部分，等价于 `val - floor(val)`，结果落在 `[0, 1)`，如 `1.25` 得 `0.25`，`-1.25` 得 `0.75`；常用于让数值循环重复（如平铺 UV）
+- 输入端
+  - `val`：输入值（`Input Value`）
+- 输出端
+  - `fraction`：小数部分（`Fractional Value`）
+- 参数
+  - `Signature`：数据类型签名，默认 `Float`，比 **ceiling节点** 和 **floor节点** 多一个 `Integer` 选项
+  - `Value`：输入值，未连线时生效，默认 `1`
+
 ## 渲染
 
 **mantra节点**

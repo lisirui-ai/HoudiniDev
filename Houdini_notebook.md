@@ -6333,7 +6333,7 @@ importpoint/primitive/vertex/**detailattribute节点**
   | 被排除的结果 | 该灯对此对象没有明暗和高光贡献 | `Shadow Mask` 排除的对象不挡光；`Shadow Selection` 排除的对象不接收阴影 |
 
   - 阴影要出现，需要同时满足：投射者在 `Shadow Mask` 内、接收者没被 `Shadow Selection` 排除、该灯光照亮接收者
-  - 只让某盏灯影响某个对象的做法：灯光 `Categories` 填自定义标签（如 `toylight`），其他对象的 `Light Selection` 填 `* -toylight`；环境灯 `envlight` 同理
+  - 只让某盏灯影响某个对象的做法：灯光 `Categories` 填自定义标签（如 `toylight`），其他对象的 `Light Selection` 填 `-toylight`（类别表达式中 `-<name>` 表示"未打该类别标签的对象/灯光"，无需再加 `*`；多个条件用 `&`、`|` 连接，不能用空格）；环境灯 `envlight` 同理
   - 灯光链接只管灯光本身的光照；被排除的对象仍会通过材质的环境采样反射环境贴图
 - `Spot Light Options` 选项卡
   - `Enable Spot Light`：勾选后将灯光切换为聚光灯模式，照射范围限定在锥形区域内；取消勾选则按面积光/点光等原始类型发光
